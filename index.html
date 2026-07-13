@@ -553,6 +553,23 @@
     .location-option:hover, .location-option:focus { background: var(--sky); }
     .location-option small { display: block; color: var(--muted); margin-top: 2px; }
     .selected-location { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .save-place-row { display: flex; gap: 8px; align-items: stretch; }
+    .save-place-row input { min-width: 0; flex: 1; }
+    .secondary-action {
+      flex: 0 0 auto;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--accent);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 750;
+      padding: 0 10px;
+      white-space: nowrap;
+    }
+    .secondary-action:hover, .secondary-action:focus { background: #f0fdfa; }
+    #customPlaceMessage { margin-top: 5px; }
 
     .tag {
       display: inline-flex;
@@ -1277,6 +1294,14 @@
           <input id="locationSearch" type="search" value="ירושלים" autocomplete="off" placeholder="עברית, English או כינוי">
           <div id="locationResults" class="location-results" hidden></div>
           <div id="selectedLocation" class="selected-location">ירושלים, Israel · 754 מטר</div>
+        </div>
+        <div class="field manual-place-field">
+          <label for="customLocationName">שם מקום לקואורדינטות ידניות <button type="button" class="info-btn" data-info-key="customLocationName" aria-label="הסבר">?</button></label>
+          <div class="save-place-row">
+            <input id="customLocationName" type="text" autocomplete="off" placeholder="לדוגמה: בית / גג ביתי">
+            <button type="button" class="secondary-action" id="saveCustomLocation">שמור מקום</button>
+          </div>
+          <div id="customPlaceMessage" class="selected-location" hidden></div>
         </div>
         <div class="primary-row calculate-row">
           <button class="action" id="calculate">חשב</button>
@@ -10956,6 +10981,8 @@
     let currentTemperatureC = 10;
     let currentPressureHPa = 1010;
     let selectedLocation = null;
+    const CUSTOM_LOCATIONS_STORAGE_KEY = "starVisibilityCustomLocationsV1";
+    const ACTIVE_LOCATION_STORAGE_KEY = "starVisibilityLocationV3";
     let uiLanguage = "en";
     let lastHebrewModelNote = "";
     if (!globalThis.__CALC_WORKER__) {
@@ -11174,6 +11201,54 @@
       return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
     }
 
+    function normalizeCustomLocation(raw) {
+      const name = String(raw?.name || raw?.EnglishName || "").trim();
+      const latitude = Number(raw?.Latitude);
+      const longitude = Number(raw?.Longitude);
+      const elevation = Number(raw?.ElevationMeters);
+      const timeZone = String(raw?.TimeZone || "").trim();
+      if (!name || !Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180 || !timeZone) return null;
+      return {
+        id: String(raw?.id || `custom-${normalizedSearch(name).replace(/[^a-z0-9\u0590-\u05ff]+/g, "-") || "place"}`),
+        HebrewName: name,
+        EnglishName: name,
+        Country: uiLanguage === "en" ? "Saved place" : "מקום שמור",
+        Region: uiLanguage === "en" ? "Custom coordinates" : "קואורדינטות ידניות",
+        Latitude: latitude,
+        Longitude: longitude,
+        ElevationMeters: Number.isFinite(elevation) ? elevation : 0,
+        TimeZone: timeZone,
+        Aliases: [],
+        CommunityType: "Custom",
+        isCustom: true
+      };
+    }
+
+    function savedCustomLocations() {
+      if (globalThis.__CALC_WORKER__) return [];
+      try {
+        const parsed = JSON.parse(localStorage.getItem(CUSTOM_LOCATIONS_STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed.map(normalizeCustomLocation).filter(Boolean) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function allLocations() {
+      return [...savedCustomLocations(), ...BUILTIN_LOCATIONS];
+    }
+
+    function locationId(location) {
+      if (location?.isCustom) return `custom:${location.id}`;
+      return `builtin:${BUILTIN_LOCATIONS.indexOf(location)}`;
+    }
+
+    function findLocationById(id) {
+      if (String(id).startsWith("custom:")) return savedCustomLocations().find(location => location.id === String(id).slice(7)) || null;
+      if (String(id).startsWith("builtin:")) return BUILTIN_LOCATIONS[Number(String(id).slice(8))] || null;
+      return null;
+    }
+
     function locationSearchText(location) {
       return normalizedSearch([
         location.HebrewName, location.EnglishName, location.Country, location.Region,
@@ -11183,9 +11258,10 @@
 
     function matchingLocations(query) {
       const q = normalizedSearch(query);
-      return BUILTIN_LOCATIONS
+      return allLocations()
         .filter(location => !q || locationSearchText(location).includes(q))
         .sort((a, b) => {
+          if (a.isCustom !== b.isCustom) return a.isCustom ? -1 : 1;
           const community = (a.CommunityType === "Haredi" ? 0 : 1) - (b.CommunityType === "Haredi" ? 0 : 1);
           return community || a.HebrewName.localeCompare(b.HebrewName, "he");
         });
@@ -11195,51 +11271,111 @@
       const box = $("locationResults");
       const matches = matchingLocations(query).slice(0, 14);
       box.innerHTML = matches.map(location => {
-        const index = BUILTIN_LOCATIONS.indexOf(location);
         const primary = uiLanguage === "en" ? location.EnglishName : location.HebrewName;
         const secondary = uiLanguage === "en" ? location.HebrewName : location.EnglishName;
-        return `<button type="button" class="location-option" data-location-index="${index}"><strong>${escapeHtml(primary)}</strong> · ${escapeHtml(secondary)}<small>${escapeHtml(location.Region)}, ${escapeHtml(location.Country)} · ${location.ElevationMeters}m · ${escapeHtml(location.TimeZone)}</small></button>`;
+        const savedLabel = location.isCustom ? (uiLanguage === "en" ? "Saved place · " : "מקום שמור · ") : "";
+        return `<button type="button" class="location-option" data-location-id="${escapeHtml(locationId(location))}"><strong>${escapeHtml(primary)}</strong>${secondary !== primary ? ` · ${escapeHtml(secondary)}` : ""}<small>${savedLabel}${escapeHtml(location.Region)}, ${escapeHtml(location.Country)} · ${location.ElevationMeters}m · ${escapeHtml(location.TimeZone)}</small></button>`;
       }).join("") || `<div class="location-option">${uiLanguage === "en" ? "No matching place found" : "לא נמצא מקום מתאים"}</div>`;
       box.hidden = false;
+    }
+
+    function updateSelectedLocationText(location = selectedLocation) {
+      const name = location ? (uiLanguage === "en" ? location.EnglishName : location.HebrewName) : ($("customLocationName")?.value.trim() || (uiLanguage === "en" ? "Manual location" : "מיקום ידני"));
+      const elevation = Number($("observerElevationM")?.value || 0);
+      const timeZone = $("timezone")?.value.trim() || "--";
+      $("selectedLocation").textContent = `${name} · ${Number.isFinite(elevation) ? elevation : 0} ${uiLanguage === "en" ? "m" : "מטר"} · ${timeZone}`;
     }
 
     function applyLocation(location, options = {}) {
       if (!location) return;
       selectedLocation = location;
-      $("locationSearch").value = location.HebrewName;
+      $("locationSearch").value = uiLanguage === "en" ? location.EnglishName : location.HebrewName;
+      $("customLocationName").value = uiLanguage === "en" ? location.EnglishName : location.HebrewName;
       $("lat").value = location.Latitude;
       $("lon").value = location.Longitude;
       $("observerElevationM").value = location.ElevationMeters;
       $("timezone").value = location.TimeZone;
-      $("selectedLocation").textContent = uiLanguage === "en"
-        ? `${location.EnglishName}, ${location.Country} · ${location.ElevationMeters} m · ${location.TimeZone}`
-        : `${location.HebrewName}, ${location.Country} · ${location.ElevationMeters} מטר · ${location.TimeZone}`;
+      updateSelectedLocationText(location);
       $("locationResults").hidden = true;
       if (options.save !== false) {
-        try { localStorage.setItem("starVisibilityLocationV2", location.EnglishName); } catch (_) {}
+        try {
+          localStorage.setItem("starVisibilityLocationV2", location.EnglishName);
+          localStorage.setItem(ACTIVE_LOCATION_STORAGE_KEY, locationId(location));
+        } catch (_) {}
       }
       if (options.calculate !== false) calculate();
+    }
+
+    function markManualCoordinates(clearBuiltinName = false) {
+      if (clearBuiltinName && selectedLocation && !selectedLocation.isCustom) $("customLocationName").value = "";
+      selectedLocation = null;
+      updateSelectedLocationText(null);
+    }
+
+    function saveCustomLocation() {
+      const name = $("customLocationName").value.trim();
+      const latitude = Number($("lat").value);
+      const longitude = Number($("lon").value);
+      const elevation = Number($("observerElevationM").value || 0);
+      const timeZone = $("timezone").value.trim();
+      if (!name) throw new Error(uiLanguage === "en" ? "Enter a name before saving this place." : "יש להזין שם לפני שמירת המקום.");
+      if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) throw new Error(uiLanguage === "en" ? "Enter valid latitude and longitude before saving this place." : "יש להזין קו רוחב וקו אורך תקינים לפני השמירה.");
+      assertTimeZone(timeZone);
+      const id = `custom-${normalizedSearch(name).replace(/[^a-z0-9\u0590-\u05ff]+/g, "-") || "place"}`;
+      const location = normalizeCustomLocation({ id, name, Latitude: latitude, Longitude: longitude, ElevationMeters: elevation, TimeZone: timeZone });
+      const locations = savedCustomLocations().filter(item => item.id !== id);
+      locations.push(location);
+      try {
+        localStorage.setItem(CUSTOM_LOCATIONS_STORAGE_KEY, JSON.stringify(locations));
+        localStorage.setItem(ACTIVE_LOCATION_STORAGE_KEY, locationId(location));
+      } catch (_) {
+        throw new Error(uiLanguage === "en" ? "This browser could not save the place locally." : "הדפדפן אינו מאפשר לשמור את המקום מקומית.");
+      }
+      selectedLocation = location;
+      $("locationSearch").value = name;
+      updateSelectedLocationText(location);
+      const message = $("customPlaceMessage");
+      message.textContent = uiLanguage === "en" ? "Saved on this device. Search by this name to use it again." : "המקום נשמר במכשיר זה. אפשר לחפש אותו בשם בפעם הבאה.";
+      message.hidden = false;
     }
 
     function initLocations() {
       if (globalThis.__CALC_WORKER__) return;
       let savedName = "";
+      let savedLocationId = "";
       let savedFormat = "";
       try {
         savedName = localStorage.getItem("starVisibilityLocationV2") || "";
+        savedLocationId = localStorage.getItem(ACTIVE_LOCATION_STORAGE_KEY) || "";
         savedFormat = localStorage.getItem("starVisibilityTimeFormatV2") || "";
       } catch (_) {}
       if (savedFormat === "12" || savedFormat === "24") $("timeFormat").value = savedFormat;
-      const initial = BUILTIN_LOCATIONS.find(location => location.EnglishName === savedName)
+      const initial = findLocationById(savedLocationId)
+        || BUILTIN_LOCATIONS.find(location => location.EnglishName === savedName)
         || BUILTIN_LOCATIONS.find(location => location.EnglishName === "Jerusalem");
       applyLocation(initial, { save: false, calculate: false });
       $("locationSearch").addEventListener("input", event => renderLocationResults(event.target.value));
       $("locationSearch").addEventListener("focus", event => renderLocationResults(event.target.value));
       $("locationResults").addEventListener("click", event => {
-        const button = event.target.closest("[data-location-index]");
+        const button = event.target.closest("[data-location-id]");
         if (!button) return;
-        applyLocation(BUILTIN_LOCATIONS[Number(button.dataset.locationIndex)]);
+        applyLocation(findLocationById(button.dataset.locationId));
       });
+      $("saveCustomLocation").addEventListener("click", () => {
+        try {
+          saveCustomLocation();
+        } catch (err) {
+          const message = $("customPlaceMessage");
+          message.textContent = err?.message || String(err);
+          message.hidden = false;
+        }
+      });
+      ["lat", "lon", "observerElevationM", "timezone"].forEach(id => {
+        $(id).addEventListener("input", () => markManualCoordinates(true));
+        $(id).addEventListener("change", () => markManualCoordinates(true));
+      });
+      $("customLocationName").addEventListener("input", () => markManualCoordinates(false));
+      $("customLocationName").addEventListener("change", () => markManualCoordinates(false));
       document.addEventListener("click", event => {
         if (!event.target.closest(".location-picker")) $("locationResults").hidden = true;
       });
@@ -11528,7 +11664,7 @@
       const lat = Number.isFinite(metadata.latitudeDeg) ? metadata.latitudeDeg : Number($("lat").value);
       const lon = Number.isFinite(metadata.longitudeDeg) ? metadata.longitudeDeg : Number($("lon").value);
       $("headerLocation").textContent = uiLanguage === "en"
-        ? (selectedLocation?.EnglishName || metadata.locationEnglishName || "Manual location")
+        ? (metadata.locationEnglishName || selectedLocation?.EnglishName || "Manual location")
         : (metadata.locationHebrewName || selectedLocation?.HebrewName || "מיקום ידני");
       $("headerTimeZone").textContent = timeZone || "--";
       try {
@@ -12847,6 +12983,8 @@
         const includePlanets = $("includePlanets") ? $("includePlanets").checked === true : true;
         const sqmZenith = sqmInput ?? (bortleInput != null ? bortleToSQM(bortleInput) : (SKY_SQM[sky] ?? 21.0));
         const matchedLocation = findBuiltinLocationByInputs(lat, lon, timeZone);
+        const manualLocationName = ($("customLocationName")?.value || "").trim();
+        const metadataLocation = selectedLocation || matchedLocation;
         const observerMeasured = numOrNull("observerAge") != null || numOrNull("pupilMm") != null || numOrNull("acuity") != null;
         const hasDirectionalMeasurement = directionalSqmPoints.length > 0 || (targetSqmInput != null && targetSqmMode === "global");
 
@@ -12959,9 +13097,9 @@
           };
         }
         lastRunMetadata = {
-          locationHebrewName: matchedLocation?.HebrewName || "",
-          locationEnglishName: matchedLocation?.EnglishName || "",
-          locationCountry: matchedLocation?.Country || "",
+          locationHebrewName: manualLocationName || metadataLocation?.HebrewName || "",
+          locationEnglishName: manualLocationName || metadataLocation?.EnglishName || "",
+          locationCountry: metadataLocation?.Country || "",
           latitudeDeg: lat,
           longitudeDeg: lon,
           observationDate: dateText,
@@ -14285,7 +14423,8 @@
     }
   
     const INFO_TEXT = {
-      "locationSearch": "חיפוש מהיר במאגר המקומות לפי שם עברי, שם אנגלי, כינוי או חלק מן השם. בחירת מקום מעדכנת קואורדינטות, גובה ואזור זמן ושומרת את הבחירה לפעם הבאה.",
+      "locationSearch": "חיפוש מהיר במאגר המקומות לפי שם עברי, שם אנגלי, כינוי או חלק מן השם. בחירת מקום מעדכנת קואורדינטות, גובה ואזור זמן. מקומות ידניים שנשמרו במכשיר זה מופיעים גם הם בחיפוש.",
+      "customLocationName": "אם הזנת קואורדינטות ידנית, אפשר לתת למקום שם וללחוץ 'שמור מקום'. השם, הקואורדינטות, גובה הצופה ואזור הזמן נשמרים בדפדפן של מכשיר זה בלבד, ואפשר למצוא אותם שוב בחיפוש המקומות.",
       "sunset": "שעת השקיעה המקומית כאשר מרכז השמש בגובה 0.833° מתחת לאופק הימי, לפי ההגדרה המקובלת הכוללת את רדיוס השמש ושבירה סמוך לאופק.",
       "lat": "קו הרוחב הגאוגרפי של מקום התצפית, במעלות. חיובי לצפון קו המשווה, שלילי לדרומו.",
       "lon": "קו האורך הגאוגרפי של מקום התצפית, במעלות. חיובי מזרחית לגריניץ', שלילי מערבית לו.",
@@ -14468,7 +14607,8 @@
 };
 
     const INFO_TEXT_EN = {
-      "locationSearch": "Quickly search the built-in location list by Hebrew name, English name, nickname, or partial text. Selecting a location fills coordinates, elevation, and time zone.",
+      "locationSearch": "Search built-in places by Hebrew name, English name, nickname, or partial text. Selecting a place fills coordinates, elevation, and time zone. Places saved on this device also appear here.",
+      "customLocationName": "For manually entered coordinates, give the place a name and choose Save place. The name, coordinates, observer elevation, and time zone are stored only in this browser on this device, and can be found again through place search.",
       "sunset": "Local sunset time using the common sea-horizon definition with the Sun's center about 0.833 degrees below the horizon, including solar radius and near-horizon refraction.",
       "lat": "Geographic latitude of the observing site, in degrees. Positive is north of the equator; negative is south.",
       "lon": "Geographic longitude of the observing site, in degrees. Positive is east of Greenwich; negative is west.",
@@ -14757,6 +14897,7 @@
       setLeadText(".sunset-item:nth-child(3) span", "Active time zone");
       setLeadText(".sunset-item:nth-child(4) span", "Daylight saving");
       setLeadText('label[for="locationSearch"]', "Place search");
+      setLeadText('label[for="customLocationName"]', "Place name for manual coordinates");
       setLeadText('label[for="lat"]', "Latitude");
       setLeadText('label[for="lon"]', "Longitude");
       setLeadText('label[for="date"]', "Local date");
@@ -14815,6 +14956,8 @@
       ]);
       setPlaceholder("#filter", "Search star or planet");
       setPlaceholder("#locationSearch", "Hebrew, English, or alias");
+      setPlaceholder("#customLocationName", "Example: Home / rooftop");
+      $("saveCustomLocation").textContent = uiLanguage === "en" ? "Save place" : "שמור מקום";
       setPlaceholder("#sqm", "blank = according to Bortle/sky");
       setPlaceholder("#bortle", "blank = according to sky");
       setPlaceholder("#targetSqm", "blank = according to zenith SQM/Bortle/model");
@@ -14901,11 +15044,7 @@
       if (notes[0]) setPlainTextNode(notes[0], "If this field is empty, the tool uses the built-in processed catalog: 9,090 stars down to magnitude 7.5 from BSC5/Yale Bright Star Catalogue, with B-V values for most stars, proper motion, and flags for variable/double/combined/uncertain catalog data. You may import a CSV catalog to replace the list. Columns beyond name, raHours, decDeg, and mag are optional and backward compatible.");
       if (notes[1]) setPlainTextNode(notes[1], "The main model computes local sky-background brightness along the line of sight: dark baseline from SQM/Bortle, twilight brightening, near-Sun brightening, and moonlight. It then derives the naked-eye limiting magnitude using observer factors. Accuracy depends on real SQM, local extinction kV, horizon obstruction, and observer data.");
       if (notes[2]) setPlainTextNode(notes[2], "Future accuracy improvements: azimuth-dependent horizon profile, measured weather and transparency, full all-sky brightness map, SOFA/ERFA/IERS apparent place, JPL Horizons/DE/SPICE for planets, and a curated Gaia/Hipparcos/Tycho/Johnson V catalog.");
-      if (selectedLocation) {
-        $("selectedLocation").textContent = uiLanguage === "en"
-          ? `${selectedLocation.EnglishName}, ${selectedLocation.Country} · ${selectedLocation.ElevationMeters} m · ${selectedLocation.TimeZone}`
-          : `${selectedLocation.HebrewName}, ${selectedLocation.Country} · ${selectedLocation.ElevationMeters} מטר · ${selectedLocation.TimeZone}`;
-      }
+      updateSelectedLocationText();
       document.querySelectorAll(".brightness-expand").forEach(button => {
         const open = button.closest(".brightness-cell")?.classList.contains("is-open");
         button.textContent = open ? (uiLanguage === "en" ? "Show less" : "פחות") : (uiLanguage === "en" ? "More" : "עוד");
