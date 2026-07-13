@@ -153,7 +153,16 @@
     .field.user-control > textarea,
     .field.user-control .save-place-row input {
       border-left: 3px solid #c58a35;
-      background: #fffdf8;
+      background: rgba(3, 12, 24, 0.82);
+      color: #edf6ff;
+      caret-color: #edf6ff;
+    }
+
+    .field.user-control > input::placeholder,
+    .field.user-control > textarea::placeholder,
+    .field.user-control .save-place-row input::placeholder {
+      color: #7890a8;
+      opacity: 1;
     }
 
     .field.is-system-calculated > input[readonly] {
