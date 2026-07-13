@@ -108,6 +108,92 @@
       position: static;
     }
 
+    .input-origin-legend,
+    .results-origin-label {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.3;
+      color: var(--muted);
+    }
+
+    .input-origin-legend {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+    }
+
+    .input-origin-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .input-origin-key::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #bb7a24;
+      box-shadow: 0 0 0 2px rgba(187, 122, 36, .14);
+    }
+
+    .input-origin-key.system::before {
+      background: #287a91;
+      box-shadow: 0 0 0 2px rgba(40, 122, 145, .14);
+    }
+
+    .field.user-control > input:not([type="checkbox"]),
+    .field.user-control > select,
+    .field.user-control > textarea,
+    .field.user-control .save-place-row input {
+      border-left: 3px solid #c58a35;
+      background: #fffdf8;
+    }
+
+    .field.is-system-calculated > input[readonly] {
+      border-left: 3px solid #287a91;
+      background: #f1f8fa;
+      color: #205d70;
+      font-weight: 750;
+      cursor: default;
+    }
+
+    .field.is-system-calculated > label::after {
+      content: attr(data-origin-label);
+      display: inline-block;
+      margin-inline-start: 6px;
+      padding: 1px 5px;
+      border: 1px solid rgba(40, 122, 145, .28);
+      border-radius: 999px;
+      color: #1f687e;
+      background: #f1f8fa;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0;
+      vertical-align: 1px;
+    }
+
+    .results-origin-label {
+      justify-content: flex-start;
+      padding: 12px 16px 0;
+      color: #287a91;
+    }
+
+    .results-origin-label::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #287a91;
+      box-shadow: 0 0 0 2px rgba(40, 122, 145, .14);
+    }
+
     .controls .primary-row .action { width: 100%; }
 
     .controls .calculate-row {
@@ -555,7 +641,8 @@
     .advanced-hint { margin: 0; padding: 0 12px 11px; color: var(--accent); font-weight: 650; }
     .advanced-hint[hidden] { display: none; }
 
-    .location-picker { position: relative; }
+    .location-picker { position: static; }
+    .location-search-control { position: relative; }
     .location-results {
       position: absolute;
       z-index: 20;
@@ -584,6 +671,14 @@
     .location-option:hover, .location-option:focus { background: var(--sky); }
     .location-option small { display: block; color: var(--muted); margin-top: 2px; }
     .selected-location { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .manual-place-inline {
+      display: grid;
+      gap: 6px;
+      margin-top: 4px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+    .location-picker + .manual-place-inline { margin-top: -9px; }
     .save-place-row { display: flex; gap: 8px; align-items: stretch; }
     .save-place-row input { min-width: 0; flex: 1; }
     .secondary-action {
@@ -1320,13 +1415,17 @@
 
     <section class="shell">
       <aside class="panel controls">
+        <div class="input-origin-legend" id="inputOriginLegend" aria-label="Input origin legend">
+          <span class="input-origin-key user" id="userInputKey">Your input</span>
+          <span class="input-origin-key system" id="systemInputKey">System calculated</span>
+        </div>
         <div class="field location-picker">
           <label for="locationSearch">חיפוש מקום <button type="button" class="info-btn" data-info-key="locationSearch" aria-label="הסבר">?</button></label>
           <input id="locationSearch" type="search" value="ירושלים" autocomplete="off" placeholder="עברית, English או כינוי">
           <div id="locationResults" class="location-results" hidden></div>
           <div id="selectedLocation" class="selected-location">ירושלים, Israel · 754 מטר</div>
         </div>
-        <div class="field manual-place-field">
+        <div class="manual-place-inline">
           <label for="customLocationName">שם מקום לקואורדינטות ידניות <button type="button" class="info-btn" data-info-key="customLocationName" aria-label="הסבר">?</button></label>
           <div class="save-place-row">
             <input id="customLocationName" type="text" autocomplete="off" placeholder="לדוגמה: בית / גג ביתי">
@@ -1454,6 +1553,7 @@
       </aside>
 
       <section class="panel results">
+        <div class="results-origin-label" id="resultsOriginLabel">System-calculated results</div>
         <div class="summary">
           <div class="metric"><b id="visibleCount">0</b><span>עצמים שנמצאו נראים <button type="button" class="info-btn" data-info-key="metric-visibleCount" aria-label="הסבר">?</button></span></div>
           <div class="metric"><b id="firstStar">--</b><span>הופעה מוקדמת ביותר <button type="button" class="info-btn" data-info-key="metric-firstStar" aria-label="הסבר">?</button></span></div>
@@ -14889,6 +14989,26 @@
       el.textContent = uiLanguage === "en" ? englishText : el.dataset.originalText;
     }
 
+    function updateInputOriginMarkers() {
+      if (globalThis.__CALC_WORKER__) return;
+      const userText = uiLanguage === "en" ? "Your input" : "\u05D4\u05D6\u05E0\u05D4 \u05E9\u05DC\u05DA";
+      const systemText = uiLanguage === "en" ? "System calculated" : "\u05DE\u05D7\u05D5\u05E9\u05D1 \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D4\u05DE\u05E2\u05E8\u05DB\u05EA";
+      const resultsText = uiLanguage === "en" ? "System-calculated results" : "\u05EA\u05D5\u05E6\u05D0\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1\u05D5\u05EA \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D4\u05DE\u05E2\u05E8\u05DB\u05EA";
+      setPlainTextNode($("userInputKey"), userText);
+      setPlainTextNode($("systemInputKey"), systemText);
+      setPlainTextNode($("resultsOriginLabel"), resultsText);
+      document.querySelectorAll(".controls input, .controls select, .controls textarea, .advanced-settings-area input, .advanced-settings-area select, .advanced-settings-area textarea").forEach(control => {
+        const field = control.closest(".field");
+        if (!field) return;
+        const label = field.querySelector("label");
+        const isSystemCalculated = control.readOnly;
+        field.classList.toggle("is-system-calculated", isSystemCalculated);
+        field.classList.toggle("user-control", !isSystemCalculated);
+        if (label && isSystemCalculated) label.dataset.originLabel = systemText;
+        else if (label) delete label.dataset.originLabel;
+      });
+    }
+
     function setPlaceholder(selector, englishText) {
       const el = document.querySelector(selector);
       if (!el) return;
@@ -14937,6 +15057,7 @@
       if (globalThis.__CALC_WORKER__) return;
       document.documentElement.lang = uiLanguage;
       document.documentElement.dir = uiLanguage === "en" ? "ltr" : "rtl";
+      updateInputOriginMarkers();
       updateModelNoteDisplay();
       $("languageToggle").textContent = uiLanguage === "en" ? "HEB" : "English";
       $("guidePdfLink").textContent = uiLanguage === "en" ? "PDF guide" : "מדריך PDF";
