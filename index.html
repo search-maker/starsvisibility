@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10956,10 +10956,10 @@
     let currentTemperatureC = 10;
     let currentPressureHPa = 1010;
     let selectedLocation = null;
-    let uiLanguage = "he";
+    let uiLanguage = "en";
     let lastHebrewModelNote = "";
     if (!globalThis.__CALC_WORKER__) {
-      try { uiLanguage = localStorage.getItem("starVisibilityUiLanguageV1") || "he"; } catch (_) {}
+      try { uiLanguage = localStorage.getItem("starVisibilityUiLanguageV1") || "en"; } catch (_) {}
     }
     const APP_SCRIPT_SOURCE = document.currentScript?.textContent || "";
     let activeCalculationWorker = null;
