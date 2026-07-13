@@ -1,10 +1,32 @@
 # StarsVisibility
 
-StarsVisibility is a free web tool for estimating when stars and planets become visible to the unaided eye during twilight.
+StarsVisibility is a public project for estimating when stars and planets become visible to the unaided eye during twilight.
 
-Live tool: https://starsvisibility.pages.dev/
+## Canonical live calculator
 
-## What it estimates
+https://starsvisibility.pages.dev/
+
+A second deployment currently exists at https://star-visibility.pages.dev/. The first URL above is the canonical public link for the current StarsVisibility project.
+
+## Public project hub
+
+GitHub repository: https://github.com/search-maker/starsvisibility
+
+Use the repository to:
+
+- read the project documentation;
+- report reproducible scientific or interface issues;
+- propose validation tasks;
+- follow the development history.
+
+Current collaboration issues:
+
+- https://github.com/search-maker/starsvisibility/issues/1
+- https://github.com/search-maker/starsvisibility/issues/2
+- https://github.com/search-maker/starsvisibility/issues/3
+- https://github.com/search-maker/starsvisibility/issues/4
+
+## What the calculator estimates
 
 For a selected location, date, time, and object, the application estimates:
 
@@ -12,27 +34,20 @@ For a selected location, date, time, and object, the application estimates:
 - solar depression and minutes after local sunset;
 - atmospheric extinction and refraction;
 - twilight, moonlight, and background-sky brightness;
-- an approximate naked-eye limiting magnitude;
-- first visibility, confidence, and likely limiting factors.
+- an approximate naked-eye visibility threshold.
 
-## Important limitation
+The result is an estimate, not a replacement for observation. Real visibility depends on transparency, aerosols, local light pollution, observer adaptation, target color, and whether the observer is searching freely or watching a known position.
 
-The result is a calculated estimate, not a guarantee of what every observer will see. Transparency, haze, smoke, local horizon conditions, sky brightness, observer experience, target location, and stellar color can materially change the result. The project needs systematic field validation.
+## How observers can help
 
-## How to help
+A useful validation session is blinded:
 
-The most useful contribution is a blinded observation:
+1. Select a specified star.
+2. Do not view the calculator prediction beforehand.
+3. Record the first momentary glimpse and first continuous visibility.
+4. Record location, time, target, sky conditions, and whether the target position was known.
+5. Submit the result through the project contact channel.
 
-1. Choose a specified star and location.
-2. Do not look at the predicted time first.
-3. Record when the star becomes continuously visible.
-4. Record date, location, target, targeted versus free search, sky condition, and whether the observation was momentary or continuous.
-5. Submit the report with the prediction still hidden.
-
-Technical reviewers are also welcome to examine one focused assumption or benchmark case rather than attempting a complete review.
-
-Please open an issue for a reproducible discrepancy, a scientific reference, a proposed test, or a code improvement.
+Please report substantive feedback through GitHub Issues or by email.
 
 Contact: starsvisibility@gmail.com
-# starsvisibility
-Open-source astronomy tool for estimating when stars and planets become visible during twilight.
