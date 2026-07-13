@@ -114,6 +114,37 @@
       margin-top: 2px;
     }
 
+    .calculation-status {
+      min-height: 18px;
+      margin: -5px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.35;
+    }
+
+    .calculation-status[hidden] { display: none; }
+
+    #calculate.is-calculating {
+      cursor: wait;
+      opacity: .78;
+    }
+
+    #calculate.is-calculating::before {
+      content: "";
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      margin-inline-end: 8px;
+      border: 2px solid rgba(255,255,255,.45);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: calculation-spin .75s linear infinite;
+      vertical-align: -1px;
+    }
+
+    @keyframes calculation-spin { to { transform: rotate(360deg); } }
+
     .advanced-settings-area {
       grid-column: 1 / -1;
       display: grid;
@@ -1306,6 +1337,7 @@
         <div class="primary-row calculate-row">
           <button class="action" id="calculate">חשב</button>
         </div>
+        <div id="calculationStatus" class="calculation-status" role="status" aria-live="polite" hidden></div>
         <div class="grid-2">
           <div class="field">
             <label for="lat">קו רוחב <button type="button" class="info-btn" data-info-key="lat" aria-label="הסבר">?</button></label>
@@ -10993,18 +11025,41 @@
     let calculationVersion = 0;
     let workerEnabled = typeof Worker !== "undefined" && APP_SCRIPT_SOURCE.length > 0;
 
+    function setCalculationUiState(isCalculating) {
+      const button = $("calculate");
+      const status = $("calculationStatus");
+      const table = $("resultsTable");
+      const runningText = uiLanguage === "en"
+        ? "Calculating all visible objects. Please wait..."
+        : "מחשב את כל הכוכבים וכוכבי הלכת. נא להמתין...";
+      const buttonText = uiLanguage === "en"
+        ? (isCalculating ? "Calculating..." : "Calculate")
+        : (isCalculating ? "מחשב..." : "חשב");
+      if (button) {
+        button.disabled = isCalculating;
+        button.textContent = buttonText;
+        button.classList.toggle("is-calculating", isCalculating);
+        button.setAttribute("aria-busy", String(isCalculating));
+      }
+      if (status) {
+        status.hidden = !isCalculating;
+        status.textContent = isCalculating ? runningText : "";
+      }
+      if (table) table.setAttribute("aria-busy", String(isCalculating));
+      if (isCalculating) {
+        const tableNote = $("tableNote");
+        if (tableNote) tableNote.textContent = runningText;
+      }
+    }
+
     function calculateOnMainThread(button) {
       workerEnabled = false;
-      button.disabled = true;
-      button.textContent = "מחשב...";
-      const tableNote = $("tableNote");
-      if (tableNote) tableNote.textContent = "מחשב את תוצאות הכוכבים...";
+      setCalculationUiState(true);
       setTimeout(async () => {
         try {
           await calculate();
         } finally {
-          button.disabled = false;
-          button.textContent = "חשב";
+          setCalculationUiState(false);
         }
       }, 0);
     }
@@ -11059,14 +11114,12 @@
         return true;
       }
       activeCalculationWorker = worker;
-      button.disabled = true;
-      button.textContent = "מחשב...";
+      setCalculationUiState(true);
       const finish = () => {
         if (activeCalculationWorker === worker) activeCalculationWorker = null;
         worker.terminate();
         URL.revokeObjectURL(url);
-        button.disabled = false;
-        button.textContent = "חשב";
+        setCalculationUiState(false);
       };
       worker.onmessage = event => {
         if (version !== calculationVersion) { finish(); return; }
@@ -14888,7 +14941,7 @@
       $("languageToggle").textContent = uiLanguage === "en" ? "HEB" : "English";
       $("guidePdfLink").textContent = uiLanguage === "en" ? "PDF guide" : "מדריך PDF";
       $("exportCsv").textContent = uiLanguage === "en" ? "Download CSV" : "הורד CSV";
-      $("calculate").textContent = uiLanguage === "en" ? "Calculate" : "חשב";
+      setCalculationUiState($("calculate")?.classList.contains("is-calculating"));
       $("sortVisible").textContent = uiLanguage === "en" ? "Sort by visibility" : "מיין לפי הופעה";
       setPlainText("h1", "Star Visibility Calculator");
       setLeadText(".subtitle", "Local calculator for the Sun altitude at the first moment a star or planet becomes visible. The built-in catalog includes naked-eye stars and visible planets, and you can paste your own CSV.");
