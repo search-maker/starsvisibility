@@ -15069,7 +15069,11 @@
       updateInputOriginMarkers();
       updateModelNoteDisplay();
       $("languageToggle").textContent = uiLanguage === "en" ? "HEB" : "English";
-      $("guidePdfLink").textContent = uiLanguage === "en" ? "PDF guide" : "מדריך PDF";
+      const guideLink = $("guidePdfLink");
+      guideLink.textContent = uiLanguage === "en" ? "PDF guide" : "מדריך PDF";
+      guideLink.href = uiLanguage === "en"
+        ? "star-visibility-guide-english.pdf"
+        : "star-visibility-guide.pdf";
       $("exportCsv").textContent = uiLanguage === "en" ? "Download CSV" : "הורד CSV";
       setCalculationUiState($("calculate")?.classList.contains("is-calculating"));
       $("sortVisible").textContent = uiLanguage === "en" ? "Sort by visibility" : "מיין לפי הופעה";
