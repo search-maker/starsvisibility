@@ -14398,11 +14398,10 @@
     }
 
     function exportCsv() {
-      const header = "firstVisibleLocal,sunAltitudeDeg,mag,brightnessDescription,name,objectType,starApparentAltitudeDeg,starTrueAltitudeDeg,refractionCorrectionDeg,limitingFactor,confidence,firstVisibleStatus,bestNightStatus,bv,colorCorrectionMag,purkinjeEyeTermMag,secondOrderExtinctionTermMag,raHours,decDeg,airMass,empiricalRequiredDepressionDeg,physicalRequiredSunAltitudeDeg,physicalEffectiveMag,empiricalFinalMag,skyBrightnessMagArcsec2,localLimitingMag,observerMode,observerBonusMag,originalLimitMag,effectiveLimitMag,visibilityMarginBeforeObserverBonus,visibilityMarginAfterObserverBonus,twilightCurveMode,twilightAddedNL,baseSkyNL,baseSkySqm,twilightReferenceSqmAfterCorrection,firstVisibleMarginMagPhys,bestVisibilityMarginMagPhys,bestVisibilityTimePhys,bestVisibilitySunAltitudeDegPhys,bestVisibilityStarAltitudeDegPhys,twilightImpactMag,moonImpactMag,lightPollutionImpactMag,extinctionImpactMag,physicalVisible,empiricalVisible,physicalFirstVisibleTime,empiricalFirstVisibleTime,timeDifferenceMinutes,diffPhysEmp,empiricalNearSunPenaltyMag,sunAzimuthDeg,starAzimuthDeg,sunStarSeparationDeg,azimuthDiffDeg,skySide,moonAltitudeDeg,moonIllumPct,moonStarSeparationDeg,moonPhaseAngleDeg,moonAirmass,targetAirmass,skyBrightnessNoMoon,skyBrightnessWithMoon,moonDeltaSkyMagArcsec2,moonScatteringModel,moonEffectConfidence,moonLimitMagEmpirical,moonAffectedEmpirical,localLimitingMagNoMoonPhys,moonDeltaLimitMagPhys,moonAffectedPhys,pmRAmasYr,pmDecmasYr,epoch,timeZone,utcOffsetHoursAtEvent,skyBrightnessBaselineSource,sqmZenithInput,sqmZenithUsed,targetSqmInput,targetSqmUsed,targetSqmSource,directionalSqmUsed,directionalSqmSource,directionalSqmMapUsed,directionalSqmInterpolationMethod,nearestSqmPointAz,nearestSqmPointAlt,directionalSqmMapWarning,missingDirectionalSqmWarning,lowAltitudeSkyBrightnessWarning,lowAltitudeSkyBrighteningMag,lowAltitudeSkyBrighteningAppliedMag,baseSqmBeforeLowAltCorrection,baseSqmAfterLowAltCorrection,magOriginal,magUsed,magSource,magSourceWarning,isVariable,magMin,magMax,variabilityRange,variableType,isDouble,componentMag1,componentMag2,combinedMag,catalogSource,uncertaintyFlag,catalogWarning,notes,colorCorrectionModel,colorCorrectionWarning,photometricBandUsed,visibilityProbabilityEstimate,visibilityProbabilityValue,threshold50MarginMag,easyThresholdMarginMag,expertAvertedVisionNote,uncertaintyReasons,skyBrightnessWarning,planetWarning,modelLimitationWarning,parallaxMas,radialVelocityKmS,spectralType,effectiveKV,effectiveKVSource,effectiveKVConfidence,kvDataTimestamp,kvDataSource,cloudWarning,kvAdjustmentBreakdown,kvDataMissingFields";
+      const header = "firstVisibleLocal,sunAltitudeDeg,mag,brightnessDescription,name,objectType,starApparentAltitudeDeg,starTrueAltitudeDeg,refractionCorrectionDeg,limitingFactor,confidence,firstVisibleStatus,bestNightStatus,bv,colorCorrectionMag,purkinjeEyeTermMag,secondOrderExtinctionTermMag,raHours,decDeg,airMass,empiricalRequiredDepressionDeg,physicalRequiredSunAltitudeDeg,physicalEffectiveMag,empiricalFinalMag,skyBrightnessMagArcsec2,localLimitingMag,observerMode,observerBonusMag,originalLimitMag,effectiveLimitMag,visibilityMarginBeforeObserverBonus,visibilityMarginAfterObserverBonus,twilightCurveMode,twilightAddedNL,baseSkyNL,baseSkySqm,twilightReferenceSqmAfterCorrection,firstVisibleMarginMagPhys,bestVisibilityMarginMagPhys,bestVisibilityTimePhys,bestVisibilitySunAltitudeDegPhys,bestVisibilityStarAltitudeDegPhys,twilightImpactMag,moonImpactMag,lightPollutionImpactMag,extinctionImpactMag,physicalVisible,empiricalVisible,physicalFirstVisibleTime,empiricalFirstVisibleTime,timeDifferenceMinutes,diffPhysEmp,empiricalNearSunPenaltyMag,sunAzimuthDeg,starAzimuthDeg,sunStarSeparationDeg,azimuthDiffDeg,skySide,moonAltitudeDeg,moonIllumPct,moonStarSeparationDeg,moonPhaseAngleDeg,moonAirmass,targetAirmass,skyBrightnessNoMoon,skyBrightnessWithMoon,moonDeltaSkyMagArcsec2,moonScatteringModel,moonEffectConfidence,moonLimitMagEmpirical,moonAffectedEmpirical,localLimitingMagNoMoonPhys,moonDeltaLimitMagPhys,moonAffectedPhys,pmRAmasYr,pmDecmasYr,epoch,timeZone,utcOffsetHoursAtEvent,skyBrightnessBaselineSource,sqmZenithInput,sqmZenithUsed,targetSqmInput,targetSqmUsed,targetSqmSource,directionalSqmUsed,directionalSqmSource,directionalSqmMapUsed,directionalSqmInterpolationMethod,nearestSqmPointAz,nearestSqmPointAlt,directionalSqmMapWarning,missingDirectionalSqmWarning,lowAltitudeSkyBrightnessWarning,lowAltitudeSkyBrighteningMag,lowAltitudeSkyBrighteningAppliedMag,baseSqmBeforeLowAltCorrection,baseSqmAfterLowAltCorrection,magOriginal,magUsed,magSource,magSourceWarning,isVariable,magMin,magMax,variabilityRange,variableType,isDouble,componentMag1,componentMag2,combinedMag,catalogSource,uncertaintyFlag,catalogWarning,notes,colorCorrectionModel,colorCorrectionWarning,photometricBandUsed,visibilityProbabilityEstimate,visibilityProbabilityValue,threshold50MarginMag,easyThresholdMarginMag,expertAvertedVisionNote,uncertaintyReasons,skyBrightnessWarning,planetWarning,modelLimitationWarning,parallaxMas,radialVelocityKmS,spectralType,effectiveKV,effectiveKVSource,effectiveKVConfidence,kvDataTimestamp,kvDataSource,cloudWarning,kvAdjustmentBreakdown,kvDataMissingFields,runMetadataJson";
       const timeZone = lastRunMetadata.timeZone || $("timezone").value.trim();
-      const metadataLines = Object.entries(lastRunMetadata).map(([key, value]) =>
-        `# ${key}=${value == null ? "" : value}`);
-      const lines = rows.map(r => [
+      const runMetadataJson = JSON.stringify(lastRunMetadata);
+      const lines = rows.map((r, rowIndex) => [
         formatPrimaryTime(r, timeZone),
         Number.isFinite(r.sunAlt) ? r.sunAlt.toFixed(4) : "",
         r.mag,
@@ -14531,9 +14530,10 @@
         csvCell(lastRunMetadata.kvDataSource || ""),
         csvCell(lastRunMetadata.cloudWarning || ""),
         csvCell(lastRunMetadata.kvAdjustmentBreakdown || ""),
-        csvCell(lastRunMetadata.kvDataMissingFields || "")
+        csvCell(lastRunMetadata.kvDataMissingFields || ""),
+        rowIndex === 0 ? csvCell(runMetadataJson) : ""
       ].join(","));
-      const csv = [...metadataLines, header, ...lines].join("\n");
+      const csv = `\uFEFF${[header, ...lines].join("\r\n")}`;
       globalThis.__lastExportedCsvText = csv;
       const countCsvFields = (line) => {
         let count = 1;
@@ -15053,7 +15053,7 @@
         if (lastRunMetadata.sqmZenithUsed != null) parts.push(`SQM ${lastRunMetadata.sqmZenithUsed}`);
         if (lastRunMetadata.kV != null) parts.push(`kV used ${Number(lastRunMetadata.kV).toFixed(2)} — source: ${lastRunMetadata.kVSource || "estimate only"}`);
         if (lastRunMetadata.temperatureC != null || lastRunMetadata.pressureHPa != null) parts.push(`refraction ${lastRunMetadata.temperatureC ?? 10}°C, ${lastRunMetadata.pressureHPa ?? 1010} hPa`);
-        parts.push("Detailed run settings and diagnostics are included in the CSV metadata.");
+        parts.push("Detailed run settings and diagnostics are included in the CSV columns and first-row metadata field.");
         el.textContent = parts.join(" · ");
         el.dataset.englishActive = "1";
       } else {
