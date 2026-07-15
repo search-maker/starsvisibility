@@ -11367,6 +11367,8 @@
     }
 
     function tableHeaderRow() {
+      // The calculation worker has no real table DOM. Column layout is page-only.
+      if (globalThis.__CALC_WORKER__) return null;
       const table = document.getElementById("resultsTable");
       return table ? table.querySelector("thead tr") : null;
     }
