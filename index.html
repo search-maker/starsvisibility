@@ -11367,7 +11367,8 @@
     }
 
     function tableHeaderRow() {
-      return $("resultsTable")?.querySelector("thead tr") || null;
+      const table = document.getElementById("resultsTable");
+      return table ? table.querySelector("thead tr") : null;
     }
 
     function columnLabel(id) {
