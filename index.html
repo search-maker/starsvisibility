@@ -621,6 +621,7 @@
     }
 
     table:not(.show-advanced) .advanced-col { display: none; }
+    #resultsTable .column-hidden { display: none !important; }
 
     .advanced-toggle {
       margin: 10px 16px;
@@ -769,6 +770,7 @@
       padding: 12px 16px;
       border-bottom: 1px solid var(--line);
       background: #fff;
+      position: relative;
     }
 
     .toolbar input {
@@ -776,6 +778,70 @@
     }
 
     .toolbar .spacer { flex: 1; }
+
+    .column-manager {
+      position: absolute;
+      z-index: 30;
+      top: calc(100% - 5px);
+      right: 16px;
+      width: min(360px, calc(100vw - 32px));
+      max-height: min(560px, 70vh);
+      overflow: auto;
+      padding: 12px;
+      border: 1px solid rgba(125, 211, 252, 0.34);
+      border-radius: 10px;
+      background: #071424;
+      color: #e8f3ff;
+      box-shadow: 0 22px 50px rgba(0, 0, 0, 0.42);
+    }
+
+    .column-manager[hidden] { display: none; }
+    .column-manager-header,
+    .column-manager-actions,
+    .column-manager-item { display: flex; align-items: center; }
+    .column-manager-header { justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .column-manager-title { color: #fff7d6; font-size: 14px; }
+    .column-manager-close {
+      min-width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 1px solid rgba(184, 205, 229, 0.26);
+      border-radius: 6px;
+      background: transparent;
+      color: #d7e9fb;
+      cursor: pointer;
+    }
+
+    .column-manager-search { margin-bottom: 9px; }
+    .column-manager-actions { flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .column-manager-actions button {
+      padding: 6px 9px;
+      border: 1px solid rgba(184, 205, 229, 0.24);
+      border-radius: 6px;
+      background: rgba(15, 42, 70, 0.8);
+      color: #d7e9fb;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .column-manager-note { margin: 0 0 8px; color: #9fb3c8; font-size: 11px; line-height: 1.35; }
+    .column-manager-list { display: grid; gap: 4px; }
+    .column-manager-item {
+      gap: 8px;
+      min-height: 34px;
+      padding: 5px 7px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.035);
+      cursor: grab;
+    }
+
+    .column-manager-item:hover,
+    .column-manager-item.is-drag-over { border-color: rgba(125, 211, 252, 0.48); background: rgba(56, 189, 248, 0.11); }
+    .column-manager-item input { width: 15px; height: 15px; margin: 0; accent-color: #f6bd55; }
+    .column-drag-handle { color: #7fa3c8; font-weight: 900; letter-spacing: 1px; user-select: none; }
+    .column-manager-label { min-width: 0; color: #e8f3ff; font-size: 12px; line-height: 1.3; }
+    .column-manager-empty { padding: 10px; color: #9fb3c8; font-size: 12px; text-align: center; }
 
     .table-note {
       padding: 8px 16px;
@@ -847,6 +913,7 @@
       .grid-2, .summary { grid-template-columns: 1fr; }
       .primary-row, .toolbar { flex-wrap: wrap; }
       .toolbar input { max-width: none; }
+      .column-manager { position: fixed; top: 12px; left: 12px; right: 12px; width: auto; max-height: calc(100vh - 24px); }
       .sunset-strip { grid-template-columns: 1fr; }
       .sunset-item { border-inline-start: 0; border-top: 1px solid var(--line); }
       .sunset-item:first-child { border-top: 0; }
@@ -1574,6 +1641,21 @@
           <button type="button" class="info-btn" data-info-key="ui-filter" aria-label="הסבר">?</button>
           <button class="action secondary" id="sortVisible">מיין לפי הופעה</button>
           <button type="button" class="info-btn" data-info-key="ui-sortVisible" aria-label="הסבר">?</button>
+          <button class="action secondary" id="columnManagerButton" type="button" aria-expanded="false" aria-controls="columnManagerPanel">Columns</button>
+          <div id="columnManagerPanel" class="column-manager" hidden>
+            <div class="column-manager-header">
+              <strong id="columnManagerTitle" class="column-manager-title">Columns</strong>
+              <button id="columnManagerClose" class="column-manager-close" type="button" aria-label="Close columns">X</button>
+            </div>
+            <input id="columnManagerSearch" class="column-manager-search" type="search" placeholder="Search columns">
+            <div class="column-manager-actions">
+              <button id="columnSelectAll" type="button">Select all</button>
+              <button id="columnClearAll" type="button">Clear all</button>
+              <button id="columnResetDefault" type="button">Reset default</button>
+            </div>
+            <p id="columnManagerNote" class="column-manager-note">First visible stays pinned. Drag columns to reorder.</p>
+            <div id="columnManagerList" class="column-manager-list"></div>
+          </div>
           <div class="spacer"></div>
         </div>
         <div class="table-note table-note-row"><span id="tableNote"></span><button type="button" class="info-btn" data-info-key="ui-tableNote" aria-label="הסבר">?</button></div>
@@ -11133,6 +11215,11 @@
     let activeCalculationWorker = null;
     let calculationVersion = 0;
     let workerEnabled = typeof Worker !== "undefined" && APP_SCRIPT_SOURCE.length > 0;
+    const COLUMN_LAYOUT_STORAGE_KEY = "starVisibilityTableColumnsV1";
+    const FIXED_COLUMN_IDS = ["rowNumber", "time"];
+    let tableColumnBaseOrder = [];
+    let columnLayout = null;
+    let draggingColumnId = "";
 
     function setCalculationUiState(isCalculating) {
       const button = $("calculate");
@@ -11279,6 +11366,226 @@
       try { render(); } catch (_) {}
     }
 
+    function tableHeaderRow() {
+      return $("resultsTable")?.querySelector("thead tr") || null;
+    }
+
+    function columnLabel(id) {
+      const header = tableHeaderRow()?.querySelector(`th[data-column-id="${id}"]`);
+      if (!header) return id;
+      const copy = header.cloneNode(true);
+      copy.querySelectorAll("button").forEach(button => button.remove());
+      return copy.textContent.replace(/\s+/g, " ").trim();
+    }
+
+    function manageableColumnIds() {
+      return tableColumnBaseOrder.filter(id => !FIXED_COLUMN_IDS.includes(id));
+    }
+
+    function advancedColumnIds() {
+      const header = tableHeaderRow();
+      return tableColumnBaseOrder.filter(id => header?.querySelector(`th[data-column-id="${id}"]`)?.classList.contains("advanced-col"));
+    }
+
+    function defaultColumnLayout() {
+      const header = tableHeaderRow();
+      return {
+        order: [...tableColumnBaseOrder],
+        visible: tableColumnBaseOrder.filter(id => FIXED_COLUMN_IDS.includes(id) || !header?.querySelector(`th[data-column-id="${id}"]`)?.classList.contains("advanced-col"))
+      };
+    }
+
+    function normalizeColumnLayout(value) {
+      const manageable = manageableColumnIds();
+      const savedOrder = Array.isArray(value?.order) ? value.order : [];
+      const savedVisible = Array.isArray(value?.visible) ? value.visible : defaultColumnLayout().visible;
+      const order = [
+        ...FIXED_COLUMN_IDS.filter(id => tableColumnBaseOrder.includes(id)),
+        ...savedOrder.filter(id => manageable.includes(id)),
+        ...manageable.filter(id => !savedOrder.includes(id))
+      ];
+      return {
+        order,
+        visible: [...new Set([
+          ...FIXED_COLUMN_IDS.filter(id => tableColumnBaseOrder.includes(id)),
+          ...savedVisible.filter(id => tableColumnBaseOrder.includes(id))
+        ])]
+      };
+    }
+
+    function saveColumnLayout() {
+      try {
+        localStorage.setItem(COLUMN_LAYOUT_STORAGE_KEY, JSON.stringify({
+          order: columnLayout?.order || [],
+          visible: columnLayout?.visible || []
+        }));
+      } catch (_) {}
+    }
+
+    function syncAdvancedToggleState() {
+      const button = $("advancedToggleButton");
+      if (!button || !columnLayout) return;
+      const open = advancedColumnIds().some(id => columnLayout.visible.includes(id));
+      button.setAttribute("aria-expanded", String(open));
+      $("advancedToggle").classList.toggle("is-open", open);
+      $("advancedHint").hidden = !open;
+      $("advancedSummary").textContent = open
+        ? (uiLanguage === "en" ? "Hide advanced calculations" : "הסתר חישובים מתקדמים")
+        : (uiLanguage === "en" ? "Show advanced calculations" : "הצג חישובים מתקדמים");
+    }
+
+    function applyColumnLayout() {
+      const header = tableHeaderRow();
+      const body = $("tbody");
+      if (!columnLayout || !header || !body) return;
+      const visible = new Set(columnLayout.visible);
+      const advancedOpen = advancedColumnIds().some(id => visible.has(id));
+      $("resultsTable").classList.toggle("show-advanced", advancedOpen);
+
+      const headerById = new Map(Array.from(header.children).map(cell => [cell.dataset.columnId, cell]));
+      columnLayout.order.forEach(id => {
+        const cell = headerById.get(id);
+        if (cell) header.append(cell);
+      });
+      Array.from(body.rows).forEach(row => {
+        const cellById = new Map();
+        Array.from(row.children).forEach((cell, index) => {
+          const id = cell.dataset.columnId || tableColumnBaseOrder[index];
+          cell.dataset.columnId = id;
+          cellById.set(id, cell);
+        });
+        columnLayout.order.forEach(id => {
+          const cell = cellById.get(id);
+          if (cell) row.append(cell);
+        });
+      });
+      Array.from(header.children).forEach(cell => cell.classList.toggle("column-hidden", !visible.has(cell.dataset.columnId)));
+      Array.from(body.rows).forEach(row => Array.from(row.children).forEach(cell => cell.classList.toggle("column-hidden", !visible.has(cell.dataset.columnId))));
+      syncAdvancedToggleState();
+    }
+
+    function renderColumnManager() {
+      const list = $("columnManagerList");
+      if (!list || !columnLayout) return;
+      const query = $("columnManagerSearch")?.value.trim().toLowerCase() || "";
+      const visible = new Set(columnLayout.visible);
+      const ids = columnLayout.order.filter(id => manageableColumnIds().includes(id) && columnLabel(id).toLowerCase().includes(query));
+      list.innerHTML = ids.length
+        ? ids.map(id => `<label class="column-manager-item" draggable="true" data-column-id="${id}"><span class="column-drag-handle" aria-hidden="true">::</span><input type="checkbox" data-column-checkbox="${id}" ${visible.has(id) ? "checked" : ""}><span class="column-manager-label">${escapeHtml(columnLabel(id))}</span></label>`).join("")
+        : `<div class="column-manager-empty">${uiLanguage === "en" ? "No matching columns" : "אין עמודות תואמות"}</div>`;
+    }
+
+    function updateColumnManagerTexts() {
+      const english = uiLanguage === "en";
+      const button = $("columnManagerButton");
+      if (!button) return;
+      button.textContent = english ? "Columns" : "עמודות";
+      $("columnManagerTitle").textContent = english ? "Table columns" : "עמודות הטבלה";
+      $("columnManagerClose").setAttribute("aria-label", english ? "Close columns" : "סגור עמודות");
+      $("columnManagerSearch").placeholder = english ? "Search columns" : "חיפוש עמודות";
+      $("columnSelectAll").textContent = english ? "Select all" : "בחר הכל";
+      $("columnClearAll").textContent = english ? "Clear all" : "נקה הכל";
+      $("columnResetDefault").textContent = english ? "Reset default" : "איפוס לברירת מחדל";
+      $("columnManagerNote").textContent = english
+        ? "# and First visible stay pinned. Drag columns to reorder."
+        : "# והופעה ראשונה נשארות קבועות. גררו עמודות כדי לשנות סדר.";
+      renderColumnManager();
+    }
+
+    function setAdvancedColumnsVisible(show) {
+      if (!columnLayout) return;
+      const advanced = advancedColumnIds();
+      const visible = new Set(columnLayout.visible);
+      advanced.forEach(id => show ? visible.add(id) : visible.delete(id));
+      columnLayout.visible = [...visible];
+      saveColumnLayout();
+      applyColumnLayout();
+      renderColumnManager();
+    }
+
+    function initializeColumnManager() {
+      if (globalThis.__CALC_WORKER__) return;
+      const header = tableHeaderRow();
+      if (!header || tableColumnBaseOrder.length) return;
+      tableColumnBaseOrder = Array.from(header.children).map((cell, index) => {
+        const id = index === 0 ? "rowNumber" : cell.dataset.sort;
+        cell.dataset.columnId = id;
+        return id;
+      });
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(COLUMN_LAYOUT_STORAGE_KEY) || "null"); } catch (_) {}
+      columnLayout = normalizeColumnLayout(saved);
+
+      $("columnManagerButton").addEventListener("click", () => {
+        const open = $("columnManagerPanel").hidden;
+        $("columnManagerPanel").hidden = !open;
+        $("columnManagerButton").setAttribute("aria-expanded", String(open));
+        if (open) $("columnManagerSearch").focus();
+      });
+      $("columnManagerClose").addEventListener("click", () => {
+        $("columnManagerPanel").hidden = true;
+        $("columnManagerButton").setAttribute("aria-expanded", "false");
+      });
+      $("columnManagerSearch").addEventListener("input", renderColumnManager);
+      $("columnSelectAll").addEventListener("click", () => {
+        columnLayout.visible = [...tableColumnBaseOrder];
+        saveColumnLayout(); applyColumnLayout(); renderColumnManager();
+      });
+      $("columnClearAll").addEventListener("click", () => {
+        columnLayout.visible = [...FIXED_COLUMN_IDS];
+        saveColumnLayout(); applyColumnLayout(); renderColumnManager();
+      });
+      $("columnResetDefault").addEventListener("click", () => {
+        columnLayout = defaultColumnLayout();
+        saveColumnLayout(); applyColumnLayout(); renderColumnManager();
+      });
+      $("columnManagerList").addEventListener("change", event => {
+        const input = event.target.closest("[data-column-checkbox]");
+        if (!input || !columnLayout) return;
+        const visible = new Set(columnLayout.visible);
+        input.checked ? visible.add(input.dataset.columnCheckbox) : visible.delete(input.dataset.columnCheckbox);
+        columnLayout.visible = [...visible];
+        saveColumnLayout(); applyColumnLayout(); renderColumnManager();
+      });
+      $("columnManagerList").addEventListener("dragstart", event => {
+        const item = event.target.closest("[data-column-id]");
+        if (!item) return;
+        draggingColumnId = item.dataset.columnId;
+        event.dataTransfer?.setData("text/plain", draggingColumnId);
+        event.dataTransfer.effectAllowed = "move";
+      });
+      $("columnManagerList").addEventListener("dragover", event => {
+        const item = event.target.closest("[data-column-id]");
+        if (!item || !draggingColumnId || item.dataset.columnId === draggingColumnId) return;
+        event.preventDefault();
+        item.classList.add("is-drag-over");
+      });
+      $("columnManagerList").addEventListener("dragleave", event => event.target.closest("[data-column-id]")?.classList.remove("is-drag-over"));
+      $("columnManagerList").addEventListener("drop", event => {
+        const item = event.target.closest("[data-column-id]");
+        if (!item || !draggingColumnId) return;
+        event.preventDefault();
+        const targetId = item.dataset.columnId;
+        const order = columnLayout.order.filter(id => id !== draggingColumnId);
+        order.splice(Math.max(FIXED_COLUMN_IDS.length, order.indexOf(targetId)), 0, draggingColumnId);
+        columnLayout.order = order;
+        draggingColumnId = "";
+        saveColumnLayout(); applyColumnLayout(); renderColumnManager();
+      });
+      $("columnManagerList").addEventListener("dragend", () => {
+        draggingColumnId = "";
+        document.querySelectorAll(".column-manager-item.is-drag-over").forEach(item => item.classList.remove("is-drag-over"));
+      });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          $("columnManagerPanel").hidden = true;
+          $("columnManagerButton").setAttribute("aria-expanded", "false");
+        }
+      });
+      updateColumnManagerTexts();
+      applyColumnLayout();
+    }
+
     if (!globalThis.__CALC_WORKER__) {
       const dateEl = $("date");
       if (dateEl && !dateEl.value) dateEl.valueAsDate = new Date();
@@ -11298,15 +11605,8 @@
       updateHeaderSummary(lastRunMetadata);
     });
     $("advancedToggleButton").addEventListener("click", () => {
-      const button = $("advancedToggleButton");
-      const open = button.getAttribute("aria-expanded") !== "true";
-      button.setAttribute("aria-expanded", String(open));
-      $("advancedToggle").classList.toggle("is-open", open);
-      $("resultsTable").classList.toggle("show-advanced", open);
-      $("advancedSummary").textContent = open
-        ? (uiLanguage === "en" ? "Hide advanced calculations" : "הסתר חישובים מתקדמים")
-        : (uiLanguage === "en" ? "Show advanced calculations" : "הצג חישובים מתקדמים");
-      $("advancedHint").hidden = !open;
+      const open = !advancedColumnIds().some(id => columnLayout?.visible.includes(id));
+      setAdvancedColumnsVisible(open);
       requestAnimationFrame(() => {
         const wrap = $("tableWrap");
         const firstAdvanced = $("resultsTable").querySelector("th.advanced-col");
@@ -14255,6 +14555,7 @@
           <td class="advanced-col">${escapeHtml(String(row.notes || "--"))}</td>
         </tr>`;
       }).join("");
+      applyColumnLayout();
       requestAnimationFrame(updateBrightnessExpandButtons);
     }
 
@@ -14580,6 +14881,7 @@
     }
 
     if (!globalThis.__CALC_WORKER__) {
+      initializeColumnManager();
       initLocations();
       calculate();
     }
@@ -15236,6 +15538,7 @@
         const open = button.closest(".brightness-cell")?.classList.contains("is-open");
         button.textContent = open ? (uiLanguage === "en" ? "Show less" : "פחות") : (uiLanguage === "en" ? "More" : "עוד");
       });
+      updateColumnManagerTexts();
       updateBrightnessExpandButtons();
     }
 
