@@ -173,7 +173,7 @@
       cursor: default;
     }
 
-    .field.is-system-calculated > label::after {
+    .field.is-system-calculated > label[data-origin-label]:not([data-origin-label=""])::after {
       content: attr(data-origin-label);
       display: inline-block;
       margin-inline-start: 6px;
@@ -839,7 +839,17 @@
     .column-manager-item:hover,
     .column-manager-item.is-drag-over { border-color: rgba(125, 211, 252, 0.48); background: rgba(56, 189, 248, 0.11); }
     .column-manager-item input { width: 15px; height: 15px; margin: 0; accent-color: #f6bd55; }
-    .column-drag-handle { color: #7fa3c8; font-weight: 900; letter-spacing: 1px; user-select: none; }
+    .column-drag-handle {
+      width: 12px;
+      height: 18px;
+      opacity: .78;
+      user-select: none;
+      background-image: radial-gradient(circle, #9cc5e8 1.2px, transparent 1.5px);
+      background-size: 6px 6px;
+      background-position: center;
+      cursor: grab;
+    }
+    .column-manager-item:active .column-drag-handle { cursor: grabbing; }
     .column-manager-label { min-width: 0; color: #e8f3ff; font-size: 12px; line-height: 1.3; }
     .column-manager-empty { padding: 10px; color: #9fb3c8; font-size: 12px; text-align: center; }
 
@@ -11474,7 +11484,7 @@
       const visible = new Set(columnLayout.visible);
       const ids = columnLayout.order.filter(id => manageableColumnIds().includes(id) && columnLabel(id).toLowerCase().includes(query));
       list.innerHTML = ids.length
-        ? ids.map(id => `<label class="column-manager-item" draggable="true" data-column-id="${id}"><span class="column-drag-handle" aria-hidden="true">::</span><input type="checkbox" data-column-checkbox="${id}" ${visible.has(id) ? "checked" : ""}><span class="column-manager-label">${escapeHtml(columnLabel(id))}</span></label>`).join("")
+        ? ids.map(id => `<label class="column-manager-item" draggable="true" data-column-id="${id}"><span class="column-drag-handle" aria-hidden="true"></span><input type="checkbox" data-column-checkbox="${id}" ${visible.has(id) ? "checked" : ""}><span class="column-manager-label">${escapeHtml(columnLabel(id))}</span></label>`).join("")
         : `<div class="column-manager-empty">${uiLanguage === "en" ? "No matching columns" : "אין עמודות תואמות"}</div>`;
     }
 
