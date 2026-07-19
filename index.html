@@ -11264,11 +11264,22 @@
         : "מוכן. בחרו הגדרות ולחצו חשב כדי לסרוק את הקטלוג.";
       const tableNote = $("tableNote");
       const modelNote = $("modelNote");
+      const status = $("calculationStatus");
       if (tableNote) tableNote.textContent = readyText;
       if (modelNote) {
         delete modelNote.dataset.englishActive;
         modelNote.textContent = readyText;
       }
+      if (status) {
+        status.hidden = false;
+        status.textContent = readyText;
+      }
+      try {
+        const timeZone = $("timezone").value.trim();
+        const offsetMinutes = timeZoneOffsetMinutes(zonedDateTimeToUtc($("date").value, 12, 0, timeZone), timeZone);
+        $("utcOffset").value = `UTC${offsetMinutes >= 0 ? "+" : ""}${offsetMinutes / 60}`;
+      } catch (_) {}
+      updateHeaderSummary();
     }
 
     function calculateOnMainThread(button) {
