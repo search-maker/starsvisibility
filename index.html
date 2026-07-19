@@ -1797,7 +1797,6 @@
             <tbody id="tbody"></tbody>
           </table>
         </div>
-
         <div class="legend">
           <div class="legend-title">מקרא ערכים בטבלה</div>
           <div class="legend-group">
@@ -11258,6 +11257,20 @@
       }
     }
 
+    function showReadyToCalculateState() {
+      if (globalThis.__CALC_WORKER__ || rows.length || $("calculate")?.classList.contains("is-calculating")) return;
+      const readyText = uiLanguage === "en"
+        ? "Ready. Choose settings, then select Calculate to scan the catalog."
+        : "מוכן. בחרו הגדרות ולחצו חשב כדי לסרוק את הקטלוג.";
+      const tableNote = $("tableNote");
+      const modelNote = $("modelNote");
+      if (tableNote) tableNote.textContent = readyText;
+      if (modelNote) {
+        delete modelNote.dataset.englishActive;
+        modelNote.textContent = readyText;
+      }
+    }
+
     function calculateOnMainThread(button) {
       workerEnabled = false;
       setCalculationUiState(true);
@@ -14896,7 +14909,7 @@
     if (!globalThis.__CALC_WORKER__) {
       initializeColumnManager();
       initLocations();
-      calculate();
+      showReadyToCalculateState();
     }
   
     const INFO_TEXT = {
@@ -15553,6 +15566,7 @@
       });
       updateColumnManagerTexts();
       updateBrightnessExpandButtons();
+      showReadyToCalculateState();
     }
 
     function initInfoButtons() {
