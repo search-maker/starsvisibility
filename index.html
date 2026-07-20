@@ -368,11 +368,63 @@
       color: #e8f3ff;
       font-size: 14px;
     }
+    .weekly-focus-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .weekly-focus-header h3 { margin: 2px 0 4px; color: #f4f8ff; font-size: 24px; }
+    .weekly-focus-header p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .weekly-focus-eyebrow { color: #79d4f2; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .weekly-settings-drawer {
+      margin-bottom: 14px;
+      border: 1px solid rgba(125, 211, 252, .28);
+      border-radius: 7px;
+      background: rgba(4, 15, 29, .42);
+      overflow: hidden;
+    }
+    .weekly-settings-drawer > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 13px;
+      cursor: pointer;
+      color: #e8f3ff;
+      font-weight: 800;
+    }
+    .weekly-settings-drawer > summary small { color: var(--muted); font-weight: 500; text-align: end; }
+    .weekly-settings-drawer[open] > summary { border-bottom: 1px solid var(--line); }
+    .weekly-settings-host {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 14px;
+      padding: 14px;
+      max-height: min(68vh, 760px);
+      overflow: auto;
+    }
+    .weekly-settings-host #threeStarControls { grid-column: 1 / -1; }
+    .weekly-settings-host #mainControls { grid-column: 1; }
+    .weekly-settings-host #advancedSettingsArea { grid-column: 2; align-content: start; }
+    .weekly-settings-host #calculationTypeBlock,
+    .weekly-settings-host #inputOriginLegend,
+    .weekly-settings-host .calculate-row,
+    .weekly-settings-host #calculationStatus { display: none; }
+    .weekly-results-scroll {
+      width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scrollbar-gutter: stable;
+      padding: 2px 0 9px;
+    }
     .weekly-results-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(7, minmax(150px, 1fr));
       gap: 9px;
       margin-top: 14px;
+      min-width: 1050px;
     }
     .weekly-day-card {
       min-width: 0;
@@ -382,21 +434,57 @@
       background: rgba(3, 12, 24, 0.3);
     }
     .weekly-day-card.is-today { border-color: rgba(105, 210, 255, 0.6); }
-    .weekly-day-card header { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11px; }
+    .weekly-day-card header { display: grid; gap: 3px; color: var(--muted); font-size: 11px; }
     .weekly-day-card header strong { color: #e8f3ff; font-size: 13px; }
+    .weekly-hebrew-date { color: #7dd3fc; font-size: 11px; line-height: 1.35; }
     .weekly-main-time { margin-top: 10px; color: #fff3c7; font-size: 22px; font-weight: 800; }
     .weekly-day-card.is-missing .weekly-main-time { color: var(--muted); font-size: 15px; }
     .weekly-day-meta { margin-top: 5px; color: #9fcfff; font-size: 11px; line-height: 1.45; }
     .weekly-day-stars { margin-top: 8px; color: #c9d8e8; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
 
-    @media (max-width: 900px) {
-      .weekly-results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
+    .weekly-lower-settings { display: contents; }
+    .weekly-lower-settings > summary { display: none; }
 
+    body.weekly-focus-mode #threeStarView > .three-star-header,
+    body.weekly-focus-mode #threeStarView > #threeStarControls,
+    body.weekly-focus-mode #threeStarView > #threeStarEmpty,
+    body.weekly-focus-mode #threeStarView > #threeStarResult { display: none; }
+    body.weekly-focus-mode .weekly-lower-settings {
+      display: block;
+      border: 1px solid rgba(125, 211, 252, .28);
+      border-radius: 7px;
+      background: rgba(7, 21, 39, .55);
+    }
+    body.weekly-focus-mode .weekly-lower-settings > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 14px;
+      color: #e5f1ff;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    body.weekly-focus-mode .weekly-lower-settings[open] > summary {
+      border-bottom: 1px solid rgba(125, 211, 252, .2);
+    }
+    body.weekly-focus-mode .weekly-lower-settings > :not(summary) {
+      margin-inline: 13px;
+    }
+    body.weekly-focus-mode .weekly-lower-settings > :last-child { margin-bottom: 13px; }
+    body.weekly-focus-mode #weeklyView {
+      margin: 0;
+      border-color: rgba(125, 211, 252, .3);
+    }
+    body.weekly-focus-mode #weeklyView > summary { display: none; }
+    body.weekly-focus-mode #weeklyView[open] > .annual-body { padding: 18px; }
+    body.weekly-focus-mode #annualView { margin-top: 14px; }
     @media (max-width: 520px) {
-      .weekly-results-grid { grid-template-columns: 1fr; }
       .weekly-toolbar .action { flex: 1 1 120px; }
       .weekly-range { order: -1; flex-basis: 100%; }
+      .weekly-focus-header { display: grid; }
+      .weekly-focus-header .action { width: 100%; }
+      .weekly-results-grid { grid-template-columns: repeat(7, 156px); min-width: max-content; }
     }
     .annual-print-report { display: none; }
     .annual-print-report.is-preparing {
@@ -720,6 +808,41 @@
       display: grid;
       gap: 6px;
     }
+
+    .hebrew-date-option {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px 10px;
+      min-width: 0;
+    }
+
+    .hebrew-date-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .hebrew-date-toggle input {
+      width: auto;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .hebrew-date-value {
+      min-width: 0;
+      padding-inline-start: 10px;
+      border-inline-start: 2px solid rgba(89, 199, 235, .55);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.4;
+      unicode-bidi: plaintext;
+    }
+
+    .hebrew-date-value[hidden] { display: none; }
 
     label {
       font-size: 13px;
@@ -1956,8 +2079,8 @@
     </section>
 
     <section class="shell">
-      <aside class="panel controls">
-        <div>
+      <aside class="panel controls" id="mainControls">
+        <div id="calculationTypeBlock">
           <div class="calculation-type-label" id="calculationTypeLabel">Calculation type</div>
           <nav class="calculator-tabs" role="tablist" aria-label="Calculator views">
             <button id="standardCalculatorTab" class="calculator-tab active" type="button" role="tab" aria-selected="true" aria-controls="standardResultsView" tabindex="0">Star visibility</button>
@@ -2001,6 +2124,13 @@
           <div class="field">
             <label for="date">תאריך מקומי <button type="button" class="info-btn" data-info-key="date" aria-label="הסבר">?</button></label>
             <input id="date" type="date">
+            <div class="hebrew-date-option">
+              <label class="hebrew-date-toggle" for="showHebrewDate">
+                <input id="showHebrewDate" type="checkbox">
+                <span id="showHebrewDateLabel">הצג תאריך עברי</span>
+              </label>
+              <output id="hebrewDateDisplay" class="hebrew-date-value" aria-live="polite" hidden></output>
+            </div>
           </div>
           <div class="field">
             <label for="timezone">אזור זמן IANA <button type="button" class="info-btn" data-info-key="timezone" aria-label="הסבר">?</button></label>
@@ -2316,7 +2446,7 @@
           <p id="threeStarSubtitle">Calculate when the selected number of stars fainter than or equal to a chosen magnitude are predicted to be visible simultaneously.</p>
           <p id="threeStarPreSunsetNote" class="three-star-pre-sunset-note">Before sunset, mainly objects with an effective magnitude of −1.5 or brighter are expected to be visible. Objects between −1.5 and −0.5 may be visible only under exceptional conditions, while objects fainter than −0.5 are not expected to be visible.</p>
         </div>
-        <div class="three-star-controls">
+        <div class="three-star-controls" id="threeStarControls">
           <div class="field">
             <label for="threeStarCount" id="threeStarCountLabel">Number of stars</label>
             <select id="threeStarCount">
@@ -2361,6 +2491,14 @@
         <details id="weeklyView" class="annual-view weekly-view">
           <summary id="weeklySummary">Weekly View</summary>
           <div class="annual-body">
+            <div class="weekly-focus-header">
+              <div>
+                <span class="weekly-focus-eyebrow" id="weeklyFocusEyebrow">Three-Star Time</span>
+                <h3 id="weeklyFocusTitle">Weekly View</h3>
+                <p id="weeklyFocusSubtitle">Seven civil dates shown together using one shared set of observing conditions.</p>
+              </div>
+              <button class="action secondary" id="closeWeeklyFocus" type="button">Back to daily view</button>
+            </div>
             <div class="weekly-toolbar">
               <button class="action secondary" id="previousWeek" type="button">Previous week</button>
               <button class="action secondary" id="currentWeek" type="button">Current week</button>
@@ -2374,7 +2512,9 @@
               <progress id="weeklyProgressBar" max="100" value="0"></progress>
               <div id="weeklyProgressText" class="annual-progress-text"></div>
             </div>
-            <div id="weeklyResultsGrid" class="weekly-results-grid" hidden aria-live="polite"></div>
+            <div class="weekly-results-scroll" id="weeklyResultsScroll" tabindex="0" aria-label="Weekly results">
+              <div id="weeklyResultsGrid" class="weekly-results-grid" hidden aria-live="polite"></div>
+            </div>
           </div>
         </details>
 
@@ -2420,7 +2560,7 @@
         </details>
       </section>
 
-      <section class="advanced-settings-area" aria-labelledby="advancedSettingsHeading">
+      <section class="advanced-settings-area" id="advancedSettingsArea" aria-labelledby="advancedSettingsHeading">
         <h2 class="advanced-settings-heading" id="advancedSettingsHeading">אפשרויות נוספות</h2>
         <div class="advanced-settings-grid">
           <details class="settings-panel">
@@ -11884,6 +12024,7 @@
     let selectedLocation = null;
     const CUSTOM_LOCATIONS_STORAGE_KEY = "starVisibilityCustomLocationsV1";
     const ACTIVE_LOCATION_STORAGE_KEY = "starVisibilityLocationV3";
+    const HEBREW_DATE_DISPLAY_STORAGE_KEY = "starVisibilityShowHebrewDateV1";
     let uiLanguage = "en";
     let lastHebrewModelNote = "";
     if (!globalThis.__CALC_WORKER__) {
@@ -12308,9 +12449,12 @@
     if (!globalThis.__CALC_WORKER__) {
       const dateEl = $("date");
       if (dateEl && !dateEl.value) dateEl.valueAsDate = new Date();
+      try { $("showHebrewDate").checked = localStorage.getItem(HEBREW_DATE_DISPLAY_STORAGE_KEY) === "1"; } catch (_) {}
+      updateHebrewDateDisplay();
       const annualYearEl = $("annualYear");
       if (annualYearEl && !annualYearEl.value) annualYearEl.value = String(Number((dateEl?.value || "").slice(0, 4)) || new Date().getFullYear());
       weeklyStartDate = startOfWeekIso(dateEl?.value || isoDateUtc(new Date()));
+      $("weeklyResultsScroll").setAttribute("aria-label", uiLanguage === "en" ? "Weekly results" : "תוצאות שבועיות");
       updateWeeklyRangeLabel();
     }
 
@@ -12353,22 +12497,11 @@
     });
     $("nextWeek").addEventListener("click", () => moveWeeklyView(7));
     $("weeklyView").addEventListener("toggle", () => {
-      if ($("weeklyView").open && !weeklyResults.length && !activeWeeklyWorker) calculateWeeklyResults();
+      const open = $("weeklyView").open;
+      setWeeklyFocusMode(open);
+      if (open && !weeklyResults.length && !activeWeeklyWorker) calculateWeeklyResults();
     });
-    document.addEventListener("change", event => {
-      if (event.target?.closest?.("#weeklyView") || event.target?.closest?.("#annualView")) return;
-      if (event.target?.id === "date") {
-        weeklyStartDate = startOfWeekIso(event.target.value);
-        updateWeeklyRangeLabel();
-      }
-      if (!weeklyResults.length) return;
-      weeklyResults = [];
-      $("weeklyResultsGrid").hidden = true;
-      $("weeklyProgress").hidden = false;
-      $("weeklyProgressText").textContent = uiLanguage === "en"
-        ? "Settings changed. Calculate the week again."
-        : "ההגדרות השתנו. יש לחשב את השבוע מחדש.";
-    });
+    $("closeWeeklyFocus").addEventListener("click", () => { $("weeklyView").open = false; });
     $("calculateAnnual").addEventListener("click", calculateAnnualResults);
     $("cancelAnnual").addEventListener("click", cancelAnnualCalculation);
     $("exportAnnualCsv").addEventListener("click", exportAnnualCsv);
@@ -12376,10 +12509,24 @@
     $("annualChartMetric").addEventListener("change", drawAnnualChart);
     $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
     $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
+    const threeStarBatchDisplayOnlyIds = new Set([
+      "showHebrewDate", "timeFormat", "filter", "renderLimit", "columnSearch",
+      "annualChartMetric", "locationSearch", "customLocationName"
+    ]);
     ["input", "change"].forEach(eventName => {
       document.addEventListener(eventName, event => {
-        if (!annualResults.length || event.target?.id === "annualChartMetric") return;
-        requestAnimationFrame(() => updateAnnualExportAvailability());
+        const target = event.target;
+        if (!target?.id || threeStarBatchDisplayOnlyIds.has(target.id) || target.closest?.("#columnManagerPanel")) return;
+        if (target.id === "annualYear" || target.id === "annualCadence") {
+          clearAnnualBatchResults();
+          return;
+        }
+        if (target.closest?.("#weeklyView") || target.closest?.("#annualView")) return;
+        if (target.id === "date") {
+          weeklyStartDate = startOfWeekIso(target.value);
+          updateWeeklyRangeLabel();
+        }
+        if (target.matches?.("input, select, textarea")) clearThreeStarBatchResults();
       });
     });
     if (!globalThis.__CALC_WORKER__) {
@@ -12398,6 +12545,12 @@
       try { localStorage.setItem("starVisibilityTimeFormatV2", $("timeFormat").value); } catch (_) {}
       if (rows.length) render();
       updateHeaderSummary(lastRunMetadata);
+    });
+    $("date").addEventListener("input", updateHebrewDateDisplay);
+    $("date").addEventListener("change", updateHebrewDateDisplay);
+    $("showHebrewDate").addEventListener("change", () => {
+      try { localStorage.setItem(HEBREW_DATE_DISPLAY_STORAGE_KEY, $("showHebrewDate").checked ? "1" : "0"); } catch (_) {}
+      updateHebrewDateDisplay();
     });
     $("advancedToggleButton").addEventListener("click", () => {
       const open = !advancedColumnIds().some(id => columnLayout?.visible.includes(id));
@@ -15692,6 +15845,39 @@
       return texts[reason] || (uiLanguage === "en" ? "No result" : "אין תוצאה");
     }
 
+    function initializeWeeklyFocusLayout() {
+      if (globalThis.__CALC_WORKER__ || $("weeklyLowerSettings")) return;
+      const first = $("eveningMode")?.closest(".field");
+      const last = $("humanVisibilityModel")?.closest(".field");
+      if (!first || !last || first.parentNode !== last.parentNode) return;
+      const details = document.createElement("details");
+      details.id = "weeklyLowerSettings";
+      details.className = "weekly-lower-settings";
+      details.open = true;
+      const summary = document.createElement("summary");
+      summary.id = "weeklyLowerSettingsSummary";
+      summary.textContent = "Edit calculation settings";
+      details.appendChild(summary);
+      first.parentNode.insertBefore(details, first);
+      let node = first;
+      while (node) {
+        const next = node.nextSibling;
+        details.appendChild(node);
+        if (node === last) break;
+        node = next;
+      }
+    }
+
+    function setWeeklyFocusMode(active) {
+      if (globalThis.__CALC_WORKER__) return;
+      initializeWeeklyFocusLayout();
+      const wasActive = document.body.classList.contains("weekly-focus-mode");
+      document.body.classList.toggle("weekly-focus-mode", Boolean(active));
+      const lowerSettings = $("weeklyLowerSettings");
+      if (lowerSettings && active && !wasActive) lowerSettings.open = false;
+      if (lowerSettings && !active) lowerSettings.open = true;
+    }
+
     function renderWeeklyResults(results) {
       const grid = $("weeklyResultsGrid");
       grid.hidden = false;
@@ -15701,6 +15887,7 @@
       const today = isoDateUtc(new Date());
       grid.innerHTML = results.map(result => {
         const date = parseIsoDateUtc(result?.date);
+        const hebrewDate = formatHebrewCalendarDate(result?.date, uiLanguage);
         const found = Boolean(result?.found && Number.isFinite(result?.time));
         const time = found ? formatLocal(result.time, result.timeZone) : weeklyNoResultText(result?.reason);
         const minutesText = Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--";
@@ -15712,12 +15899,54 @@
           ? `${uiLanguage === "en" ? "Completing objects" : "העצמים שהשלימו את המניין"}: ${escapeHtml(result.completingStars.join(", "))}`
           : "";
         return `<article class="weekly-day-card${result?.date === today ? " is-today" : ""}${found ? "" : " is-missing"}">
-          <header><strong>${escapeHtml(date ? weekdayFormatter.format(date) : "--")}</strong><span>${escapeHtml(date ? dateFormatter.format(date) : result?.date || "--")}</span></header>
+          <header><strong>${escapeHtml(date ? weekdayFormatter.format(date) : "--")}</strong><span>${escapeHtml(date ? dateFormatter.format(date) : result?.date || "--")}</span><span class="weekly-hebrew-date">${escapeHtml(hebrewDate || "--")}</span></header>
           <div class="weekly-main-time" dir="ltr">${escapeHtml(time)}</div>
           <div class="weekly-day-meta">${details}</div>
           ${stars ? `<div class="weekly-day-stars">${stars}</div>` : ""}
         </article>`;
       }).join("");
+    }
+
+    function clearWeeklyBatchResults() {
+      weeklyCalculationVersion++;
+      if (activeWeeklyWorker) {
+        activeWeeklyWorker.worker.terminate();
+        URL.revokeObjectURL(activeWeeklyWorker.url);
+      }
+      activeWeeklyWorker = null;
+      weeklyResults = [];
+      const grid = $("weeklyResultsGrid");
+      if (grid) {
+        grid.innerHTML = "";
+        grid.hidden = true;
+      }
+      setWeeklyUiState(false);
+      $("weeklyProgress").hidden = true;
+      $("weeklyProgressText").textContent = "";
+    }
+
+    function clearAnnualBatchResults() {
+      annualCalculationVersion++;
+      if (activeAnnualWorker) activeAnnualWorker.terminate();
+      activeAnnualWorker = null;
+      annualResults = [];
+      annualResultSettingsJson = "";
+      annualChartPoints = [];
+      $("annualTableBody").innerHTML = "";
+      $("annualTableWrap").hidden = true;
+      $("annualChartWrap").hidden = true;
+      $("annualChartTooltip").hidden = true;
+      const canvas = $("annualChart");
+      canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+      setAnnualUiState(false);
+      $("annualProgress").hidden = true;
+      $("annualProgressText").textContent = "";
+      updateAnnualExportAvailability(false);
+    }
+
+    function clearThreeStarBatchResults() {
+      clearWeeklyBatchResults();
+      clearAnnualBatchResults();
     }
 
     function setWeeklyUiState(running, completed = 0, total = 0) {
@@ -15768,7 +15997,7 @@
     }
 
     function normalizedAnnualSettingsJson(values, year, cadence) {
-      const ignored = new Set(["date", "filter", "renderLimit", "annualYear", "annualCadence", "annualChartMetric", "previousWeek", "currentWeek", "nextWeek", "calculateWeekly", "cancelWeekly"]);
+      const ignored = new Set(["date", "filter", "renderLimit", "showHebrewDate", "hebrewDateDisplay", "annualYear", "annualCadence", "annualChartMetric", "previousWeek", "currentWeek", "nextWeek", "calculateWeekly", "cancelWeekly"]);
       const controls = Object.keys(values)
         .filter(id => !ignored.has(id) && !id.startsWith("annual") && !id.startsWith("weekly"))
         .sort()
@@ -16843,6 +17072,7 @@
     if (!globalThis.__CALC_WORKER__) {
       initializeColumnManager();
       initializeTableScrollRail();
+      initializeWeeklyFocusLayout();
       initLocations();
       showReadyToCalculateState();
     }
@@ -17229,6 +17459,91 @@
       return INFO_TEXT[key] || "אין הסבר זמין לשדה זה.";
     }
 
+    function civilDateAtUtcNoon(isoDate) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(isoDate || ""));
+      if (!match) return null;
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const date = new Date(Date.UTC(year, month - 1, day, 12));
+      if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+      return date;
+    }
+
+    function hebrewCalendarNumeral(value) {
+      let number = Math.max(0, Math.floor(Number(value) || 0));
+      if (number >= 1000) number %= 1000;
+      if (!number) return "";
+      let letters = "";
+      while (number >= 400) { letters += "ת"; number -= 400; }
+      const hundreds = [[300, "ש"], [200, "ר"], [100, "ק"]];
+      for (const [amount, letter] of hundreds) {
+        if (number >= amount) { letters += letter; number -= amount; }
+      }
+      if (number === 15) { letters += "טו"; number = 0; }
+      else if (number === 16) { letters += "טז"; number = 0; }
+      const tens = [[90, "צ"], [80, "פ"], [70, "ע"], [60, "ס"], [50, "נ"], [40, "מ"], [30, "ל"], [20, "כ"], [10, "י"]];
+      for (const [amount, letter] of tens) {
+        if (number >= amount) { letters += letter; number -= amount; }
+      }
+      const ones = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"];
+      letters += ones[number] || "";
+      return letters.length === 1
+        ? `${letters}׳`
+        : `${letters.slice(0, -1)}״${letters.slice(-1)}`;
+    }
+
+    function formatHebrewCalendarDate(isoDate, language = uiLanguage) {
+      const date = civilDateAtUtcNoon(isoDate);
+      if (!date || typeof Intl?.DateTimeFormat !== "function") return "";
+      try {
+        const locale = language === "en" ? "en-US-u-ca-hebrew" : "he-IL-u-ca-hebrew";
+        const formatter = new Intl.DateTimeFormat(locale, {
+          calendar: "hebrew",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: "UTC"
+        });
+        if (formatter.resolvedOptions().calendar !== "hebrew") return "";
+        if (language === "en") return formatter.format(date);
+        const numericParts = new Intl.DateTimeFormat("en-US-u-ca-hebrew", {
+          calendar: "hebrew",
+          day: "numeric",
+          year: "numeric",
+          timeZone: "UTC"
+        }).formatToParts(date);
+        const day = Number(numericParts.find(part => part.type === "day")?.value);
+        const year = Number(numericParts.find(part => part.type === "year")?.value);
+        const month = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", {
+          calendar: "hebrew",
+          month: "long",
+          timeZone: "UTC"
+        }).format(date);
+        if (!day || !year || !month) return formatter.format(date);
+        return `${hebrewCalendarNumeral(day)} ב${month} ${hebrewCalendarNumeral(year)}`;
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function updateHebrewDateDisplay() {
+      if (globalThis.__CALC_WORKER__) return;
+      const toggle = $("showHebrewDate");
+      const output = $("hebrewDateDisplay");
+      if (!toggle || !output) return;
+      output.hidden = !toggle.checked;
+      if (!toggle.checked) {
+        output.textContent = "";
+        return;
+      }
+      const formatted = formatHebrewCalendarDate($("date")?.value, uiLanguage);
+      output.dir = uiLanguage === "en" ? "ltr" : "rtl";
+      output.textContent = formatted
+        ? `${uiLanguage === "en" ? "Hebrew date" : "תאריך עברי"}: ${formatted}`
+        : (uiLanguage === "en" ? "Hebrew date is unavailable in this browser." : "התאריך העברי אינו זמין בדפדפן זה.");
+    }
+
     function setUiLanguage(next) {
       if (globalThis.__CALC_WORKER__) return;
       uiLanguage = next === "en" ? "en" : "he";
@@ -17329,6 +17644,8 @@
       if (globalThis.__CALC_WORKER__) return;
       document.documentElement.lang = uiLanguage;
       document.documentElement.dir = uiLanguage === "en" ? "ltr" : "rtl";
+      $("showHebrewDateLabel").textContent = uiLanguage === "en" ? "Show Hebrew date" : "הצג תאריך עברי";
+      updateHebrewDateDisplay();
       updateInputOriginMarkers();
       updateModelNoteDisplay();
       $("languageToggle").textContent = uiLanguage === "en" ? "HEB" : "English";
@@ -17362,6 +17679,16 @@
       });
       updateThreeStarSelectionControls();
       $("weeklySummary").textContent = uiLanguage === "en" ? "Weekly View" : "חישוב שבועי";
+      $("weeklyFocusEyebrow").textContent = uiLanguage === "en" ? "Three-Star Time" : "זמן צאת הכוכבים";
+      $("weeklyFocusTitle").textContent = uiLanguage === "en" ? "Weekly View" : "תצוגה שבועית";
+      $("weeklyFocusSubtitle").textContent = uiLanguage === "en"
+        ? "Seven civil dates shown together using one shared set of observing conditions."
+        : "שבעת ימי השבוע מוצגים יחד לפי מערכת אחת של תנאי תצפית.";
+      if ($("weeklyLowerSettingsSummary")) {
+        $("weeklyLowerSettingsSummary").textContent = uiLanguage === "en" ? "Edit calculation settings" : "עריכת הגדרות החישוב";
+      }
+      $("weeklyResultsScroll").setAttribute("aria-label", uiLanguage === "en" ? "Weekly results" : "תוצאות שבועיות");
+      $("closeWeeklyFocus").textContent = uiLanguage === "en" ? "Back to daily view" : "חזרה לתצוגה היומית";
       $("previousWeek").textContent = uiLanguage === "en" ? "Previous week" : "השבוע הקודם";
       $("currentWeek").textContent = uiLanguage === "en" ? "Current week" : "השבוע הנוכחי";
       $("nextWeek").textContent = uiLanguage === "en" ? "Next week" : "השבוע הבא";
