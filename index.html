@@ -313,7 +313,7 @@
     .annual-body { padding: 16px; }
     .annual-controls {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
       align-items: end;
     }
@@ -434,13 +434,26 @@
       background: rgba(3, 12, 24, 0.3);
     }
     .weekly-day-card.is-today { border-color: rgba(105, 210, 255, 0.6); }
-    .weekly-day-card header { display: grid; gap: 3px; color: var(--muted); font-size: 11px; }
-    .weekly-day-card header strong { color: #e8f3ff; font-size: 13px; }
-    .weekly-hebrew-date { color: #7dd3fc; font-size: 11px; line-height: 1.35; }
-    .weekly-main-time { margin-top: 10px; color: #fff3c7; font-size: 22px; font-weight: 800; }
+    .weekly-main-time { color: #fff3c7; font-size: 22px; font-weight: 800; }
     .weekly-day-card.is-missing .weekly-main-time { color: var(--muted); font-size: 15px; }
     .weekly-day-meta { margin-top: 5px; color: #9fcfff; font-size: 11px; line-height: 1.45; }
     .weekly-day-stars { margin-top: 8px; color: #c9d8e8; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+    .weekly-date-block {
+      display: grid;
+      gap: 3px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(184, 205, 229, 0.14);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .weekly-weekday {
+      color: #e8f3ff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .weekly-hebrew-date { color: #7dd3fc; }
 
     .weekly-lower-settings { display: contents; }
     .weekly-lower-settings > summary { display: none; }
@@ -2523,8 +2536,15 @@
           <div class="annual-body">
             <div class="annual-controls">
               <div class="field">
+                <label for="annualCalendar" id="annualCalendarLabel">Calendar year</label>
+                <select id="annualCalendar">
+                  <option value="gregorian" selected>Gregorian year</option>
+                  <option value="hebrew">Hebrew year</option>
+                </select>
+              </div>
+              <div class="field">
                 <label for="annualYear" id="annualYearLabel">Year</label>
-                <input id="annualYear" type="number" min="1800" max="2050" step="1">
+                <input id="annualYear" type="text" inputmode="numeric" autocomplete="off">
               </div>
               <div class="field">
                 <label for="annualCadence" id="annualCadenceLabel">Display interval</label>
@@ -11958,6 +11978,7 @@
     let weeklyCalculationVersion = 0;
     let annualResults = [];
     let annualResultSettingsJson = "";
+    let annualResultPeriod = null;
     let activeAnnualWorker = null;
     let annualCalculationVersion = 0;
     let annualChartPoints = [];
@@ -12025,6 +12046,7 @@
     const CUSTOM_LOCATIONS_STORAGE_KEY = "starVisibilityCustomLocationsV1";
     const ACTIVE_LOCATION_STORAGE_KEY = "starVisibilityLocationV3";
     const HEBREW_DATE_DISPLAY_STORAGE_KEY = "starVisibilityShowHebrewDateV1";
+    const THREE_STAR_SELECTION_STORAGE_KEY = "starVisibilityThreeStarSelectionV1";
     let uiLanguage = "en";
     let lastHebrewModelNote = "";
     if (!globalThis.__CALC_WORKER__) {
@@ -12480,11 +12502,18 @@
       });
     });
     $("threeStarMagnitudeBasis").addEventListener("change", () => {
+      saveThreeStarSelectionPreferences();
       updateThreeStarSelectionControls();
       calculate();
     });
     THREE_STAR_KNOWN_OBJECTS.forEach(object => {
-      $(object.inputId)?.addEventListener("change", calculate);
+      $(object.inputId)?.addEventListener("change", () => {
+        saveThreeStarSelectionPreferences();
+        calculate();
+      });
+    });
+    ["threeStarCount", "threeStarMagnitudeThreshold"].forEach(id => {
+      $(id)?.addEventListener("change", saveThreeStarSelectionPreferences);
     });
     $("calculate").addEventListener("click", calculate);
     $("calculateWeekly").addEventListener("click", calculateWeeklyResults);
@@ -12507,6 +12536,10 @@
     $("exportAnnualCsv").addEventListener("click", exportAnnualCsv);
     $("exportAnnualPdf").addEventListener("click", exportAnnualPdf);
     $("annualChartMetric").addEventListener("change", drawAnnualChart);
+    $("annualCalendar").addEventListener("change", () => {
+      updateAnnualCalendarControl(true);
+      clearAnnualBatchResults();
+    });
     $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
     $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
     const threeStarBatchDisplayOnlyIds = new Set([
@@ -12517,7 +12550,7 @@
       document.addEventListener(eventName, event => {
         const target = event.target;
         if (!target?.id || threeStarBatchDisplayOnlyIds.has(target.id) || target.closest?.("#columnManagerPanel")) return;
-        if (target.id === "annualYear" || target.id === "annualCadence") {
+        if (target.id === "annualYear" || target.id === "annualCalendar" || target.id === "annualCadence") {
           clearAnnualBatchResults();
           return;
         }
@@ -12657,6 +12690,39 @@
       return THREE_STAR_KNOWN_OBJECTS
         .filter(object => $(object.inputId)?.checked === true)
         .map(object => object.key);
+    }
+
+    function saveThreeStarSelectionPreferences() {
+      if (globalThis.__CALC_WORKER__) return;
+      try {
+        localStorage.setItem(THREE_STAR_SELECTION_STORAGE_KEY, JSON.stringify({
+          count: $("threeStarCount")?.value || "3",
+          magnitudeBasis: $("threeStarMagnitudeBasis")?.value || "effective",
+          magnitudeThreshold: $("threeStarMagnitudeThreshold")?.value || "1.5",
+          excludedKnownObjects: selectedKnownObjectExclusionKeys()
+        }));
+      } catch (_) {}
+    }
+
+    function loadThreeStarSelectionPreferences() {
+      if (globalThis.__CALC_WORKER__) return;
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(THREE_STAR_SELECTION_STORAGE_KEY) || "null"); } catch (_) {}
+      if (!saved || typeof saved !== "object") return;
+      if (["2", "3"].includes(String(saved.count))) $("threeStarCount").value = String(saved.count);
+      if (["catalog", "effective", "known-exclusions"].includes(saved.magnitudeBasis)) {
+        $("threeStarMagnitudeBasis").value = saved.magnitudeBasis;
+      }
+      const threshold = Number(saved.magnitudeThreshold);
+      if (Number.isFinite(threshold)) $("threeStarMagnitudeThreshold").value = String(threshold);
+      if (Array.isArray(saved.excludedKnownObjects)) {
+        const excluded = new Set(saved.excludedKnownObjects.map(String));
+        THREE_STAR_KNOWN_OBJECTS.forEach(object => {
+          const input = $(object.inputId);
+          if (input) input.checked = excluded.has(object.key);
+        });
+      }
+      updateThreeStarSelectionControls();
     }
 
     function knownObjectExclusionKey(star) {
@@ -15899,10 +15965,14 @@
           ? `${uiLanguage === "en" ? "Completing objects" : "העצמים שהשלימו את המניין"}: ${escapeHtml(result.completingStars.join(", "))}`
           : "";
         return `<article class="weekly-day-card${result?.date === today ? " is-today" : ""}${found ? "" : " is-missing"}">
-          <header><strong>${escapeHtml(date ? weekdayFormatter.format(date) : "--")}</strong><span>${escapeHtml(date ? dateFormatter.format(date) : result?.date || "--")}</span><span class="weekly-hebrew-date">${escapeHtml(hebrewDate || "--")}</span></header>
           <div class="weekly-main-time" dir="ltr">${escapeHtml(time)}</div>
           <div class="weekly-day-meta">${details}</div>
           ${stars ? `<div class="weekly-day-stars">${stars}</div>` : ""}
+          <div class="weekly-date-block">
+            <div class="weekly-weekday">${escapeHtml(date ? weekdayFormatter.format(date) : "--")}</div>
+            <div>${escapeHtml(date ? dateFormatter.format(date) : result?.date || "--")}</div>
+            <div class="weekly-hebrew-date">${escapeHtml(hebrewDate || "--")}</div>
+          </div>
         </article>`;
       }).join("");
     }
@@ -15931,6 +16001,7 @@
       activeAnnualWorker = null;
       annualResults = [];
       annualResultSettingsJson = "";
+      annualResultPeriod = null;
       annualChartPoints = [];
       $("annualTableBody").innerHTML = "";
       $("annualTableWrap").hidden = true;
@@ -15987,30 +16058,72 @@
       return values;
     }
 
-    function annualDateStrings(year, cadence) {
+    function annualDateStrings(period, cadence) {
       const dates = [];
       const stepDays = cadence === "daily" ? 1 : 7;
-      for (let date = new Date(Date.UTC(year, 0, 1)); date.getUTCFullYear() === year; date.setUTCDate(date.getUTCDate() + stepDays)) {
+      const endMs = Date.parse(`${period.endExclusiveIso}T00:00:00Z`);
+      for (let date = new Date(`${period.startIso}T00:00:00Z`); date.getTime() < endMs; date.setUTCDate(date.getUTCDate() + stepDays)) {
         dates.push(date.toISOString().slice(0, 10));
       }
       return dates;
     }
 
-    function normalizedAnnualSettingsJson(values, year, cadence) {
-      const ignored = new Set(["date", "filter", "renderLimit", "showHebrewDate", "hebrewDateDisplay", "annualYear", "annualCadence", "annualChartMetric", "previousWeek", "currentWeek", "nextWeek", "calculateWeekly", "cancelWeekly"]);
+    function annualChartMonthMarkers(period) {
+      const markers = [];
+      const startMs = Date.parse(`${period.startIso}T00:00:00Z`);
+      const endMs = Date.parse(`${period.endExclusiveIso}T00:00:00Z`);
+      let previousKey = "";
+      for (let ms = startMs; ms < endMs; ms += 86400000) {
+        const date = new Date(ms);
+        let key;
+        let label;
+        if (period.calendar === "hebrew") {
+          const iso = date.toISOString().slice(0, 10);
+          const parts = hebrewCalendarParts(iso);
+          if (!parts) continue;
+          key = `${parts.year}:${parts.month}`;
+          label = new Intl.DateTimeFormat(uiLanguage === "en" ? "en-US-u-ca-hebrew" : "he-IL-u-ca-hebrew", {
+            calendar: "hebrew", month: "short", timeZone: "UTC"
+          }).format(date);
+        } else {
+          key = `${date.getUTCFullYear()}:${date.getUTCMonth()}`;
+          label = new Intl.DateTimeFormat(uiLanguage === "en" ? "en-US" : "he-IL", {
+            month: "short", timeZone: "UTC"
+          }).format(date);
+        }
+        if (key !== previousKey) {
+          markers.push({ ms, label });
+          previousKey = key;
+        }
+      }
+      return markers;
+    }
+
+    function normalizedAnnualSettingsJson(values, period, cadence) {
+      const ignored = new Set(["date", "filter", "renderLimit", "showHebrewDate", "hebrewDateDisplay", "annualCalendar", "annualYear", "annualCadence", "annualChartMetric", "previousWeek", "currentWeek", "nextWeek", "calculateWeekly", "cancelWeekly"]);
       const controls = Object.keys(values)
         .filter(id => !ignored.has(id) && !id.startsWith("annual") && !id.startsWith("weekly"))
         .sort()
         .map(id => [id, String(values[id]?.value ?? ""), values[id]?.checked === true]);
-      return JSON.stringify({ schemaVersion: 3, modelVersion: THREE_STAR_MODEL_VERSION, year, cadence, controls });
+      const periodKey = {
+        calendar: period.calendar,
+        year: period.year,
+        startIso: period.startIso,
+        endExclusiveIso: period.endExclusiveIso
+      };
+      return JSON.stringify({ schemaVersion: 4, modelVersion: THREE_STAR_MODEL_VERSION, period: periodKey, cadence, controls });
     }
 
     function currentAnnualSettingsSnapshot() {
       if (globalThis.__CALC_WORKER__) return { values: {}, settingsJson: "" };
-      const year = Number($("annualYear")?.value);
-      const cadence = $("annualCadence")?.value || "weekly";
-      const values = collectThreeStarBatchValues();
-      return { values, settingsJson: normalizedAnnualSettingsJson(values, year, cadence) };
+      try {
+        const period = currentAnnualPeriod();
+        const cadence = $("annualCadence")?.value || "weekly";
+        const values = collectThreeStarBatchValues();
+        return { values, period, settingsJson: normalizedAnnualSettingsJson(values, period, cadence) };
+      } catch (_) {
+        return { values: {}, period: null, settingsJson: "" };
+      }
     }
 
     function annualExportsAreCurrent() {
@@ -16065,7 +16178,7 @@
       try {
         const now = Date.now();
         localStorage.setItem(cacheKey, JSON.stringify({
-          schemaVersion: 3,
+          schemaVersion: 4,
           modelVersion: THREE_STAR_MODEL_VERSION,
           settingsJson,
           createdAt: now,
@@ -16192,27 +16305,31 @@
 
     function calculateAnnualResults() {
       if (globalThis.__CALC_WORKER__) return;
-      const year = Number($("annualYear").value);
       const cadence = $("annualCadence").value;
-      if (!Number.isInteger(year) || year < 1800 || year > 2050) {
-        clearResultsAfterError(uiLanguage === "en" ? "Annual year must be between 1800 and 2050." : "השנה לתצוגה השנתית צריכה להיות בין 1800 ל־2050.");
+      let period;
+      try {
+        period = currentAnnualPeriod();
+      } catch (error) {
+        clearResultsAfterError(error?.message || String(error));
         return;
       }
       if (activeAnnualWorker) activeAnnualWorker.terminate();
-      const dates = annualDateStrings(year, cadence);
+      const dates = annualDateStrings(period, cadence);
       const { values, settingsJson } = currentAnnualSettingsSnapshot();
       const cacheKey = hashAnnualSettings(settingsJson);
       annualResultSettingsJson = "";
+      annualResultPeriod = null;
       updateAnnualExportAvailability(true);
       try {
         const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-        if (cached?.schemaVersion === 3
+        if (cached?.schemaVersion === 4
             && cached?.modelVersion === THREE_STAR_MODEL_VERSION
             && cached?.settingsJson === settingsJson
             && Array.isArray(cached.results)
             && cached.results.length === dates.length) {
           annualResults = cached.results;
           annualResultSettingsJson = settingsJson;
+          annualResultPeriod = period;
           try {
             cached.lastAccessedAt = Date.now();
             localStorage.setItem(cacheKey, JSON.stringify(cached));
@@ -16259,6 +16376,7 @@
         }
         annualResults = Array.isArray(data.results) ? data.results : [];
         annualResultSettingsJson = settingsJson;
+        annualResultPeriod = period;
         saveAnnualCache(cacheKey, settingsJson, annualResults);
         renderAnnualResults(annualResults);
         setAnnualUiState(false, annualResults.length, dates.length);
@@ -16284,10 +16402,13 @@
       const chartWrap = $("annualChartWrap");
       tableWrap.hidden = false;
       chartWrap.hidden = false;
+      $("annualDateHead").textContent = annualResultPeriod?.calendar === "hebrew"
+        ? (uiLanguage === "en" ? "Hebrew / Gregorian date" : "תאריך עברי / לועזי")
+        : (uiLanguage === "en" ? "Date" : "תאריך");
       updateAnnualExportAvailability();
       $("annualTableBody").innerHTML = results.map(result => {
         const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
-        return `<tr><td>${escapeHtml(result?.date || "--")}</td><td>${result?.sunsetTime ? escapeHtml(formatLocal(result.sunsetTime, result.timeZone)) : "--"}</td><td>${result?.found ? escapeHtml(formatLocal(result.time, result.timeZone)) : "--"}</td><td>${Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--"}</td><td>${Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--"}</td><td>${escapeHtml(stars)}</td></tr>`;
+        return `<tr><td>${escapeHtml(annualResultDateText(result?.date))}</td><td>${result?.sunsetTime ? escapeHtml(formatLocal(result.sunsetTime, result.timeZone)) : "--"}</td><td>${result?.found ? escapeHtml(formatLocal(result.time, result.timeZone)) : "--"}</td><td>${Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--"}</td><td>${Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--"}</td><td>${escapeHtml(stars)}</td></tr>`;
       }).join("");
       drawAnnualChart();
     }
@@ -16325,10 +16446,16 @@
       max += span * 0.08;
       const xFor = index => pad.left + index / Math.max(1, annualResults.length - 1) * (width - pad.left - pad.right);
       const yFor = value => pad.top + (max - value) / (max - min) * (plotBottom - pad.top);
-      const chartYear = Number($("annualYear")?.value) || Number((annualResults[0]?.date || "").slice(0, 4));
-      const yearStartMs = Date.UTC(chartYear, 0, 1);
-      const yearEndMs = Date.UTC(chartYear + 1, 0, 1);
-      const xForDateMs = ms => pad.left + (ms - yearStartMs) / Math.max(1, yearEndMs - yearStartMs) * (width - pad.left - pad.right);
+      const period = annualResultPeriod || {
+        calendar: "gregorian",
+        year: Number((annualResults[0]?.date || "").slice(0, 4)),
+        displayYear: String((annualResults[0]?.date || "").slice(0, 4)),
+        startIso: annualResults[0]?.date,
+        endExclusiveIso: addIsoDays(annualResults[annualResults.length - 1]?.date, 1)
+      };
+      const periodStartMs = Date.parse(`${period.startIso}T00:00:00Z`);
+      const periodEndMs = Date.parse(`${period.endExclusiveIso}T00:00:00Z`);
+      const xForDateMs = ms => pad.left + (ms - periodStartMs) / Math.max(1, periodEndMs - periodStartMs) * (width - pad.left - pad.right);
       ctx.strokeStyle = "rgba(159,177,198,.28)";
       ctx.fillStyle = "#9fb1c6";
       ctx.font = "11px system-ui";
@@ -16339,22 +16466,21 @@
         ctx.fillText(value.toFixed(1), 8, y + 4);
       }
 
-      const monthNames = uiLanguage === "en"
-        ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        : ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני", "יולי", "אוג׳", "ספט׳", "אוק׳", "נוב׳", "דצמ׳"];
+      const monthMarkers = annualChartMonthMarkers(period);
       ctx.save();
       ctx.lineWidth = 1;
       ctx.strokeStyle = "rgba(159,177,198,.18)";
-      for (let month = 0; month < 12; month++) {
-        const x = xForDateMs(Date.UTC(chartYear, month, 1));
+      for (const marker of monthMarkers) {
+        const x = xForDateMs(marker.ms);
         ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, plotBottom); ctx.stroke();
       }
       ctx.beginPath(); ctx.moveTo(width - pad.right, pad.top); ctx.lineTo(width - pad.right, plotBottom); ctx.stroke();
       ctx.restore();
 
       const now = new Date();
-      if (now.getFullYear() === chartYear) {
-        const todayX = xForDateMs(Date.UTC(chartYear, now.getMonth(), now.getDate()));
+      const todayMs = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+      if (todayMs >= periodStartMs && todayMs < periodEndMs) {
+        const todayX = xForDateMs(todayMs);
         ctx.save();
         ctx.strokeStyle = "#69d2ff";
         ctx.fillStyle = "#69d2ff";
@@ -16392,16 +16518,15 @@
       ctx.fillStyle = "#c9d8e8";
       ctx.textAlign = "center";
       ctx.font = "600 11px system-ui";
-      ctx.fillText(String(chartYear), (pad.left + width - pad.right) / 2, height - (narrowMonthAxis ? 43 : 31));
+      ctx.fillText(annualPeriodYearText(period), (pad.left + width - pad.right) / 2, height - (narrowMonthAxis ? 43 : 31));
       ctx.fillStyle = "#9fb1c6";
       ctx.font = `${narrowMonthAxis ? 8 : width < 560 ? 9 : 10}px system-ui`;
-      for (let month = 0; month < 12; month++) {
-        const monthStart = Date.UTC(chartYear, month, 1);
-        const nextMonthStart = Date.UTC(chartYear, month + 1, 1);
-        const x = xForDateMs((monthStart + nextMonthStart) / 2);
-        const monthY = narrowMonthAxis ? height - (month % 2 === 0 ? 23 : 10) : height - 12;
-        ctx.fillText(monthNames[month], x, monthY);
-      }
+      monthMarkers.forEach((marker, index) => {
+        const nextMs = monthMarkers[index + 1]?.ms || periodEndMs;
+        const x = xForDateMs((marker.ms + nextMs) / 2);
+        const monthY = narrowMonthAxis ? height - (index % 2 === 0 ? 23 : 10) : height - 12;
+        ctx.fillText(marker.label, x, monthY);
+      });
       ctx.restore();
     }
 
@@ -16419,7 +16544,7 @@
       const metricLabel = $("annualChartMetric").value === "minutes"
         ? (uiLanguage === "en" ? "minutes after sunset" : "דקות לאחר השקיעה")
         : (uiLanguage === "en" ? "Sun altitude" : "גובה השמש");
-      tooltip.textContent = `${point.result.date}: ${Number(point.value).toFixed(2)} ${metricLabel}`;
+      tooltip.textContent = `${annualResultDateText(point.result.date)}: ${Number(point.value).toFixed(2)} ${metricLabel}`;
       tooltip.hidden = false;
       const margin = 6;
       const tooltipWidth = Math.min(tooltip.offsetWidth || 190, Math.max(0, rect.width - margin * 2));
@@ -16462,7 +16587,8 @@
       const blob = new Blob(["\uFEFF" + headers.map(csvCell).join(",") + "\r\n" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `three-star-time-${$("annualYear").value}-${$("annualCadence").value}.csv`;
+      const period = annualResultPeriod || currentAnnualPeriod();
+      link.download = `three-star-time-${period.calendar}-${period.year}-${$("annualCadence").value}.csv`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
@@ -16472,7 +16598,8 @@
       const canvas = $("annualChart");
       let chartDataUrl = "";
       try { chartDataUrl = canvas?.toDataURL("image/png") || ""; } catch (_) {}
-      const year = $("annualYear").value;
+      const period = annualResultPeriod || currentAnnualPeriod();
+      const year = annualPeriodYearText(period);
       const cadence = $("annualCadence").value;
       const cadenceLabel = cadence === "daily"
         ? (uiLanguage === "en" ? "Daily" : "יומי")
@@ -16486,7 +16613,7 @@
       const rowMarkup = annualResults.map(result => {
         const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
         const cells = [
-          result?.date || "--",
+          annualResultDateText(result?.date),
           result?.sunsetTime ? formatLocal(result.sunsetTime, result.timeZone) : "--",
           result?.found ? formatLocal(result.time, result.timeZone) : "--",
           Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--",
@@ -16503,7 +16630,8 @@
       report.innerHTML = `
         <h1>${escapeHtml(title)}</h1>
         <div class="annual-print-meta">
-          <span><strong>${uiLanguage === "en" ? "Year" : "שנה"}:</strong> ${escapeHtml(year)}</span>
+          <span><strong>${period.calendar === "hebrew" ? (uiLanguage === "en" ? "Hebrew year" : "שנה עברית") : (uiLanguage === "en" ? "Gregorian year" : "שנה לועזית")}:</strong> ${escapeHtml(year)}</span>
+          <span><strong>${uiLanguage === "en" ? "Date range" : "טווח תאריכים"}:</strong> ${escapeHtml(annualResultDateText(period.startIso))} – ${escapeHtml(annualResultDateText(addIsoDays(period.endExclusiveIso, -1)))}</span>
           <span><strong>${uiLanguage === "en" ? "Interval" : "מרווח"}:</strong> ${escapeHtml(cadenceLabel)}</span>
           <span><strong>${uiLanguage === "en" ? "Location" : "מקום"}:</strong> ${escapeHtml(locationText)}</span>
           <span><strong>${uiLanguage === "en" ? "Time zone" : "אזור זמן"}:</strong> ${escapeHtml(timeZoneText)}</span>
@@ -17073,6 +17201,8 @@
       initializeColumnManager();
       initializeTableScrollRail();
       initializeWeeklyFocusLayout();
+      loadThreeStarSelectionPreferences();
+      updateAnnualCalendarControl(false);
       initLocations();
       showReadyToCalculateState();
     }
@@ -17527,6 +17657,110 @@
       }
     }
 
+    function hebrewCalendarParts(isoDate) {
+      const date = civilDateAtUtcNoon(isoDate);
+      if (!date) return null;
+      try {
+        const parts = new Intl.DateTimeFormat("en-US-u-ca-hebrew", {
+          calendar: "hebrew",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: "UTC"
+        }).formatToParts(date);
+        const day = Number(parts.find(part => part.type === "day")?.value);
+        const year = Number(parts.find(part => part.type === "year")?.value);
+        const month = String(parts.find(part => part.type === "month")?.value || "");
+        return day && year && month ? { day, year, month } : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function parseHebrewYearInput(value) {
+      const text = String(value || "").trim();
+      if (/^\d{4}$/.test(text)) return Number(text);
+      const values = { א:1, ב:2, ג:3, ד:4, ה:5, ו:6, ז:7, ח:8, ט:9, י:10, כ:20, ך:20, ל:30, מ:40, ם:40, נ:50, ן:50, ס:60, ע:70, פ:80, ף:80, צ:90, ץ:90, ק:100, ר:200, ש:300, ת:400 };
+      const letters = [...text].filter(char => values[char]);
+      if (!letters.length) return NaN;
+      const shortYear = letters.reduce((sum, char) => sum + values[char], 0);
+      return shortYear < 1000 ? shortYear + 5000 : shortYear;
+    }
+
+    function hebrewYearStartIso(hebrewYear) {
+      const approximateGregorianYear = hebrewYear - 3761;
+      const start = new Date(Date.UTC(approximateGregorianYear, 7, 1));
+      const end = new Date(Date.UTC(approximateGregorianYear, 10, 16));
+      for (let date = start; date < end; date = new Date(date.getTime() + 86400000)) {
+        const iso = date.toISOString().slice(0, 10);
+        const parts = hebrewCalendarParts(iso);
+        if (parts?.year === hebrewYear && parts.day === 1 && /^tish/i.test(parts.month)) return iso;
+      }
+      return "";
+    }
+
+    function currentAnnualPeriod() {
+      const calendar = $("annualCalendar")?.value === "hebrew" ? "hebrew" : "gregorian";
+      const input = $("annualYear")?.value;
+      if (calendar === "hebrew") {
+        const year = parseHebrewYearInput(input);
+        const startIso = Number.isInteger(year) ? hebrewYearStartIso(year) : "";
+        const endExclusiveIso = Number.isInteger(year) ? hebrewYearStartIso(year + 1) : "";
+        const startGregorianYear = Number(startIso.slice(0, 4));
+        const endExclusiveMs = Date.parse(`${endExclusiveIso}T00:00:00Z`);
+        if (!Number.isInteger(year) || year < 5541 || year > 5811 || !startIso || !endExclusiveIso || startGregorianYear < 1800 || endExclusiveMs > Date.UTC(2051, 0, 1)) {
+          throw new Error(uiLanguage === "en" ? "Hebrew year must fall within the supported 1800–2050 civil-date range." : "השנה העברית צריכה להיות בתחום התאריכים הנתמך, בין השנים הלועזיות 1800–2050.");
+        }
+        return {
+          calendar,
+          year,
+          startIso,
+          endExclusiveIso,
+          displayYear: uiLanguage === "en" ? String(year) : hebrewCalendarNumeral(year)
+        };
+      }
+      const year = Number(input);
+      if (!Number.isInteger(year) || year < 1800 || year > 2050) {
+        throw new Error(uiLanguage === "en" ? "Annual year must be between 1800 and 2050." : "השנה לתצוגה השנתית צריכה להיות בין 1800 ל־2050.");
+      }
+      return { calendar, year, startIso: `${year}-01-01`, endExclusiveIso: `${year + 1}-01-01`, displayYear: String(year) };
+    }
+
+    function updateAnnualCalendarControl(changeYear = false) {
+      if (globalThis.__CALC_WORKER__) return;
+      const hebrew = $("annualCalendar")?.value === "hebrew";
+      const yearInput = $("annualYear");
+      if (changeYear && yearInput) {
+        if (hebrew) {
+          const parts = hebrewCalendarParts($("date")?.value || isoDateUtc(new Date()));
+          if (parts?.year) yearInput.value = uiLanguage === "he" ? hebrewCalendarNumeral(parts.year) : String(parts.year);
+        } else {
+          yearInput.value = String(Number(($("date")?.value || "").slice(0, 4)) || new Date().getFullYear());
+        }
+      }
+      if (yearInput) {
+        yearInput.inputMode = hebrew ? "text" : "numeric";
+        yearInput.placeholder = hebrew ? (uiLanguage === "en" ? "5786 or תשפ״ו" : "תשפ״ו או 5786") : "2026";
+      }
+      if ($("annualYearLabel")) $("annualYearLabel").textContent = hebrew
+        ? (uiLanguage === "en" ? "Hebrew year" : "שנה עברית")
+        : (uiLanguage === "en" ? "Gregorian year" : "שנה לועזית");
+    }
+
+    function annualResultDateText(isoDate) {
+      const period = annualResultPeriod;
+      if (period?.calendar !== "hebrew") return isoDate || "--";
+      const hebrew = formatHebrewCalendarDate(isoDate, uiLanguage);
+      return hebrew ? `${hebrew} · ${isoDate}` : (isoDate || "--");
+    }
+
+    function annualPeriodYearText(period) {
+      if (!period) return "";
+      return period.calendar === "hebrew" && uiLanguage === "he"
+        ? hebrewCalendarNumeral(period.year)
+        : String(period.year);
+    }
+
     function updateHebrewDateDisplay() {
       if (globalThis.__CALC_WORKER__) return;
       const toggle = $("showHebrewDate");
@@ -17700,7 +17934,10 @@
       updateWeeklyRangeLabel();
       if (weeklyResults.length) renderWeeklyResults(weeklyResults);
       $("annualSummary").textContent = uiLanguage === "en" ? "Annual View" : "תצוגה שנתית";
-      $("annualYearLabel").textContent = uiLanguage === "en" ? "Year" : "שנה";
+      $("annualCalendarLabel").textContent = uiLanguage === "en" ? "Calendar year" : "סוג שנה";
+      $("annualCalendar").querySelector('option[value="gregorian"]').textContent = uiLanguage === "en" ? "Gregorian year" : "שנה לועזית";
+      $("annualCalendar").querySelector('option[value="hebrew"]').textContent = uiLanguage === "en" ? "Hebrew year" : "שנה עברית";
+      updateAnnualCalendarControl(false);
       $("annualCadenceLabel").textContent = uiLanguage === "en" ? "Display interval" : "מרווח תצוגה";
       $("annualMetricLabel").textContent = uiLanguage === "en" ? "Chart" : "גרף";
       $("annualCadence").querySelector('option[value="weekly"]').textContent = uiLanguage === "en" ? "Weekly (exact 7-day samples)" : "שבועי (דגימה מדויקת כל 7 ימים)";
