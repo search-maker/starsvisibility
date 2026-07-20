@@ -350,6 +350,15 @@
     .annual-table { min-width: 780px; }
     .annual-table th { position: sticky; top: 0; z-index: 2; }
     .annual-print-report { display: none; }
+    .annual-print-report.is-preparing {
+      display: block;
+      position: fixed;
+      inset-block-start: 0;
+      inset-inline-start: -12000px;
+      width: 1120px;
+      visibility: hidden;
+      pointer-events: none;
+    }
 
     @media print {
       @page { size: A4 landscape; margin: 10mm; }
@@ -736,6 +745,12 @@
       padding: 11px 14px;
       cursor: pointer;
       font-weight: 750;
+    }
+
+    button.action:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      filter: saturate(.35);
     }
 
     button.secondary {
@@ -11729,6 +11744,7 @@
     let rows = [];
     let threeStarResultData = null;
     let annualResults = [];
+    let annualResultSettingsJson = "";
     let activeAnnualWorker = null;
     let annualCalculationVersion = 0;
     let annualChartPoints = [];
@@ -12259,6 +12275,12 @@
     $("annualChartMetric").addEventListener("change", drawAnnualChart);
     $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
     $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
+    ["input", "change"].forEach(eventName => {
+      document.addEventListener(eventName, event => {
+        if (!annualResults.length || event.target?.id === "annualChartMetric") return;
+        requestAnimationFrame(() => updateAnnualExportAvailability());
+      });
+    });
     if (!globalThis.__CALC_WORKER__) {
       let annualChartResizeFrame = 0;
       window.addEventListener("resize", () => {
@@ -15543,6 +15565,31 @@
       return JSON.stringify({ schemaVersion: 3, modelVersion: THREE_STAR_MODEL_VERSION, year, cadence, controls });
     }
 
+    function currentAnnualSettingsSnapshot() {
+      if (globalThis.__CALC_WORKER__) return { values: {}, settingsJson: "" };
+      const year = Number($("annualYear")?.value);
+      const cadence = $("annualCadence")?.value || "weekly";
+      const values = {};
+      document.querySelectorAll("[id]").forEach(el => {
+        values[el.id] = { value: "value" in el ? el.value : "", checked: "checked" in el ? el.checked : false };
+      });
+      values.calculatorFeature = { value: "three-star", checked: false };
+      values.kvMode = { value: values.kv?.value?.trim() ? "manual" : "preset", checked: false };
+      return { values, settingsJson: normalizedAnnualSettingsJson(values, year, cadence) };
+    }
+
+    function annualExportsAreCurrent() {
+      return annualResults.length > 0
+        && Boolean(annualResultSettingsJson)
+        && annualResultSettingsJson === currentAnnualSettingsSnapshot().settingsJson;
+    }
+
+    function updateAnnualExportAvailability(running = Boolean(activeAnnualWorker)) {
+      const enabled = !running && annualExportsAreCurrent();
+      $("exportAnnualCsv").disabled = !enabled;
+      $("exportAnnualPdf").disabled = !enabled;
+    }
+
     function hashAnnualSettings(settingsJson) {
       let hash = 2166136261;
       for (let i = 0; i < settingsJson.length; i++) {
@@ -15602,8 +15649,7 @@
       const textEl = $("annualProgressText");
       $("calculateAnnual").disabled = running;
       $("cancelAnnual").hidden = !running;
-      $("exportAnnualCsv").disabled = running || !annualResults.length;
-      $("exportAnnualPdf").disabled = running || !annualResults.length;
+      updateAnnualExportAvailability(running);
       if (progress) progress.hidden = !running && completed === 0;
       if (bar) bar.value = total ? completed / total * 100 : 0;
       if (textEl) textEl.textContent = running
@@ -15621,14 +15667,10 @@
       }
       if (activeAnnualWorker) activeAnnualWorker.terminate();
       const dates = annualDateStrings(year, cadence);
-      const values = {};
-      document.querySelectorAll("[id]").forEach(el => {
-        values[el.id] = { value: "value" in el ? el.value : "", checked: "checked" in el ? el.checked : false };
-      });
-      values.calculatorFeature = { value: "three-star", checked: false };
-      values.kvMode = { value: values.kv?.value?.trim() ? "manual" : "preset", checked: false };
-      const settingsJson = normalizedAnnualSettingsJson(values, year, cadence);
+      const { values, settingsJson } = currentAnnualSettingsSnapshot();
       const cacheKey = hashAnnualSettings(settingsJson);
+      annualResultSettingsJson = "";
+      updateAnnualExportAvailability(true);
       try {
         const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
         if (cached?.schemaVersion === 3
@@ -15637,6 +15679,7 @@
             && Array.isArray(cached.results)
             && cached.results.length === dates.length) {
           annualResults = cached.results;
+          annualResultSettingsJson = settingsJson;
           try {
             cached.lastAccessedAt = Date.now();
             localStorage.setItem(cacheKey, JSON.stringify(cached));
@@ -15720,6 +15763,7 @@
           return;
         }
         annualResults = Array.isArray(data.results) ? data.results : [];
+        annualResultSettingsJson = settingsJson;
         saveAnnualCache(cacheKey, settingsJson, annualResults);
         renderAnnualResults(annualResults);
         setAnnualUiState(false, annualResults.length, dates.length);
@@ -15745,8 +15789,7 @@
       const chartWrap = $("annualChartWrap");
       tableWrap.hidden = false;
       chartWrap.hidden = false;
-      $("exportAnnualCsv").disabled = !results.length;
-      $("exportAnnualPdf").disabled = !results.length;
+      updateAnnualExportAvailability();
       $("annualTableBody").innerHTML = results.map(result => {
         const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
         return `<tr><td>${escapeHtml(result?.date || "--")}</td><td>${result?.sunsetTime ? escapeHtml(formatLocal(result.sunsetTime, result.timeZone)) : "--"}</td><td>${result?.found ? escapeHtml(formatLocal(result.time, result.timeZone)) : "--"}</td><td>${Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--"}</td><td>${Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--"}</td><td>${escapeHtml(stars)}</td></tr>`;
@@ -15899,7 +15942,7 @@
     }
 
     function exportAnnualCsv() {
-      if (!annualResults.length) return;
+      if (!annualExportsAreCurrent()) return;
       const headers = uiLanguage === "en"
         ? ["date", "localSunset", "localStarCountTime", "minutesAfterSunset", "sunAltitudeDeg", "starsCompletingCount", "numberOfStars", "magnitudeBasis", "magnitudeThreshold", "excludedKnownObjects", "kV", "kVSource", "modelVersion"]
         : ["תאריך", "שקיעה מקומית", "זמן צאת הכוכבים", "דקות לאחר השקיעה", "גובה השמש במעלות", "כוכבים שהשלימו את המניין", "מספר הכוכבים", "סוג המגניטודה", "סף המגניטודה", "עצמים מוכרים שהוסתרו", "kV", "מקור kV", "גרסת המודל"];
@@ -15929,8 +15972,8 @@
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
 
-    function exportAnnualPdf() {
-      if (!annualResults.length) return;
+    async function exportAnnualPdf() {
+      if (!annualExportsAreCurrent()) return;
       const canvas = $("annualChart");
       let chartDataUrl = "";
       try { chartDataUrl = canvas?.toDataURL("image/png") || ""; } catch (_) {}
@@ -15980,6 +16023,31 @@
       button.dataset.lastPdfRowCount = String(annualResults.length);
       button.dataset.lastPdfCadence = cadence;
       button.dataset.lastPdfChartIncluded = String(Boolean(chartDataUrl));
+      const chartImage = report.querySelector(".annual-print-chart");
+      report.classList.add("is-preparing");
+      if (chartImage) {
+        try {
+          if (!(chartImage.complete && chartImage.naturalWidth > 0)) {
+            if (typeof chartImage.decode === "function") {
+              await Promise.race([
+                chartImage.decode(),
+                new Promise(resolve => setTimeout(resolve, 2500))
+              ]);
+            } else {
+              await Promise.race([
+                new Promise(resolve => {
+                  chartImage.addEventListener("load", resolve, { once: true });
+                  chartImage.addEventListener("error", resolve, { once: true });
+                }),
+                new Promise(resolve => setTimeout(resolve, 2500))
+              ]);
+            }
+          }
+        } catch (_) {}
+      }
+      button.dataset.lastPdfImageReady = String(!chartImage || (chartImage.complete && chartImage.naturalWidth > 0));
+      button.dataset.lastPdfImageNaturalWidth = String(chartImage?.naturalWidth || 0);
+      report.classList.remove("is-preparing");
       const previousTitle = document.title;
       document.title = `${title} ${year}`;
       document.body.classList.add("annual-print-mode");
@@ -15992,7 +16060,8 @@
         report.remove();
       };
       window.addEventListener("afterprint", cleanup, { once: true });
-      setTimeout(() => window.print(), 80);
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      window.print();
       setTimeout(cleanup, 60000);
     }
 
