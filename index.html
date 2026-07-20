@@ -364,10 +364,13 @@
     .weekly-range {
       flex: 1 1 220px;
       min-width: 0;
+      display: grid;
+      gap: 2px;
       text-align: center;
       color: #e8f3ff;
       font-size: 14px;
     }
+    .weekly-range-hebrew { color: #7dd3fc; font-size: 12px; font-weight: 700; }
     .weekly-focus-header {
       display: flex;
       align-items: flex-start;
@@ -496,9 +499,13 @@
     .weekly-lower-settings > summary { display: none; }
 
     body.weekly-focus-mode #threeStarView > .three-star-header,
-    body.weekly-focus-mode #threeStarView > #threeStarControls,
     body.weekly-focus-mode #threeStarView > #threeStarEmpty,
     body.weekly-focus-mode #threeStarView > #threeStarResult { display: none; }
+    body.weekly-focus-mode #threeStarView > #threeStarControls {
+      margin-bottom: 14px;
+      border-color: rgba(125, 211, 252, .3);
+      background: rgba(7, 21, 39, .55);
+    }
     body.weekly-focus-mode .weekly-lower-settings {
       display: block;
       border: 1px solid rgba(125, 211, 252, .28);
@@ -12621,6 +12628,8 @@
     $("showHebrewDate").addEventListener("change", () => {
       try { localStorage.setItem(HEBREW_DATE_DISPLAY_STORAGE_KEY, $("showHebrewDate").checked ? "1" : "0"); } catch (_) {}
       updateHebrewDateDisplay();
+      updateWeeklyRangeLabel();
+      if (weeklyResults.length) renderWeeklyResults(weeklyResults);
     });
     $("advancedToggleButton").addEventListener("click", () => {
       const open = !advancedColumnIds().some(id => columnLayout?.visible.includes(id));
@@ -15937,7 +15946,17 @@
       const dates = weeklyDateStrings();
       const locale = uiLanguage === "en" ? "en-US" : "he-IL";
       const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
-      label.textContent = `${formatter.format(parseIsoDateUtc(dates[0]))} – ${formatter.format(parseIsoDateUtc(dates[6]))}`;
+      const civilRange = document.createElement("span");
+      civilRange.dir = uiLanguage === "en" ? "ltr" : "rtl";
+      civilRange.textContent = `${formatter.format(parseIsoDateUtc(dates[0]))} – ${formatter.format(parseIsoDateUtc(dates[6]))}`;
+      label.replaceChildren(civilRange);
+      if ($("showHebrewDate")?.checked) {
+        const hebrewRange = document.createElement("span");
+        hebrewRange.className = "weekly-range-hebrew";
+        hebrewRange.dir = "rtl";
+        hebrewRange.textContent = `${formatHebrewCalendarDate(dates[0], uiLanguage)} – ${formatHebrewCalendarDate(dates[6], uiLanguage)}`;
+        label.appendChild(hebrewRange);
+      }
       label.dir = uiLanguage === "en" ? "ltr" : "rtl";
     }
 
@@ -15984,6 +16003,7 @@
     function renderWeeklyResults(results) {
       const grid = $("weeklyResultsGrid");
       grid.hidden = false;
+      const showHebrewDate = Boolean($("showHebrewDate")?.checked);
       const locale = uiLanguage === "en" ? "en-US" : "he-IL";
       const weekdayFormatter = new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "UTC" });
       const dateFormatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", timeZone: "UTC" });
@@ -16009,7 +16029,7 @@
           <div class="weekly-date-block">
             <div class="weekly-weekday">${escapeHtml(date ? weekdayFormatter.format(date) : "--")}</div>
             <div>${escapeHtml(date ? dateFormatter.format(date) : result?.date || "--")}</div>
-            <div class="weekly-hebrew-date">${escapeHtml(hebrewDate || "--")}</div>
+            ${showHebrewDate ? `<div class="weekly-hebrew-date">${escapeHtml(hebrewDate || "--")}</div>` : ""}
           </div>
         </article>`;
       }).join("");
@@ -16642,7 +16662,7 @@
       const cadenceLabel = cadence === "daily"
         ? (uiLanguage === "en" ? "Daily" : "יומי")
         : (uiLanguage === "en" ? "Weekly" : "שבועי");
-      const title = uiLanguage === "en" ? "Three-Star Annual Report" : "דוח שנתי - זמן צאת הכוכבים";
+      const title = uiLanguage === "en" ? "Three-Star Annual Calendar" : "לוח שנתי - זמן צאת הכוכבים";
       const locationText = $("headerLocation")?.textContent?.trim() || $("customLocationName")?.value?.trim() || "--";
       const timeZoneText = $("timezone")?.value?.trim() || "--";
       const headers = uiLanguage === "en"
