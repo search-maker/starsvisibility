@@ -94,6 +94,319 @@
       align-items: stretch;
     }
 
+    .calculator-tabs {
+      display: inline-flex;
+      gap: 4px;
+      margin: 0;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .controls .calculator-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+      border-color: rgba(125, 211, 252, 0.38);
+      box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.06);
+    }
+
+    .calculation-type-label {
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .calculator-tab {
+      border: 0;
+      border-radius: 6px;
+      min-height: 44px;
+      padding: 9px 10px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 750;
+      line-height: 1.25;
+    }
+
+    .calculator-tab.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .three-star-panel {
+      min-width: 0;
+      overflow: hidden;
+      align-self: stretch;
+    }
+
+    .three-star-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .three-star-header h2 { margin: 0; font-size: 23px; }
+    .three-star-header p { margin: 7px 0 0; color: var(--muted); line-height: 1.5; }
+    .three-star-header .three-star-pre-sunset-note {
+      margin-top: 10px;
+      padding-inline-start: 11px;
+      border-inline-start: 2px solid rgba(246, 189, 85, 0.75);
+      color: #c9d7e8;
+      font-size: 13px;
+    }
+
+    .three-star-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .three-star-controls .wide { grid-column: 1 / -1; }
+    .three-star-controls .note { margin: 0; }
+
+    .three-star-threshold-field[hidden],
+    .known-object-exclusions[hidden] { display: none; }
+
+    .known-object-exclusions {
+      grid-column: 1 / -1;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      margin: 0;
+      padding: 13px 14px;
+      border: 1px solid rgba(125, 211, 252, 0.30);
+      border-radius: 7px;
+      background: rgba(3, 12, 24, 0.22);
+    }
+
+    .known-object-exclusions legend {
+      padding: 0 5px;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .known-object-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .known-object-grid label {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      border-radius: 6px;
+      background: rgba(9, 26, 45, 0.62);
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .known-object-grid input { flex: 0 0 auto; }
+    .known-object-grid label span { min-width: 0; overflow-wrap: anywhere; }
+    .known-object-note { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
+
+    .three-star-result {
+      margin: 18px 20px;
+      padding: 18px;
+      border: 1px solid rgba(246, 189, 85, 0.45);
+      border-radius: 8px;
+      background: rgba(246, 189, 85, 0.08);
+    }
+
+    #standardResultsView[hidden],
+    #threeStarView[hidden],
+    .three-star-result[hidden],
+    .three-star-empty[hidden],
+    .annual-progress[hidden] { display: none; }
+
+    .three-star-result-title {
+      margin: 0 0 12px;
+      color: #fff7d6;
+      font-size: 20px;
+    }
+
+    .three-star-result-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .three-star-result-stat {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid rgba(184, 205, 229, 0.16);
+      border-radius: 6px;
+      background: rgba(3, 12, 24, 0.34);
+    }
+
+    .three-star-result-stat span { display: block; color: var(--muted); font-size: 11px; }
+    .three-star-result-stat b { display: block; margin-top: 3px; overflow-wrap: anywhere; }
+    .three-star-empty { padding: 22px 20px; color: var(--muted); }
+
+    .three-star-object-list { display: grid; gap: 8px; }
+    .three-star-object {
+      display: grid;
+      grid-template-columns: minmax(140px, 1.4fr) repeat(5, minmax(82px, 1fr));
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid rgba(184, 205, 229, 0.16);
+      border-radius: 6px;
+      background: rgba(3, 12, 24, 0.28);
+      font-size: 12px;
+    }
+
+    .three-star-object.completing {
+      border-color: rgba(246, 189, 85, 0.72);
+      box-shadow: inset 3px 0 0 #f6bd55;
+    }
+
+    .three-star-object strong { color: #fff7d6; }
+    .three-star-object small { display: block; color: var(--muted); }
+
+    .annual-view {
+      margin: 18px 20px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .annual-view > summary {
+      padding: 13px 15px;
+      cursor: pointer;
+      font-weight: 800;
+      background: var(--panel);
+    }
+
+    .annual-view[open] > summary { border-bottom: 1px solid var(--line); }
+    .annual-body { padding: 16px; }
+    .annual-controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .annual-actions { display: flex; gap: 8px; align-items: center; }
+    .annual-progress { margin: 14px 0; }
+    .annual-progress progress { width: 100%; height: 12px; accent-color: var(--accent); }
+    .annual-progress-text { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .annual-chart-wrap { position: relative; margin-top: 16px; }
+    #annualChart { width: 100%; height: 300px; display: block; border: 1px solid var(--line); border-radius: 7px; background: rgba(3, 12, 24, 0.3); }
+    .annual-chart-tooltip {
+      position: absolute;
+      pointer-events: none;
+      max-width: 230px;
+      padding: 7px 9px;
+      border: 1px solid rgba(125, 211, 252, 0.38);
+      border-radius: 6px;
+      background: #071424;
+      color: #e8f3ff;
+      font-size: 11px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.32);
+    }
+
+    .annual-table-wrap { margin-top: 14px; max-height: 420px; overflow: auto; }
+    .annual-table { min-width: 780px; }
+    .annual-table th { position: sticky; top: 0; z-index: 2; }
+
+    .community-info {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .community-card {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 15px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 1px 2px rgba(23, 32, 39, .04);
+    }
+
+    .community-mark {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(125, 211, 252, 0.42);
+      border-radius: 50%;
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .community-card h2 {
+      margin: 0 0 5px;
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    .community-card p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .community-email {
+      color: var(--accent);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .community-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 8px 13px;
+      border: 1px solid rgba(246, 189, 85, 0.72);
+      border-radius: 6px;
+      background: rgba(246, 189, 85, 0.09);
+      color: #fff2bf;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .community-action:hover { background: rgba(246, 189, 85, 0.16); }
+
+    @media (max-width: 920px) {
+      .three-star-result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .annual-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .community-info { grid-template-columns: 1fr; }
+      .known-object-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .calculator-tabs { display: flex; }
+      .calculator-tab { flex: 1; padding-inline: 8px; }
+      .three-star-controls, .three-star-result-grid, .annual-controls { grid-template-columns: 1fr; }
+      .known-object-grid { grid-template-columns: 1fr; }
+      .three-star-object { grid-template-columns: 1fr 1fr; }
+      .three-star-object > :first-child { grid-column: 1 / -1; }
+      .annual-actions { flex-wrap: wrap; }
+    }
+
     .panel {
       background: var(--white);
       border: 1px solid var(--line);
@@ -1534,6 +1847,14 @@
 
     <section class="shell">
       <aside class="panel controls">
+        <div>
+          <div class="calculation-type-label" id="calculationTypeLabel">Calculation type</div>
+          <nav class="calculator-tabs" role="tablist" aria-label="Calculator views">
+            <button id="standardCalculatorTab" class="calculator-tab active" type="button" role="tab" aria-selected="true" aria-controls="standardResultsView">Star visibility</button>
+            <button id="threeStarCalculatorTab" class="calculator-tab" type="button" role="tab" aria-selected="false" aria-controls="threeStarView">Three-Star Time</button>
+          </nav>
+        </div>
+        <input id="calculatorFeature" type="hidden" value="standard">
         <div class="input-origin-legend" id="inputOriginLegend" aria-label="Input origin legend">
           <span class="input-origin-key user" id="userInputKey">Your input</span>
           <span class="input-origin-key system" id="systemInputKey">System calculated</span>
@@ -1671,7 +1992,7 @@
         <div class="error" id="error"></div>
       </aside>
 
-      <section class="panel results">
+      <section class="panel results" id="standardResultsView">
         <div class="results-origin-label" id="resultsOriginLabel">System-calculated results</div>
         <div class="summary">
           <div class="metric"><b id="visibleCount">0</b><span>עצמים שנמצאו נראים <button type="button" class="info-btn" data-info-key="metric-visibleCount" aria-label="הסבר">?</button></span></div>
@@ -1877,6 +2198,95 @@
           <span class="note" id="modelNote"></span>
           <button type="button" class="info-btn" data-info-key="ui-modelNote" aria-label="הסבר">?</button>
         </div>
+      </section>
+
+      <section class="panel three-star-panel" id="threeStarView" hidden>
+        <div class="three-star-header">
+          <h2 id="threeStarHeading">Three-Star Time</h2>
+          <p id="threeStarSubtitle">Calculate when the selected number of stars fainter than or equal to a chosen magnitude are predicted to be visible simultaneously.</p>
+          <p id="threeStarPreSunsetNote" class="three-star-pre-sunset-note">Before sunset, mainly objects with an effective magnitude of −1.5 or brighter are expected to be visible. Objects between −1.5 and −0.5 may be visible only under exceptional conditions, while objects fainter than −0.5 are not expected to be visible.</p>
+        </div>
+        <div class="three-star-controls">
+          <div class="field">
+            <label for="threeStarCount" id="threeStarCountLabel">Number of stars</label>
+            <select id="threeStarCount">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="threeStarMagnitudeBasis" id="threeStarBasisLabel">Magnitude basis</label>
+            <select id="threeStarMagnitudeBasis">
+              <option value="catalog">Catalog magnitude</option>
+              <option value="effective" selected>Effective magnitude</option>
+              <option value="known-exclusions">All objects except selected well-known ones</option>
+            </select>
+          </div>
+          <div class="field three-star-threshold-field" id="threeStarThresholdField">
+            <label for="threeStarMagnitudeThreshold" id="threeStarThresholdLabel">Include stars fainter than or equal to</label>
+            <input id="threeStarMagnitudeThreshold" type="number" step="0.1" value="1.5">
+          </div>
+          <p class="note wide" id="threeStarMagnitudeNote">A smaller magnitude number means a brighter star. Effective magnitude includes atmospheric extinction and the star's altitude at that moment.</p>
+          <fieldset class="known-object-exclusions" id="threeStarKnownExclusions" hidden>
+            <legend id="threeStarKnownExclusionsLegend">Hide these objects from the calculation</legend>
+            <div class="known-object-grid">
+              <label><input id="excludeKnownVenus" type="checkbox" checked><span id="excludeKnownVenusLabel">Venus</span></label>
+              <label><input id="excludeKnownJupiter" type="checkbox" checked><span id="excludeKnownJupiterLabel">Jupiter</span></label>
+              <label><input id="excludeKnownSirius" type="checkbox" checked><span id="excludeKnownSiriusLabel">Sirius</span></label>
+              <label><input id="excludeKnownMars" type="checkbox" checked><span id="excludeKnownMarsLabel">Mars</span></label>
+              <label><input id="excludeKnownCanopus" type="checkbox" checked><span id="excludeKnownCanopusLabel">Canopus</span></label>
+              <label><input id="excludeKnownAlphaCentauri" type="checkbox" checked><span id="excludeKnownAlphaCentauriLabel">Alpha Centauri AB</span></label>
+              <label><input id="excludeKnownArcturus" type="checkbox" checked><span id="excludeKnownArcturusLabel">Arcturus</span></label>
+            </div>
+            <p class="known-object-note" id="threeStarKnownExclusionsNote">Checked objects are excluded from the count and do not appear in the result.</p>
+          </fieldset>
+        </div>
+        <div id="threeStarEmpty" class="three-star-empty">Choose the shared location, date and atmospheric settings, then select Calculate.</div>
+        <article id="threeStarResult" class="three-star-result" hidden aria-live="polite">
+          <h3 id="threeStarResultTitle" class="three-star-result-title"></h3>
+          <div id="threeStarResultGrid" class="three-star-result-grid"></div>
+          <div id="threeStarObjectList" class="three-star-object-list"></div>
+        </article>
+
+        <details id="annualView" class="annual-view">
+          <summary id="annualSummary">Annual View</summary>
+          <div class="annual-body">
+            <div class="annual-controls">
+              <div class="field">
+                <label for="annualYear" id="annualYearLabel">Year</label>
+                <input id="annualYear" type="number" min="1800" max="2050" step="1">
+              </div>
+              <div class="field">
+                <label for="annualCadence" id="annualCadenceLabel">Display interval</label>
+                <select id="annualCadence"><option value="weekly" selected>Weekly</option><option value="daily">Daily</option></select>
+              </div>
+              <div class="field">
+                <label for="annualChartMetric" id="annualMetricLabel">Chart</label>
+                <select id="annualChartMetric"><option value="minutes" selected>Minutes after sunset</option><option value="sunAltitude">Sun altitude</option></select>
+              </div>
+              <div class="annual-actions">
+                <button class="action" id="calculateAnnual" type="button">Calculate year</button>
+                <button class="action secondary" id="cancelAnnual" type="button" hidden>Cancel</button>
+                <button class="action secondary" id="exportAnnualCsv" type="button" disabled>Download annual CSV</button>
+              </div>
+            </div>
+            <p id="annualAtmosphereNote" class="note">Annual results use the selected standard atmospheric conditions. Actual visibility can vary with haze, humidity, aerosols, clouds, local lighting and the observer.</p>
+            <div id="annualProgress" class="annual-progress" hidden>
+              <progress id="annualProgressBar" max="100" value="0"></progress>
+              <div id="annualProgressText" class="annual-progress-text"></div>
+            </div>
+            <div id="annualChartWrap" class="annual-chart-wrap" hidden>
+              <canvas id="annualChart" width="1000" height="300" aria-label="Annual three-star time chart"></canvas>
+              <div id="annualChartTooltip" class="annual-chart-tooltip" hidden></div>
+            </div>
+            <div id="annualTableWrap" class="annual-table-wrap" hidden>
+              <table class="annual-table">
+                <thead><tr><th id="annualDateHead">Date</th><th id="annualSunsetHead">Sunset</th><th id="annualTimeHead">Star-count time</th><th id="annualMinutesHead">Minutes after sunset</th><th id="annualSunAltHead">Sun altitude</th><th id="annualStarsHead">Stars completing the count</th></tr></thead>
+                <tbody id="annualTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </details>
       </section>
 
       <section class="advanced-settings-area" aria-labelledby="advancedSettingsHeading">
@@ -2087,6 +2497,25 @@
           </details>
         </div>
       </section>
+    </section>
+
+    <section class="community-info" aria-label="Contact and observation links">
+      <article class="community-card">
+        <div class="community-mark" aria-hidden="true">?</div>
+        <div>
+          <h2 id="communityFeedbackTitle">comments or feedback ?</h2>
+          <p id="communityFeedbackText">If you have any comments, feedback, or inquiries about the calculations, the model, or actual observations, please share them with us by email:</p>
+          <a class="community-email" href="mailto:starsvisibility@gmail.com">starsvisibility@gmail.com</a>
+        </div>
+      </article>
+      <article class="community-card">
+        <div class="community-mark" aria-hidden="true">*</div>
+        <div>
+          <h2 id="communityObservationTitle">Would you like to conduct an observation?</h2>
+          <p id="communityObservationText">Use our guided observation website to locate stars, receive spoken instructions and submit your results easily.</p>
+          <a id="communityObservationLink" class="community-action" href="https://starsobserve.pages.dev/" target="_blank" rel="noopener noreferrer">Start an observation</a>
+        </div>
+      </article>
     </section>
   </main>
 
@@ -11251,6 +11680,21 @@
     const $ = (id) => document.getElementById(id);
     let mode = "evening";
     let rows = [];
+    let threeStarResultData = null;
+    let annualResults = [];
+    let activeAnnualWorker = null;
+    let annualCalculationVersion = 0;
+    let annualChartPoints = [];
+    const THREE_STAR_MODEL_VERSION = "physical-v2-known-exclusions-twilight-0.95-stable-60s";
+    const THREE_STAR_KNOWN_OBJECTS = Object.freeze([
+      { key: "venus", inputId: "excludeKnownVenus", english: "Venus", hebrew: "נוגה" },
+      { key: "jupiter", inputId: "excludeKnownJupiter", english: "Jupiter", hebrew: "צדק" },
+      { key: "sirius", inputId: "excludeKnownSirius", english: "Sirius", hebrew: "סיריוס" },
+      { key: "mars", inputId: "excludeKnownMars", english: "Mars", hebrew: "מאדים" },
+      { key: "canopus", inputId: "excludeKnownCanopus", english: "Canopus", hebrew: "קנופוס" },
+      { key: "alpha-centauri-ab", inputId: "excludeKnownAlphaCentauri", english: "Alpha Centauri AB", hebrew: "אלפא קנטאורי AB" },
+      { key: "arcturus", inputId: "excludeKnownArcturus", english: "Arcturus", hebrew: "ארקטורוס" }
+    ]);
     let lastRunMetadata = {};
     let sortKey = "time";
     let sortDir = 1;
@@ -11320,12 +11764,13 @@
       const button = $("calculate");
       const status = $("calculationStatus");
       const table = $("resultsTable");
+      const isThreeStar = $("calculatorFeature")?.value === "three-star";
       const runningText = uiLanguage === "en"
-        ? "Calculating all visible objects. Please wait..."
-        : "מחשב את כל הכוכבים וכוכבי הלכת. נא להמתין...";
+        ? (isThreeStar ? "Finding the earliest stable simultaneous visibility time. Please wait..." : "Calculating all visible objects. Please wait...")
+        : (isThreeStar ? "מחשב את הזמן המוקדם שבו הכוכבים נראים יחד ביציבות. נא להמתין..." : "מחשב את כל הכוכבים וכוכבי הלכת. נא להמתין...");
       const buttonText = uiLanguage === "en"
-        ? (isCalculating ? "Calculating..." : "Calculate")
-        : (isCalculating ? "מחשב..." : "חשב");
+        ? (isCalculating ? "Calculating..." : (isThreeStar ? "Calculate star-count time" : "Calculate"))
+        : (isCalculating ? "מחשב..." : (isThreeStar ? "חשב זמן צאת הכוכבים" : "חשב"));
       if (button) {
         button.disabled = isCalculating;
         button.textContent = buttonText;
@@ -11412,6 +11857,7 @@
         mode = ${JSON.stringify(mode)};
         Promise.resolve(calculate()).then(() => postMessage({
           rows,
+          threeStarResult: threeStarResultData,
           catalogCount: __els.catalogCount?.textContent || "0",
           modelNote: __els.modelNote?.textContent || "",
           utcOffset: __els.utcOffset?.value || "",
@@ -11446,6 +11892,7 @@
           return;
         }
         rows = data.rows || [];
+        threeStarResultData = data.threeStarResult || null;
         lastRunMetadata = data.metadata || {};
         $("catalogCount").textContent = data.catalogCount;
         delete $("modelNote").dataset.englishActive;
@@ -11454,7 +11901,8 @@
         $("utcOffset").value = data.utcOffset || "";
         updateHeaderSummary(lastRunMetadata);
         updateKVSummaryDisplay(lastRunMetadata);
-        render();
+        if ($("calculatorFeature")?.value === "three-star") renderThreeStarResult(threeStarResultData);
+        else render();
       };
       worker.onerror = () => {
         if (version !== calculationVersion) { finish(); return; }
@@ -11466,6 +11914,7 @@
 
     function clearResultsAfterError(message) {
       rows = [];
+      threeStarResultData = null;
       lastRunMetadata = {};
       const error = $("error");
       if (error) {
@@ -11474,6 +11923,13 @@
       }
       const catalogCount = $("catalogCount");
       if (catalogCount) catalogCount.textContent = "0";
+      const threeStarResult = $("threeStarResult");
+      const threeStarEmpty = $("threeStarEmpty");
+      if (threeStarResult) threeStarResult.hidden = true;
+      if (threeStarEmpty) {
+        threeStarEmpty.hidden = false;
+        threeStarEmpty.textContent = message || (uiLanguage === "en" ? "Calculation failed." : "החישוב נכשל.");
+      }
       const modelNote = $("modelNote");
       if (modelNote) {
         delete modelNote.dataset.englishActive;
@@ -11713,12 +12169,29 @@
     if (!globalThis.__CALC_WORKER__) {
       const dateEl = $("date");
       if (dateEl && !dateEl.value) dateEl.valueAsDate = new Date();
+      const annualYearEl = $("annualYear");
+      if (annualYearEl && !annualYearEl.value) annualYearEl.value = String(Number((dateEl?.value || "").slice(0, 4)) || new Date().getFullYear());
     }
 
     $("eveningMode").addEventListener("click", () => setMode("evening"));
     $("morningMode").addEventListener("click", () => setMode("morning"));
     $("risingMode").addEventListener("click", () => setMode("rising"));
+    $("standardCalculatorTab").addEventListener("click", () => setCalculatorFeature("standard"));
+    $("threeStarCalculatorTab").addEventListener("click", () => setCalculatorFeature("three-star"));
+    $("threeStarMagnitudeBasis").addEventListener("change", () => {
+      updateThreeStarSelectionControls();
+      calculate();
+    });
+    THREE_STAR_KNOWN_OBJECTS.forEach(object => {
+      $(object.inputId)?.addEventListener("change", calculate);
+    });
     $("calculate").addEventListener("click", calculate);
+    $("calculateAnnual").addEventListener("click", calculateAnnualResults);
+    $("cancelAnnual").addEventListener("click", cancelAnnualCalculation);
+    $("exportAnnualCsv").addEventListener("click", exportAnnualCsv);
+    $("annualChartMetric").addEventListener("change", drawAnnualChart);
+    $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
+    $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
     $("horizon").addEventListener("change", calculate);
     $("moonOn").addEventListener("change", calculate);
     $("modelMode").addEventListener("change", calculate);
@@ -11784,8 +12257,80 @@
       calculate();
     }
 
+    function setCalculatorFeature(feature) {
+      const isThreeStar = feature === "three-star";
+      $("calculatorFeature").value = isThreeStar ? "three-star" : "standard";
+      $("standardCalculatorTab").classList.toggle("active", !isThreeStar);
+      $("standardCalculatorTab").setAttribute("aria-selected", String(!isThreeStar));
+      $("threeStarCalculatorTab").classList.toggle("active", isThreeStar);
+      $("threeStarCalculatorTab").setAttribute("aria-selected", String(isThreeStar));
+      $("standardResultsView").hidden = isThreeStar;
+      $("threeStarView").hidden = !isThreeStar;
+      updateThreeStarSelectionControls();
+      if (isThreeStar) {
+        mode = "evening";
+        $("eveningMode").classList.add("active");
+        $("morningMode").classList.remove("active");
+        $("risingMode").classList.remove("active");
+      }
+      setCalculationUiState($("calculate")?.classList.contains("is-calculating"));
+      if (isThreeStar) {
+        if (threeStarResultData) renderThreeStarResult(threeStarResultData);
+        else {
+          $("threeStarResult").hidden = true;
+          $("threeStarEmpty").hidden = false;
+          $("threeStarEmpty").textContent = uiLanguage === "en"
+            ? "Loading the current three-star calculation..."
+            : "טוען כעת את חישוב זמן צאת הכוכבים...";
+        }
+        calculate();
+      }
+      if (!isThreeStar && rows.length) render();
+    }
+
     function normalizedSearch(value) {
       return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    }
+
+    function selectedKnownObjectExclusionKeys() {
+      return THREE_STAR_KNOWN_OBJECTS
+        .filter(object => $(object.inputId)?.checked === true)
+        .map(object => object.key);
+    }
+
+    function knownObjectExclusionKey(star) {
+      const planetKey = normalizedSearch(star?.planetKey);
+      const name = normalizedSearch(star?.name).replace(/[^a-z0-9\u0590-\u05ff]+/g, "");
+      if (star?.isPlanet) {
+        if (planetKey === "venus" || name.includes("venus") || name.includes("נוגה")) return "venus";
+        if (planetKey === "jupiter" || name.includes("jupiter") || name.includes("צדק")) return "jupiter";
+        if (planetKey === "mars" || name.includes("mars") || name.includes("מאדים")) return "mars";
+        return "";
+      }
+
+      const hr = Number(star?.hr);
+      const hip = Number(star?.hip);
+      const hd = Number(star?.hd);
+      if (hr === 2491 || hip === 32349 || hd === 48915 || name.includes("sirius") || name === "9alpcma") return "sirius";
+      if (hr === 2326 || hip === 30438 || hd === 45348 || name.includes("canopus") || name === "alpcar") return "canopus";
+      if (hr === 5340 || hip === 69673 || hd === 124897 || name.includes("arcturus") || name === "16alpboo") return "arcturus";
+      if ([5459, 5460].includes(hr) || [71681, 71683].includes(hip) || [128620, 128621].includes(hd)
+          || name.includes("alphacentauri") || name === "alp1cen" || name === "alp2cen") return "alpha-centauri-ab";
+      return "";
+    }
+
+    function updateThreeStarSelectionControls() {
+      if (globalThis.__CALC_WORKER__) return;
+      const exclusionsMode = $("threeStarMagnitudeBasis")?.value === "known-exclusions";
+      $("threeStarThresholdField").hidden = exclusionsMode;
+      $("threeStarKnownExclusions").hidden = !exclusionsMode;
+      $("threeStarMagnitudeNote").textContent = exclusionsMode
+        ? (uiLanguage === "en"
+          ? "No magnitude threshold is used. The calculator considers every eligible catalog object except the checked well-known objects."
+          : "במצב זה אין סף מגניטודה. המחשבון בודק את כל עצמי הקטלוג המתאימים, מלבד העצמים המוכרים שסומנו להסתרה.")
+        : (uiLanguage === "en"
+          ? "This selection includes larger magnitude numbers: magnitude 3 is fainter than magnitude 2. Effective magnitude includes atmospheric extinction and the star's altitude at that moment."
+          : "הבחירה כוללת מספרי מגניטודה גדולים יותר: מגניטודה 3 חלשה ממגניטודה 2. מגניטודה אפקטיבית כוללת בליעה אטמוספרית ואת גובה הכוכב באותו רגע.");
     }
 
     function normalizeCustomLocation(raw) {
@@ -13524,6 +14069,9 @@
       const error = $("error");
       error.classList.remove("show");
       try {
+        const calculatorFeature = $("calculatorFeature")?.value || "standard";
+        const isThreeStarCalculation = calculatorFeature === "three-star";
+        if (isThreeStarCalculation) mode = "evening";
         const lat = Number($("lat").value);
         const lon = Number($("lon").value);
         const timeZone = $("timezone").value.trim();
@@ -13538,6 +14086,10 @@
         const physical = modelMode !== "empirical"; // physical is the main model
         const humanVisibilityModel = $("humanVisibilityModel")?.value || "legacy";
         const observerMode = $("observerMode")?.value || "ordinaryOrGuided";
+        const threeStarCount = Number($("threeStarCount")?.value || 3);
+        const threeStarMagnitudeBasis = $("threeStarMagnitudeBasis")?.value || "catalog";
+        const threeStarMagnitudeThreshold = Number($("threeStarMagnitudeThreshold")?.value ?? 3);
+        const threeStarKnownExclusionKeys = selectedKnownObjectExclusionKeys();
 
         // Site + observer inputs (blank => sensible default; track what was measured).
         const numOrNull = id => { const el = $(id); if (!el || el.value.trim() === "") return null; const v = Number(el.value); return Number.isFinite(v) ? v : null; };
@@ -13592,6 +14144,12 @@
         if (targetSqmInput != null && (targetSqmInput < 10 || targetSqmInput > 30)) throw new Error("SQM כיווני צריך להיות בין 10 ל-30 mag/arcsec².");
         if (liveTotalSqm != null && (liveTotalSqm < 10 || liveTotalSqm > 30)) throw new Error("Live total SQM must be between 10 and 30 mag/arcsec².");
         if (kvInput != null && (kvInput < 0.12 || kvInput > 0.65)) throw new Error("Manual kV must be between 0.12 and 0.65 mag/airmass.");
+        if (isThreeStarCalculation && ![2, 3].includes(threeStarCount)) throw new Error("Number of stars must be 2 or 3.");
+        if (isThreeStarCalculation && !["catalog", "effective", "known-exclusions"].includes(threeStarMagnitudeBasis)) throw new Error("Magnitude selection mode is invalid.");
+        if (isThreeStarCalculation && threeStarMagnitudeBasis !== "known-exclusions"
+            && (!Number.isFinite(threeStarMagnitudeThreshold) || threeStarMagnitudeThreshold < -5 || threeStarMagnitudeThreshold > 15)) {
+          throw new Error("Magnitude threshold must be between -5 and 15.");
+        }
 
         currentTemperatureC = temperatureC;
         currentPressureHPa = pressureHPa;
@@ -13690,6 +14248,12 @@
           latitudeDeg: lat,
           longitudeDeg: lon,
           observationDate: dateText,
+          calculatorFeature,
+          threeStarCount: isThreeStarCalculation ? threeStarCount : null,
+          threeStarMagnitudeBasis: isThreeStarCalculation ? threeStarMagnitudeBasis : null,
+          threeStarMagnitudeThreshold: isThreeStarCalculation && threeStarMagnitudeBasis !== "known-exclusions" ? threeStarMagnitudeThreshold : null,
+          threeStarKnownExclusions: isThreeStarCalculation ? threeStarKnownExclusionKeys.join("|") : "",
+          threeStarModelVersion: isThreeStarCalculation ? THREE_STAR_MODEL_VERSION : null,
           timeZone,
           utcOffset: $("utcOffset").value,
           timeFormat: $("timeFormat").value,
@@ -14137,9 +14701,208 @@
 
         // Precompute Sun/Moon per step (shared by all stars) — the main performance win.
         const tl = [];
-        if (mode !== "rising") {
+        if (mode !== "rising" && !isThreeStarCalculation) {
           for (let t = scanStart; t <= scanEnd; t += step) tl.push(computeSunMoon(t));
         }
+
+        if (isThreeStarCalculation) {
+          const sunsetMs = sunsetAtSeaLevel(dateText, timeZone, lat, lon);
+          const stabilityMs = 60000;
+          const scanStep = Math.min(step, stabilityMs);
+          const objectCatalogId = star => {
+            if (star.isPlanet) return star.planetKey ? `PLANET:${star.planetKey}` : `PLANET:${star.name}`;
+            if (star.hip != null && star.hip !== "") return `HIP ${star.hip}`;
+            if (star.hr != null && star.hr !== "") return `HR ${star.hr}`;
+            if (star.hd != null && star.hd !== "") return `HD ${star.hd}`;
+            return star.name;
+          };
+          // This filter runs before any time-dependent altitude, sky-brightness or
+          // visibility calculation. The selection is for objects FAINTER than the
+          // chosen threshold (larger magnitude number). Catalog mode can therefore
+          // filter exactly. Effective mode uses only a conservative upper bound on
+          // possible dimming, so it never rejects an object that could qualify later.
+          const MAX_COLOR_CORRECTION_MAG = 0.35;
+          const thresholdAirmass = altThreshold >= -1 ? airMass(altThreshold) : Infinity;
+          const maxEffectiveDimmingMag = Number.isFinite(thresholdAirmass)
+            ? kV * Math.max(0, thresholdAirmass - 1) + MAX_COLOR_CORRECTION_MAG
+            : Infinity;
+          const knownExclusionSet = new Set(threeStarKnownExclusionKeys);
+          const selectionPreFilter = star => {
+            if (threeStarMagnitudeBasis === "known-exclusions") {
+              return !knownExclusionSet.has(knownObjectExclusionKey(star));
+            }
+            if (threeStarMagnitudeBasis === "catalog") {
+              return star.mag >= threeStarMagnitudeThreshold - 1e-10;
+            }
+            return star.isPlanet || !Number.isFinite(maxEffectiveDimmingMag)
+              || star.mag + maxEffectiveDimmingMag >= threeStarMagnitudeThreshold - 1e-10;
+          };
+          const candidateEntries = catalog.filter(selectionPreFilter).map((star, index) => ({
+            star,
+            key: `${star.isPlanet ? "planet" : "star"}:${objectCatalogId(star)}:${index}`
+          }));
+          const selectionPrefilteredCount = catalog.length - candidateEntries.length;
+
+          function qualifyingObjectAt(entry, t, sharedSunMoon = null) {
+            const sm = sharedSunMoon || computeSunMoon(t);
+            const currentObject = objectAtTime(entry.star, t);
+            const s = altAzAtLst(sm.lst, lat, currentObject.ra, currentObject.dec);
+            const ep = evalPhysical(sm, s, currentObject);
+            if (!ep.visible) return null;
+            const selectionMagnitude = threeStarMagnitudeBasis === "catalog" ? currentObject.mag : ep.magEff;
+            if (threeStarMagnitudeBasis !== "known-exclusions"
+                && (!Number.isFinite(selectionMagnitude) || selectionMagnitude < threeStarMagnitudeThreshold - 1e-10)) return null;
+            return {
+              key: entry.key,
+              entry,
+              name: currentObject.name,
+              catalogId: objectCatalogId(currentObject),
+              isPlanet: currentObject.isPlanet === true,
+              catalogMagnitude: currentObject.mag,
+              effectiveMagnitude: ep.magEff,
+              selectionMagnitude,
+              apparentAltitude: ep.starAppAlt,
+              trueAltitude: s.alt,
+              azimuth: s.az,
+              limitMagnitude: ep.limitMag,
+              visibilityMargin: ep.limitMag - ep.magEff
+            };
+          }
+
+          function stableQualifyingStateAt(t) {
+            const now = [];
+            const middleKeys = new Set();
+            const laterKeys = new Set();
+            const smNow = computeSunMoon(t);
+            const smMiddle = computeSunMoon(t + stabilityMs / 2);
+            const smLater = computeSunMoon(t + stabilityMs);
+            for (const entry of candidateEntries) {
+              const current = qualifyingObjectAt(entry, t, smNow);
+              if (current) now.push(current);
+              if (qualifyingObjectAt(entry, t + stabilityMs / 2, smMiddle)) middleKeys.add(entry.key);
+              if (qualifyingObjectAt(entry, t + stabilityMs, smLater)) laterKeys.add(entry.key);
+            }
+            return {
+              t,
+              objects: now.filter(object => middleKeys.has(object.key) && laterKeys.has(object.key)),
+              sun: smNow.sun
+            };
+          }
+
+          function conditionAt(t) {
+            return stableQualifyingStateAt(t).objects.length >= threeStarCount;
+          }
+
+          function refineSimultaneousBoundary(tNotVisible, tVisible) {
+            let lo = tNotVisible;
+            let hi = tVisible;
+            for (let i = 0; i < 24 && hi - lo > 1000; i++) {
+              const mid = (lo + hi) / 2;
+              if (conditionAt(mid)) hi = mid; else lo = mid;
+            }
+            return hi;
+          }
+
+          function firstQualifyingTime(entry, eventTime) {
+            const visibleAt = t => qualifyingObjectAt(entry, t) != null;
+            if (visibleAt(sunsetMs)) return sunsetMs;
+            let previous = sunsetMs;
+            for (let t = sunsetMs + scanStep; t <= eventTime; t += scanStep) {
+              if (visibleAt(t)) {
+                let lo = previous;
+                let hi = t;
+                for (let i = 0; i < 24 && hi - lo > 1000; i++) {
+                  const mid = (lo + hi) / 2;
+                  if (visibleAt(mid)) hi = mid; else lo = mid;
+                }
+                return hi;
+              }
+              previous = t;
+            }
+            return visibleAt(eventTime) ? eventTime : null;
+          }
+
+          let eventTime = null;
+          let noResultReason = "not-enough-simultaneous-stars";
+          if (!Number.isFinite(sunsetMs)) {
+            noResultReason = "no-sunset";
+          } else if (candidateEntries.length < threeStarCount) {
+            noResultReason = "fewer-qualifying-candidates";
+          } else {
+            const lastStableStart = scanEnd - stabilityMs;
+            if (sunsetMs <= lastStableStart && conditionAt(sunsetMs)) {
+              eventTime = sunsetMs;
+            } else {
+              let previous = sunsetMs;
+              for (let t = sunsetMs + scanStep; t <= lastStableStart; t += scanStep) {
+                if (conditionAt(t)) {
+                  eventTime = refineSimultaneousBoundary(previous, t);
+                  break;
+                }
+                previous = t;
+              }
+              if (!Number.isFinite(eventTime) && previous < lastStableStart && conditionAt(lastStableStart)) {
+                eventTime = refineSimultaneousBoundary(previous, lastStableStart);
+              }
+            }
+          }
+
+          let selectedObjects = [];
+          if (Number.isFinite(eventTime)) {
+            selectedObjects = stableQualifyingStateAt(eventTime).objects
+              .map(object => ({ ...object, firstVisibleTime: firstQualifyingTime(object.entry, eventTime) }))
+              .sort((a, b) => (a.firstVisibleTime - b.firstVisibleTime) || (a.selectionMagnitude - b.selectionMagnitude) || a.name.localeCompare(b.name))
+              .slice(0, threeStarCount);
+            const completedAt = Math.max(...selectedObjects.map(object => object.firstVisibleTime));
+            selectedObjects.forEach(object => { object.completing = Math.abs(object.firstVisibleTime - completedAt) < 1500; delete object.entry; });
+          }
+
+          const eventSun = Number.isFinite(eventTime) ? computeSunMoon(eventTime).sun : null;
+          threeStarResultData = {
+            found: Number.isFinite(eventTime) && selectedObjects.length >= threeStarCount,
+            reason: Number.isFinite(eventTime) && selectedObjects.length >= threeStarCount ? "" : noResultReason,
+            date: dateText,
+            timeZone,
+            time: eventTime,
+            sunsetTime: sunsetMs,
+            minutesAfterSunset: Number.isFinite(eventTime) && Number.isFinite(sunsetMs) ? (eventTime - sunsetMs) / 60000 : null,
+            sunAltitude: eventSun?.alt ?? null,
+            requiredCount: threeStarCount,
+            magnitudeBasis: threeStarMagnitudeBasis,
+            magnitudeThreshold: threeStarMagnitudeBasis === "known-exclusions" ? null : threeStarMagnitudeThreshold,
+            excludedKnownObjects: threeStarKnownExclusionKeys.slice(),
+            stars: selectedObjects,
+            completingStars: selectedObjects.filter(object => object.completing).map(object => object.name),
+            candidateCount: candidateEntries.length,
+            selectionPrefilteredCount,
+            magnitudePrefilteredCount: selectionPrefilteredCount,
+            catalogCount: catalogAll.length,
+            stabilitySeconds: stabilityMs / 1000,
+            modelVersion: THREE_STAR_MODEL_VERSION,
+            kV,
+            kVSource
+          };
+          lastRunMetadata.threeStarResultFound = threeStarResultData.found;
+          lastRunMetadata.threeStarStabilitySeconds = stabilityMs / 1000;
+          lastRunMetadata.threeStarCandidateCount = candidateEntries.length;
+          lastRunMetadata.threeStarSelectionPrefilteredCount = selectionPrefilteredCount;
+          lastRunMetadata.threeStarMagnitudePrefilteredCount = selectionPrefilteredCount;
+          rows = [];
+          $("catalogCount").textContent = String(catalogAll.length);
+          delete $("modelNote").dataset.englishActive;
+          const threeStarSelectionNote = threeStarMagnitudeBasis === "known-exclusions"
+            ? `כל העצמים מלבד ${threeStarKnownExclusionKeys.length} עצמים מוכרים שנבחרו`
+            : `סף ${threeStarMagnitudeThreshold.toFixed(1)} · ${threeStarMagnitudeBasis === "catalog" ? "מגניטודה קטלוגית" : "מגניטודה אפקטיבית"}`;
+          $("modelNote").textContent = `זמן ${threeStarCount} כוכבים · ${threeStarSelectionNote} · יציבות 60 שניות · אותו מודל פיזיקלי ראשי`;
+          if (!globalThis.__CALC_WORKER__) {
+            updateModelNoteDisplay();
+            updateHeaderSummary(lastRunMetadata);
+            updateKVSummaryDisplay(lastRunMetadata);
+            renderThreeStarResult(threeStarResultData);
+          }
+          return;
+        }
+
         rows = catalog.map(star => {
           if (mode === "rising") {
             const starAlt = risingAlt, starAppAlt = apparentAltitude(starAlt);
@@ -14491,12 +15254,360 @@
         delete $("modelNote").dataset.englishActive;
         $("modelNote").textContent = noteParts.join(" · ");
         $("modelNote").parentElement?.classList.toggle("precision-warning", strictMissingDirectionalSqm);
-        updateModelNoteDisplay();
-        updateHeaderSummary(lastRunMetadata);
-        render();
+        if (!globalThis.__CALC_WORKER__) {
+          updateModelNoteDisplay();
+          updateHeaderSummary(lastRunMetadata);
+          render();
+        }
       } catch (err) {
         clearResultsAfterError(err.message);
       }
+    }
+
+    function renderThreeStarResult(result) {
+      if (globalThis.__CALC_WORKER__) return;
+      const empty = $("threeStarEmpty");
+      const card = $("threeStarResult");
+      if (!empty || !card) return;
+      if (!result) {
+        card.hidden = true;
+        empty.hidden = false;
+        empty.textContent = uiLanguage === "en"
+          ? "Choose the shared location, date and atmospheric settings, then select Calculate."
+          : "בחרו מקום, תאריך והגדרות אטמוספריות משותפות, ולאחר מכן לחצו על חשב.";
+        return;
+      }
+      const countText = result.requiredCount === 2
+        ? (uiLanguage === "en" ? "Two-star time" : "זמן שני כוכבים")
+        : (uiLanguage === "en" ? "Three-star time" : "זמן שלושה כוכבים");
+      if (!result.found) {
+        const selectionModeText = result.magnitudeBasis === "known-exclusions"
+          ? (uiLanguage === "en" ? "selection and altitude" : "הבחירה והגובה")
+          : (uiLanguage === "en" ? "magnitude and altitude" : "המגניטודה והגובה");
+        const reasonText = result.reason === "no-sunset"
+          ? (uiLanguage === "en" ? "No sunset crossing was found for this date and location." : "לא נמצאה שקיעה בתאריך ובמקום שנבחרו.")
+          : result.reason === "fewer-qualifying-candidates"
+            ? (uiLanguage === "en" ? `Fewer catalog objects meet the selected ${selectionModeText} criteria.` : `פחות מדי עצמים בקטלוג עומדים בתנאי ${selectionModeText} שנבחרו.`)
+            : (uiLanguage === "en" ? "The required number of qualifying objects was not visible simultaneously before midnight." : "המספר הנדרש של עצמים מתאימים לא נמצא נראה בו־זמנית עד חצות.");
+        card.hidden = true;
+        empty.hidden = false;
+        empty.innerHTML = `<strong>${escapeHtml(countText)}:</strong> ${escapeHtml(reasonText)}<br><small>${escapeHtml(String(result.candidateCount || 0))} ${uiLanguage === "en" ? "selection-qualified candidates were scanned." : "מועמדים שעברו את תנאי הבחירה נסרקו."}</small>`;
+        return;
+      }
+      empty.hidden = true;
+      card.hidden = false;
+      $("threeStarResultTitle").textContent = `${countText}: ${formatLocal(result.time, result.timeZone)}`;
+      const basisLabel = result.magnitudeBasis === "catalog"
+        ? (uiLanguage === "en" ? "Catalog magnitude" : "מגניטודה קטלוגית")
+        : result.magnitudeBasis === "effective"
+          ? (uiLanguage === "en" ? "Effective magnitude" : "מגניטודה אפקטיבית")
+          : (uiLanguage === "en" ? "All objects except selected well-known ones" : "כל העצמים מלבד המוכרים שנבחרו");
+      const hiddenObjectLabels = (result.excludedKnownObjects || []).map(key => {
+        const object = THREE_STAR_KNOWN_OBJECTS.find(item => item.key === key);
+        return object ? (uiLanguage === "en" ? object.english : object.hebrew) : key;
+      });
+      const completingLabel = (result.completingStars || []).join(", ") || "--";
+      const stats = [
+        [uiLanguage === "en" ? "Local time" : "שעה מקומית", formatLocal(result.time, result.timeZone)],
+        [uiLanguage === "en" ? "Minutes after sunset" : "דקות לאחר השקיעה", Number(result.minutesAfterSunset).toFixed(1)],
+        [uiLanguage === "en" ? "Sun altitude" : "גובה השמש", `${Number(result.sunAltitude).toFixed(2)}°`],
+        [uiLanguage === "en" ? "Sunset time" : "שעת השקיעה", formatLocal(result.sunsetTime, result.timeZone)],
+        [uiLanguage === "en" ? "Magnitude basis" : "סוג המגניטודה", basisLabel],
+        result.magnitudeBasis === "known-exclusions"
+          ? [uiLanguage === "en" ? "Hidden objects" : "עצמים שהוסתרו", hiddenObjectLabels.join(", ") || (uiLanguage === "en" ? "None" : "ללא")]
+          : [uiLanguage === "en" ? "Selected threshold" : "ערך המגניטודה שנבחר", `≥ ${Number(result.magnitudeThreshold).toFixed(1)}`],
+        [uiLanguage === "en" ? "Stars included" : "הכוכבים שנכללו", (result.stars || []).map(star => star.name).join(", ")],
+        [uiLanguage === "en" ? "Completed the count" : "השלים את המספר הנדרש", completingLabel]
+      ];
+      $("threeStarResultGrid").innerHTML = stats.map(([label, value]) =>
+        `<div class="three-star-result-stat"><span>${escapeHtml(label)}</span><b>${escapeHtml(String(value))}</b></div>`
+      ).join("");
+      $("threeStarObjectList").innerHTML = (result.stars || []).map(star => {
+        const completingText = star.completing
+          ? (uiLanguage === "en" ? "Completed the required count" : "השלים את המספר הנדרש")
+          : (uiLanguage === "en" ? "Already visible" : "כבר נראה");
+        return `<div class="three-star-object${star.completing ? " completing" : ""}">
+          <div><strong>${escapeHtml(star.name)}</strong><small>${escapeHtml(star.catalogId || "--")} · ${escapeHtml(completingText)}</small></div>
+          <div><small>${uiLanguage === "en" ? "Catalog mag" : "מגניטודה קטלוגית"}</small>${Number(star.catalogMagnitude).toFixed(2)}</div>
+          <div><small>${uiLanguage === "en" ? "Effective mag" : "מגניטודה אפקטיבית"}</small>${Number(star.effectiveMagnitude).toFixed(2)}</div>
+          <div><small>${uiLanguage === "en" ? "Apparent altitude" : "גובה נראה"}</small>${Number(star.apparentAltitude).toFixed(2)}°</div>
+          <div><small>${uiLanguage === "en" ? "Azimuth" : "אזימוט"}</small>${Number(star.azimuth).toFixed(1)}°</div>
+          <div><small>${uiLanguage === "en" ? "First visible" : "נראה לראשונה"}</small>${formatLocal(star.firstVisibleTime, result.timeZone)}</div>
+        </div>`;
+      }).join("");
+    }
+
+    function annualDateStrings(year, cadence) {
+      const dates = [];
+      const stepDays = cadence === "daily" ? 1 : 7;
+      for (let date = new Date(Date.UTC(year, 0, 1)); date.getUTCFullYear() === year; date.setUTCDate(date.getUTCDate() + stepDays)) {
+        dates.push(date.toISOString().slice(0, 10));
+      }
+      return dates;
+    }
+
+    function hashAnnualSettings(values, year, cadence) {
+      const ignored = new Set(["date", "filter", "renderLimit", "annualYear", "annualCadence", "annualChartMetric"]);
+      const calcValues = Object.keys(values).filter(id => !ignored.has(id)).sort().map(id => [id, values[id].value, values[id].checked]);
+      const source = JSON.stringify([THREE_STAR_MODEL_VERSION, year, cadence, calcValues]);
+      let hash = 2166136261;
+      for (let i = 0; i < source.length; i++) {
+        hash ^= source.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return `threeStarAnnualCacheV2:${(hash >>> 0).toString(16)}`;
+    }
+
+    function setAnnualUiState(running, completed = 0, total = 0) {
+      const progress = $("annualProgress");
+      const bar = $("annualProgressBar");
+      const textEl = $("annualProgressText");
+      $("calculateAnnual").disabled = running;
+      $("cancelAnnual").hidden = !running;
+      if (progress) progress.hidden = !running && completed === 0;
+      if (bar) bar.value = total ? completed / total * 100 : 0;
+      if (textEl) textEl.textContent = running
+        ? (uiLanguage === "en" ? `Calculated ${completed} of ${total} dates...` : `חושבו ${completed} מתוך ${total} תאריכים...`)
+        : (completed && total ? (uiLanguage === "en" ? `Completed ${completed} dates.` : `הושלמו ${completed} תאריכים.`) : "");
+    }
+
+    function calculateAnnualResults() {
+      if (globalThis.__CALC_WORKER__) return;
+      const year = Number($("annualYear").value);
+      const cadence = $("annualCadence").value;
+      if (!Number.isInteger(year) || year < 1800 || year > 2050) {
+        clearResultsAfterError(uiLanguage === "en" ? "Annual year must be between 1800 and 2050." : "השנה לתצוגה השנתית צריכה להיות בין 1800 ל־2050.");
+        return;
+      }
+      if (activeAnnualWorker) activeAnnualWorker.terminate();
+      const dates = annualDateStrings(year, cadence);
+      const values = {};
+      document.querySelectorAll("[id]").forEach(el => {
+        values[el.id] = { value: "value" in el ? el.value : "", checked: "checked" in el ? el.checked : false };
+      });
+      values.calculatorFeature = { value: "three-star", checked: false };
+      values.kvMode = { value: values.kv?.value?.trim() ? "manual" : "preset", checked: false };
+      const cacheKey = hashAnnualSettings(values, year, cadence);
+      try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+        if (cached?.modelVersion === THREE_STAR_MODEL_VERSION && Array.isArray(cached.results) && cached.results.length === dates.length) {
+          annualResults = cached.results;
+          renderAnnualResults(annualResults);
+          setAnnualUiState(false, dates.length, dates.length);
+          return;
+        }
+      } catch (_) {}
+
+      if (typeof Worker === "undefined" || !APP_SCRIPT_SOURCE) {
+        clearResultsAfterError(uiLanguage === "en" ? "Annual background calculations are not supported in this browser." : "הדפדפן אינו תומך בחישוב השנתי ברקע.");
+        return;
+      }
+      const version = ++annualCalculationVersion;
+      const prefix = `
+        globalThis.__CALC_WORKER__ = true;
+        const __values = ${JSON.stringify(values)};
+        const __els = {};
+        for (const [id, state] of Object.entries(__values)) {
+          const el = { id, value: state.value, checked: state.checked, textContent: "", innerHTML: "", dataset: {}, files: null,
+            classList: { add(){}, remove(){}, toggle(){} }, addEventListener(){}, click(){} };
+          Object.defineProperty(el, "valueAsDate", { set(){} });
+          __els[id] = el;
+        }
+        globalThis.document = {
+          currentScript: { textContent: "" },
+          getElementById: id => __els[id] || null,
+          querySelectorAll: () => [],
+          createElement: () => ({ click(){} }),
+          addEventListener(){}
+        };
+        globalThis.window = globalThis;
+      `;
+      const suffix = `
+        mode = "evening";
+        const __dates = ${JSON.stringify(dates)};
+        (async () => {
+          const __results = [];
+          for (let __i = 0; __i < __dates.length; __i++) {
+            __els.date.value = __dates[__i];
+            __els.error.textContent = "";
+            threeStarResultData = null;
+            await calculate();
+            if (__els.error.textContent) throw new Error(__els.error.textContent);
+            __results.push(threeStarResultData);
+            postMessage({ type: "progress", completed: __i + 1, total: __dates.length });
+          }
+          postMessage({ type: "done", results: __results });
+        })().catch(error => postMessage({ type: "error", error: error?.message || String(error) }));
+      `;
+      let url = "";
+      let worker;
+      try {
+        url = URL.createObjectURL(new Blob([prefix, APP_SCRIPT_SOURCE, suffix], { type: "text/javascript" }));
+        worker = new Worker(url);
+      } catch (error) {
+        if (url) URL.revokeObjectURL(url);
+        clearResultsAfterError(error?.message || String(error));
+        return;
+      }
+      activeAnnualWorker = worker;
+      setAnnualUiState(true, 0, dates.length);
+      const finish = () => {
+        if (activeAnnualWorker === worker) activeAnnualWorker = null;
+        worker.terminate();
+        URL.revokeObjectURL(url);
+      };
+      worker.onmessage = event => {
+        if (version !== annualCalculationVersion) { finish(); return; }
+        const data = event.data || {};
+        if (data.type === "progress") {
+          setAnnualUiState(true, data.completed, data.total);
+          return;
+        }
+        finish();
+        if (data.type === "error") {
+          setAnnualUiState(false);
+          clearResultsAfterError(data.error);
+          return;
+        }
+        annualResults = Array.isArray(data.results) ? data.results : [];
+        try { localStorage.setItem(cacheKey, JSON.stringify({ modelVersion: THREE_STAR_MODEL_VERSION, results: annualResults })); } catch (_) {}
+        renderAnnualResults(annualResults);
+        setAnnualUiState(false, annualResults.length, dates.length);
+      };
+      worker.onerror = event => {
+        finish();
+        setAnnualUiState(false);
+        clearResultsAfterError(event?.message || (uiLanguage === "en" ? "Annual calculation failed." : "החישוב השנתי נכשל."));
+      };
+    }
+
+    function cancelAnnualCalculation() {
+      annualCalculationVersion++;
+      if (activeAnnualWorker) activeAnnualWorker.terminate();
+      activeAnnualWorker = null;
+      setAnnualUiState(false);
+      $("annualProgress").hidden = false;
+      $("annualProgressText").textContent = uiLanguage === "en" ? "Annual calculation cancelled." : "החישוב השנתי בוטל.";
+    }
+
+    function renderAnnualResults(results) {
+      const tableWrap = $("annualTableWrap");
+      const chartWrap = $("annualChartWrap");
+      tableWrap.hidden = false;
+      chartWrap.hidden = false;
+      $("exportAnnualCsv").disabled = !results.length;
+      $("annualTableBody").innerHTML = results.map(result => {
+        const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
+        return `<tr><td>${escapeHtml(result?.date || "--")}</td><td>${result?.sunsetTime ? escapeHtml(formatLocal(result.sunsetTime, result.timeZone)) : "--"}</td><td>${result?.found ? escapeHtml(formatLocal(result.time, result.timeZone)) : "--"}</td><td>${Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--"}</td><td>${Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--"}</td><td>${escapeHtml(stars)}</td></tr>`;
+      }).join("");
+      drawAnnualChart();
+    }
+
+    function drawAnnualChart() {
+      const canvas = $("annualChart");
+      if (!canvas || !annualResults.length) return;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.max(640, Math.round(rect.width * dpr));
+      canvas.height = Math.round(300 * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+      const pad = { left: 52, right: 18, top: 20, bottom: 42 };
+      const metric = $("annualChartMetric").value;
+      const values = annualResults.map(result => metric === "minutes" ? result?.minutesAfterSunset : result?.sunAltitude);
+      const finite = values.filter(Number.isFinite);
+      ctx.clearRect(0, 0, width, height);
+      if (!finite.length) {
+        ctx.fillStyle = "#9fb1c6";
+        ctx.font = "13px system-ui";
+        ctx.fillText(uiLanguage === "en" ? "No finite annual results" : "אין תוצאות שנתיות מספריות", pad.left, 42);
+        annualChartPoints = [];
+        return;
+      }
+      let min = Math.min(...finite);
+      let max = Math.max(...finite);
+      const span = Math.max(1, max - min);
+      min -= span * 0.08;
+      max += span * 0.08;
+      const xFor = index => pad.left + index / Math.max(1, annualResults.length - 1) * (width - pad.left - pad.right);
+      const yFor = value => pad.top + (max - value) / (max - min) * (height - pad.top - pad.bottom);
+      ctx.strokeStyle = "rgba(159,177,198,.28)";
+      ctx.fillStyle = "#9fb1c6";
+      ctx.font = "11px system-ui";
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + i / 4 * (height - pad.top - pad.bottom);
+        const value = max - i / 4 * (max - min);
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(width - pad.right, y); ctx.stroke();
+        ctx.fillText(value.toFixed(1), 8, y + 4);
+      }
+      ctx.strokeStyle = "#f6bd55";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      let drawing = false;
+      annualChartPoints = [];
+      values.forEach((value, index) => {
+        if (!Number.isFinite(value)) { drawing = false; return; }
+        const x = xFor(index), y = yFor(value);
+        if (!drawing) { ctx.moveTo(x, y); drawing = true; } else ctx.lineTo(x, y);
+        annualChartPoints.push({ x, y, result: annualResults[index], value });
+      });
+      ctx.stroke();
+      ctx.fillStyle = "#f6bd55";
+      annualChartPoints.forEach(point => { ctx.beginPath(); ctx.arc(point.x, point.y, 2.2, 0, Math.PI * 2); ctx.fill(); });
+      ctx.fillStyle = "#9fb1c6";
+      const tickIndexes = [0, Math.floor((annualResults.length - 1) / 2), annualResults.length - 1];
+      tickIndexes.forEach((index, tickIndex) => {
+        const label = annualResults[index]?.date || "";
+        const measured = ctx.measureText(label).width;
+        const x = xFor(index) - (tickIndex === 0 ? 0 : tickIndex === 2 ? measured : measured / 2);
+        ctx.fillText(label, x, height - 15);
+      });
+    }
+
+    function showAnnualChartTooltip(event) {
+      if (!annualChartPoints.length) return;
+      const canvas = $("annualChart");
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const point = annualChartPoints.reduce((best, item) => Math.abs(item.x - x) < Math.abs(best.x - x) ? item : best);
+      const tooltip = $("annualChartTooltip");
+      const metricLabel = $("annualChartMetric").value === "minutes"
+        ? (uiLanguage === "en" ? "minutes after sunset" : "דקות לאחר השקיעה")
+        : (uiLanguage === "en" ? "Sun altitude" : "גובה השמש");
+      tooltip.textContent = `${point.result.date}: ${Number(point.value).toFixed(2)} ${metricLabel}`;
+      tooltip.style.left = `${Math.min(rect.width - 190, Math.max(6, point.x + 8))}px`;
+      tooltip.style.top = `${Math.max(6, point.y - 38)}px`;
+      tooltip.hidden = false;
+    }
+
+    function exportAnnualCsv() {
+      if (!annualResults.length) return;
+      const headers = uiLanguage === "en"
+        ? ["date", "localSunset", "localStarCountTime", "minutesAfterSunset", "sunAltitudeDeg", "starsCompletingCount", "numberOfStars", "magnitudeBasis", "magnitudeThreshold", "excludedKnownObjects", "kV", "kVSource", "modelVersion"]
+        : ["תאריך", "שקיעה מקומית", "זמן צאת הכוכבים", "דקות לאחר השקיעה", "גובה השמש במעלות", "כוכבים שהשלימו את המניין", "מספר הכוכבים", "סוג המגניטודה", "סף המגניטודה", "עצמים מוכרים שהוסתרו", "kV", "מקור kV", "גרסת המודל"];
+      const lines = annualResults.map(result => [
+        result?.date || "",
+        result?.sunsetTime ? formatLocal(result.sunsetTime, result.timeZone) : "",
+        result?.found ? formatLocal(result.time, result.timeZone) : "",
+        Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(3) : "",
+        Number.isFinite(result?.sunAltitude) ? Number(result.sunAltitude).toFixed(4) : "",
+        csvCell((result?.completingStars || []).join(" | ")),
+        result?.requiredCount ?? "",
+        result?.magnitudeBasis || "",
+        result?.magnitudeThreshold ?? "",
+        csvCell((result?.excludedKnownObjects || []).join(" | ")),
+        result?.kV ?? "",
+        csvCell(result?.kVSource || ""),
+        result?.modelVersion || ""
+      ].join(","));
+      const blob = new Blob(["\uFEFF" + headers.map(csvCell).join(",") + "\r\n" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `three-star-time-${$("annualYear").value}-${$("annualCadence").value}.csv`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
 
     function render() {
@@ -15505,7 +16616,61 @@
       guideLink.href = uiLanguage === "en"
         ? "star-visibility-guide-english.pdf"
         : "star-visibility-guide.pdf";
+      $("calculationTypeLabel").textContent = uiLanguage === "en" ? "Calculation type" : "סוג החישוב";
+      $("standardCalculatorTab").textContent = uiLanguage === "en" ? "Star visibility" : "ראות כוכבים";
+      $("threeStarCalculatorTab").textContent = uiLanguage === "en" ? "Three-Star Time" : "זמן צאת הכוכבים";
+      $("threeStarHeading").textContent = uiLanguage === "en" ? "Three-Star Time" : "זמן צאת הכוכבים";
+      $("threeStarSubtitle").textContent = uiLanguage === "en"
+        ? "Calculate the earliest moment after sunset when the selected number of eligible objects are predicted to be visible simultaneously."
+        : "חישוב הרגע המוקדם לאחר השקיעה שבו מספר העצמים המתאימים שנבחרו צפויים להיראות יחד.";
+      $("threeStarPreSunsetNote").textContent = uiLanguage === "en"
+        ? "Before sunset, mainly objects with an effective magnitude of −1.5 or brighter are expected to be visible. Objects between −1.5 and −0.5 may be visible only under exceptional conditions, while objects fainter than −0.5 are not expected to be visible."
+        : "לפני השקיעה צפויים להיראות בעיקר עצמים בעלי מגניטודה אפקטיבית −1.5 או בהירים יותר. עצמים שבין −1.5 ל־−0.5 עשויים להיראות רק בתנאים חריגים, ועצמים חלשים מ־−0.5 אינם צפויים להיראות.";
+      $("threeStarCountLabel").textContent = uiLanguage === "en" ? "Number of stars" : "מספר הכוכבים";
+      $("threeStarBasisLabel").textContent = uiLanguage === "en" ? "Selection method" : "שיטת הבחירה";
+      $("threeStarThresholdLabel").textContent = uiLanguage === "en" ? "Include stars fainter than or equal to" : "כלול כוכבים חלשים מערך זה או שווים לו";
+      $("threeStarMagnitudeBasis").querySelector('option[value="catalog"]').textContent = uiLanguage === "en" ? "Catalog magnitude" : "מגניטודה קטלוגית";
+      $("threeStarMagnitudeBasis").querySelector('option[value="effective"]').textContent = uiLanguage === "en" ? "Effective magnitude" : "מגניטודה אפקטיבית";
+      $("threeStarMagnitudeBasis").querySelector('option[value="known-exclusions"]').textContent = uiLanguage === "en" ? "All objects except selected well-known ones" : "כל העצמים מלבד המוכרים שנבחרו";
+      $("threeStarKnownExclusionsLegend").textContent = uiLanguage === "en" ? "Hide these objects from the calculation" : "הסתר את העצמים האלה מן החישוב";
+      $("threeStarKnownExclusionsNote").textContent = uiLanguage === "en"
+        ? "Checked objects are excluded from the count and do not appear in the result."
+        : "עצמים מסומנים אינם נספרים ואינם מופיעים בתוצאה.";
+      THREE_STAR_KNOWN_OBJECTS.forEach(object => {
+        $(object.inputId + "Label").textContent = uiLanguage === "en" ? object.english : object.hebrew;
+      });
+      updateThreeStarSelectionControls();
+      $("annualSummary").textContent = uiLanguage === "en" ? "Annual View" : "תצוגה שנתית";
+      $("annualYearLabel").textContent = uiLanguage === "en" ? "Year" : "שנה";
+      $("annualCadenceLabel").textContent = uiLanguage === "en" ? "Display interval" : "מרווח תצוגה";
+      $("annualMetricLabel").textContent = uiLanguage === "en" ? "Chart" : "גרף";
+      $("annualCadence").querySelector('option[value="weekly"]').textContent = uiLanguage === "en" ? "Weekly (exact 7-day samples)" : "שבועי (דגימה מדויקת כל 7 ימים)";
+      $("annualCadence").querySelector('option[value="daily"]').textContent = uiLanguage === "en" ? "Daily" : "יומי";
+      $("annualChartMetric").querySelector('option[value="minutes"]').textContent = uiLanguage === "en" ? "Minutes after sunset" : "דקות לאחר השקיעה";
+      $("annualChartMetric").querySelector('option[value="sunAltitude"]').textContent = uiLanguage === "en" ? "Sun altitude" : "גובה השמש";
+      $("calculateAnnual").textContent = uiLanguage === "en" ? "Calculate year" : "חשב שנה";
+      $("cancelAnnual").textContent = uiLanguage === "en" ? "Cancel" : "בטל";
+      $("exportAnnualCsv").textContent = uiLanguage === "en" ? "Download annual CSV" : "הורד CSV שנתי";
+      $("annualAtmosphereNote").textContent = uiLanguage === "en"
+        ? "Annual results use the selected standard atmospheric conditions or manual kV. Actual visibility can vary with haze, humidity, aerosols, clouds, local lighting and the observer."
+        : "התוצאות השנתיות מבוססות על תנאי האטמוספרה התקניים שנבחרו או על kV ידני. הראות בפועל עשויה להשתנות מחמת אובך, לחות, אירוסולים, עננים, תאורה מקומית והבדלים בין צופים.";
+      const annualHeads = uiLanguage === "en"
+        ? ["Date", "Sunset", "Star-count time", "Minutes after sunset", "Sun altitude", "Stars completing the count"]
+        : ["תאריך", "שקיעה", "זמן צאת הכוכבים", "דקות לאחר השקיעה", "גובה השמש", "כוכבים שהשלימו את המניין"];
+      ["annualDateHead", "annualSunsetHead", "annualTimeHead", "annualMinutesHead", "annualSunAltHead", "annualStarsHead"].forEach((id, index) => { $(id).textContent = annualHeads[index]; });
       $("exportCsv").textContent = uiLanguage === "en" ? "Download CSV" : "הורד CSV";
+      $("communityFeedbackTitle").textContent = uiLanguage === "en" ? "comments or feedback ?" : "שאלות והערות";
+      $("communityFeedbackText").textContent = uiLanguage === "en"
+        ? "If you have any comments, feedback, or inquiries about the calculations, the model, or actual observations, please share them with us by email:"
+        : "אם יש לכם בירורים או הערות בענייני החישובים, המודל או התצפיות בפועל, נשמח מאוד אם תשתפו אותנו בדוא״ל:";
+      $("communityObservationTitle").textContent = uiLanguage === "en" ? "Would you like to conduct an observation?" : "מעוניינים לערוך תצפית?";
+      $("communityObservationText").textContent = uiLanguage === "en"
+        ? "Use our guided observation website to locate stars, receive spoken instructions and submit your results easily."
+        : "באתר התצפיות שלנו תוכלו לאתר את הכוכבים, לקבל הנחיות קוליות ולמסור את תוצאות התצפית בקלות.";
+      $("communityObservationLink").textContent = uiLanguage === "en" ? "Start an observation" : "התחלת תצפית";
+      $("communityObservationLink").href = uiLanguage === "en"
+        ? "https://starsobserve.pages.dev/"
+        : "https://observestars.pages.dev/";
       setCalculationUiState($("calculate")?.classList.contains("is-calculating"));
       $("sortVisible").textContent = uiLanguage === "en" ? "Sort by visibility" : "מיין לפי הופעה";
       $("renderLimitLabel").textContent = uiLanguage === "en" ? "Rows shown" : "שורות להצגה";
@@ -15672,6 +16837,8 @@
       });
       updateColumnManagerTexts();
       updateBrightnessExpandButtons();
+      if ($("calculatorFeature")?.value === "three-star") renderThreeStarResult(threeStarResultData);
+      if (annualResults.length) renderAnnualResults(annualResults);
       showReadyToCalculateState();
     }
 
