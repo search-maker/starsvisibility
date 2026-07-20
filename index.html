@@ -308,12 +308,26 @@
     .annual-body { padding: 16px; }
     .annual-controls {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
       align-items: end;
     }
 
-    .annual-actions { display: flex; gap: 8px; align-items: center; }
+    .annual-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    .annual-actions .action {
+      width: auto;
+      max-width: 100%;
+      white-space: normal;
+    }
     .annual-progress { margin: 14px 0; }
     .annual-progress progress { width: 100%; height: 12px; accent-color: var(--accent); }
     .annual-progress-text { margin-top: 5px; color: var(--muted); font-size: 12px; }
@@ -335,6 +349,27 @@
     .annual-table-wrap { margin-top: 14px; max-height: 420px; overflow: auto; }
     .annual-table { min-width: 780px; }
     .annual-table th { position: sticky; top: 0; z-index: 2; }
+    .annual-print-report { display: none; }
+
+    @media print {
+      @page { size: A4 landscape; margin: 10mm; }
+      body.annual-print-mode { background: #fff !important; }
+      body.annual-print-mode > *:not(.annual-print-report) { display: none !important; }
+      body.annual-print-mode > .annual-print-report {
+        display: block !important;
+        color: #111;
+        background: #fff;
+        font: 10pt/1.35 Arial, sans-serif;
+      }
+      .annual-print-report h1 { margin: 0 0 5mm; font-size: 20pt; }
+      .annual-print-meta { display: flex; flex-wrap: wrap; gap: 3mm 8mm; margin-bottom: 5mm; color: #333; }
+      .annual-print-chart { display: block; width: 100%; max-height: 92mm; object-fit: contain; margin: 0 0 6mm; }
+      .annual-print-report table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8.5pt; }
+      .annual-print-report th, .annual-print-report td { border: .25mm solid #888; padding: 1.5mm; text-align: start; overflow-wrap: anywhere; }
+      .annual-print-report th { background: #eaf0f6 !important; font-weight: 700; }
+      .annual-print-report thead { display: table-header-group; }
+      .annual-print-report tr { break-inside: avoid; page-break-inside: avoid; }
+    }
 
     .community-info {
       display: grid;
@@ -415,7 +450,7 @@
       .known-object-grid { grid-template-columns: 1fr; }
       .three-star-object { grid-template-columns: 1fr 1fr; }
       .three-star-object > :first-child { grid-column: 1 / -1; }
-      .annual-actions { flex-wrap: wrap; }
+      .annual-actions .action { flex: 1 1 150px; }
     }
 
     .panel {
@@ -1861,8 +1896,8 @@
         <div>
           <div class="calculation-type-label" id="calculationTypeLabel">Calculation type</div>
           <nav class="calculator-tabs" role="tablist" aria-label="Calculator views">
-            <button id="standardCalculatorTab" class="calculator-tab active" type="button" role="tab" aria-selected="true" aria-controls="standardResultsView">Star visibility</button>
-            <button id="threeStarCalculatorTab" class="calculator-tab" type="button" role="tab" aria-selected="false" aria-controls="threeStarView">Three-Star Time</button>
+            <button id="standardCalculatorTab" class="calculator-tab active" type="button" role="tab" aria-selected="true" aria-controls="standardResultsView" tabindex="0">Star visibility</button>
+            <button id="threeStarCalculatorTab" class="calculator-tab" type="button" role="tab" aria-selected="false" aria-controls="threeStarView" tabindex="-1">Three-Star Time</button>
           </nav>
         </div>
         <input id="calculatorFeature" type="hidden" value="standard">
@@ -2279,6 +2314,7 @@
                 <button class="action" id="calculateAnnual" type="button">Calculate year</button>
                 <button class="action secondary" id="cancelAnnual" type="button" hidden>Cancel</button>
                 <button class="action secondary" id="exportAnnualCsv" type="button" disabled>Download annual CSV</button>
+                <button class="action secondary" id="exportAnnualPdf" type="button" disabled>Export annual PDF</button>
               </div>
             </div>
             <p id="annualAtmosphereNote" class="note">Annual results use the selected standard atmospheric conditions. Actual visibility can vary with haze, humidity, aerosols, clouds, local lighting and the observer.</p>
@@ -11696,7 +11732,10 @@
     let activeAnnualWorker = null;
     let annualCalculationVersion = 0;
     let annualChartPoints = [];
+    let standardModeBeforeThreeStar = "evening";
     const THREE_STAR_MODEL_VERSION = "physical-v2-known-exclusions-twilight-0.95-stable-60s";
+    const ANNUAL_CACHE_PREFIX = "threeStarAnnualCacheV3:";
+    const ANNUAL_CACHE_MAX_ENTRIES = 6;
     const THREE_STAR_KNOWN_OBJECTS = Object.freeze([
       { key: "venus", inputId: "excludeKnownVenus", english: "Venus", hebrew: "נוגה" },
       { key: "jupiter", inputId: "excludeKnownJupiter", english: "Jupiter", hebrew: "צדק" },
@@ -12189,6 +12228,22 @@
     $("risingMode").addEventListener("click", () => setMode("rising"));
     $("standardCalculatorTab").addEventListener("click", () => setCalculatorFeature("standard"));
     $("threeStarCalculatorTab").addEventListener("click", () => setCalculatorFeature("three-star"));
+    [$("standardCalculatorTab"), $("threeStarCalculatorTab")].forEach(tab => {
+      tab.addEventListener("keydown", event => {
+        const tabs = [$("standardCalculatorTab"), $("threeStarCalculatorTab")];
+        const current = tabs.indexOf(event.currentTarget);
+        let next = current;
+        if (event.key === "ArrowRight") next = (current + 1) % tabs.length;
+        else if (event.key === "ArrowLeft") next = (current - 1 + tabs.length) % tabs.length;
+        else if (event.key === "Home") next = 0;
+        else if (event.key === "End") next = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        const feature = next === 0 ? "standard" : "three-star";
+        setCalculatorFeature(feature);
+        tabs[next].focus();
+      });
+    });
     $("threeStarMagnitudeBasis").addEventListener("change", () => {
       updateThreeStarSelectionControls();
       calculate();
@@ -12200,9 +12255,18 @@
     $("calculateAnnual").addEventListener("click", calculateAnnualResults);
     $("cancelAnnual").addEventListener("click", cancelAnnualCalculation);
     $("exportAnnualCsv").addEventListener("click", exportAnnualCsv);
+    $("exportAnnualPdf").addEventListener("click", exportAnnualPdf);
     $("annualChartMetric").addEventListener("change", drawAnnualChart);
     $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
     $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
+    if (!globalThis.__CALC_WORKER__) {
+      let annualChartResizeFrame = 0;
+      window.addEventListener("resize", () => {
+        if (!annualResults.length || $("annualChartWrap")?.hidden) return;
+        cancelAnimationFrame(annualChartResizeFrame);
+        annualChartResizeFrame = requestAnimationFrame(drawAnnualChart);
+      });
+    }
     $("horizon").addEventListener("change", calculate);
     $("moonOn").addEventListener("change", calculate);
     $("modelMode").addEventListener("change", calculate);
@@ -12270,11 +12334,15 @@
 
     function setCalculatorFeature(feature) {
       const isThreeStar = feature === "three-star";
+      const wasThreeStar = $("calculatorFeature").value === "three-star";
+      if (isThreeStar && !wasThreeStar) standardModeBeforeThreeStar = mode;
       $("calculatorFeature").value = isThreeStar ? "three-star" : "standard";
       $("standardCalculatorTab").classList.toggle("active", !isThreeStar);
       $("standardCalculatorTab").setAttribute("aria-selected", String(!isThreeStar));
+      $("standardCalculatorTab").tabIndex = isThreeStar ? -1 : 0;
       $("threeStarCalculatorTab").classList.toggle("active", isThreeStar);
       $("threeStarCalculatorTab").setAttribute("aria-selected", String(isThreeStar));
+      $("threeStarCalculatorTab").tabIndex = isThreeStar ? 0 : -1;
       $("standardResultsView").hidden = isThreeStar;
       $("threeStarView").hidden = !isThreeStar;
       updateThreeStarSelectionControls();
@@ -12296,7 +12364,13 @@
         }
         calculate();
       }
-      if (!isThreeStar && rows.length) render();
+      if (!isThreeStar && wasThreeStar) {
+        mode = standardModeBeforeThreeStar;
+        $("eveningMode").classList.toggle("active", mode === "evening");
+        $("morningMode").classList.toggle("active", mode === "morning");
+        $("risingMode").classList.toggle("active", mode === "rising");
+        calculate();
+      } else if (!isThreeStar && rows.length) render();
     }
 
     function normalizedSearch(value) {
@@ -14748,11 +14822,33 @@
             return star.isPlanet || !Number.isFinite(maxEffectiveDimmingMag)
               || star.mag + maxEffectiveDimmingMag >= threeStarMagnitudeThreshold - 1e-10;
           };
-          const candidateEntries = catalog.filter(selectionPreFilter).map((star, index) => ({
+          const eligibleEntries = catalog.map((star, index) => ({
             star,
             key: `${star.isPlanet ? "planet" : "star"}:${objectCatalogId(star)}:${index}`
-          }));
-          const selectionPrefilteredCount = catalog.length - candidateEntries.length;
+          })).filter(entry => selectionPreFilter(entry.star));
+          const selectionPrefilteredCount = catalog.length - eligibleEntries.length;
+
+          // Safe reduction for the broad known-exclusions mode. The magnitude test is
+          // optimistic: extinction can only dim the object and the colour term is
+          // hard-capped at -0.35 mag. The sky bound is the darkest supplied baseline,
+          // with no twilight or moon penalty and with the full observer bonus. The
+          // altitude test uses every time sampled by the real event scan. Therefore a
+          // rejected fixed star cannot pass evalPhysical at an event-scan boundary.
+          const exhaustiveThreeStarScan = globalThis.__THREE_STAR_EXHAUSTIVE__ === true;
+          let candidateEntries = eligibleEntries;
+          let optimizationPrefilteredCount = 0;
+          if (threeStarMagnitudeBasis === "known-exclusions" && !exhaustiveThreeStarScan && Number.isFinite(sunsetMs)) {
+            const optimisticBaselineSqm = Math.max(bestBaselineSqm, Number.isFinite(liveTotalSqm) ? liveTotalSqm : -Infinity);
+            const optimisticNightLimitMag = limitingMagnitudeFromSkyBrightness({
+              skyBrightnessMagArcsec2: optimisticBaselineSqm,
+              observerAge, pupilMm, acuity, darkAdaptation
+            }) + observerBonusMag;
+            // A small bright seed establishes an exact provisional event time. It is
+            // expanded below if it cannot establish the required count.
+            const seedLimitMag = Math.min(1.5, optimisticNightLimitMag);
+            candidateEntries = eligibleEntries.filter(entry => entry.star.isPlanet
+              || entry.star.mag - MAX_COLOR_CORRECTION_MAG <= seedLimitMag + 1e-10);
+          }
 
           function qualifyingObjectAt(entry, t, sharedSunMoon = null) {
             const sm = sharedSunMoon || computeSunMoon(t);
@@ -14833,28 +14929,93 @@
             return visibleAt(eventTime) ? eventTime : null;
           }
 
+          function findEventTimeForCurrentCandidates() {
+            if (!Number.isFinite(sunsetMs) || candidateEntries.length < threeStarCount) return null;
+            const lastStableStart = scanEnd - stabilityMs;
+            if (sunsetMs <= lastStableStart && conditionAt(sunsetMs)) {
+              return sunsetMs;
+            }
+            let previous = sunsetMs;
+            for (let t = sunsetMs + scanStep; t <= lastStableStart; t += scanStep) {
+              if (conditionAt(t)) {
+                return refineSimultaneousBoundary(previous, t);
+              }
+              previous = t;
+            }
+            return previous < lastStableStart && conditionAt(lastStableStart)
+              ? refineSimultaneousBoundary(previous, lastStableStart)
+              : null;
+          }
+
           let eventTime = null;
           let noResultReason = "not-enough-simultaneous-stars";
           if (!Number.isFinite(sunsetMs)) {
             noResultReason = "no-sunset";
-          } else if (candidateEntries.length < threeStarCount) {
+          } else if (eligibleEntries.length < threeStarCount) {
             noResultReason = "fewer-qualifying-candidates";
           } else {
-            const lastStableStart = scanEnd - stabilityMs;
-            if (sunsetMs <= lastStableStart && conditionAt(sunsetMs)) {
-              eventTime = sunsetMs;
-            } else {
-              let previous = sunsetMs;
-              for (let t = sunsetMs + scanStep; t <= lastStableStart; t += scanStep) {
-                if (conditionAt(t)) {
-                  eventTime = refineSimultaneousBoundary(previous, t);
-                  break;
-                }
-                previous = t;
+            eventTime = findEventTimeForCurrentCandidates();
+
+            // If the bright seed did not establish an event, expand conservatively.
+            // This path is uncommon but guarantees that optimization cannot turn a
+            // real result into "not found".
+            if (threeStarMagnitudeBasis === "known-exclusions" && !exhaustiveThreeStarScan && !Number.isFinite(eventTime)) {
+              for (const expandedLimit of [2.5, 3.5, 5.0, Infinity]) {
+                candidateEntries = Number.isFinite(expandedLimit)
+                  ? eligibleEntries.filter(entry => entry.star.isPlanet || entry.star.mag - MAX_COLOR_CORRECTION_MAG <= expandedLimit)
+                  : eligibleEntries;
+                eventTime = findEventTimeForCurrentCandidates();
+                if (Number.isFinite(eventTime)) break;
               }
-              if (!Number.isFinite(eventTime) && previous < lastStableStart && conditionAt(lastStableStart)) {
-                eventTime = refineSimultaneousBoundary(previous, lastStableStart);
-              }
+            }
+
+            if (threeStarMagnitudeBasis === "known-exclusions" && !exhaustiveThreeStarScan && Number.isFinite(eventTime)) {
+              const optimisticBaselineSqm = Math.max(bestBaselineSqm, Number.isFinite(liveTotalSqm) ? liveTotalSqm : -Infinity);
+              const optimisticSamples = [];
+              const addOptimisticSample = t => {
+                const sm = computeSunMoon(t);
+                const idealSky = localSkyBrightnessComponents({
+                  sqmZenith: optimisticBaselineSqm,
+                  baselineSqm: optimisticBaselineSqm,
+                  baselineIsDirectional: true,
+                  manualLowAltApplied: false,
+                  kV,
+                  skyBrightnessMode,
+                  liveTotalSqm,
+                  twilightCalibrationRows,
+                  sunDepressionDeg: -sm.sun.alt,
+                  sunStarSeparationDeg: 180,
+                  starAppAltDeg: 90,
+                  moonAltDeg: -90,
+                  moonIllumination: 0,
+                  moonStarSeparationDeg: 180
+                }).skyBrightnessMagArcsec2;
+                optimisticSamples.push({
+                  t,
+                  lst: sm.lst,
+                  limitMag: limitingMagnitudeFromSkyBrightness({
+                    skyBrightnessMagArcsec2: idealSky,
+                    observerAge, pupilMm, acuity, darkAdaptation
+                  }) + observerBonusMag
+                });
+              };
+              addOptimisticSample(sunsetMs);
+              for (let t = sunsetMs + scanStep; t <= eventTime; t += scanStep) addOptimisticSample(t);
+              if (optimisticSamples[optimisticSamples.length - 1]?.t !== eventTime) addOptimisticSample(eventTime);
+
+              const couldQualifyByProvisionalEvent = entry => {
+                const star = entry.star;
+                if (star.isPlanet) return true;
+                const optimisticMag = star.mag - MAX_COLOR_CORRECTION_MAG;
+                return optimisticSamples.some(sample => {
+                  if (optimisticMag > sample.limitMag + 1e-10) return false;
+                  const position = altAzAtLst(sample.lst, lat, star.ra, star.dec);
+                  return apparentAltitude(position.alt) >= altThreshold;
+                });
+              };
+              candidateEntries = eligibleEntries.filter(couldQualifyByProvisionalEvent);
+              optimizationPrefilteredCount = eligibleEntries.length - candidateEntries.length;
+              eventTime = findEventTimeForCurrentCandidates();
             }
           }
 
@@ -14885,7 +15046,10 @@
             stars: selectedObjects,
             completingStars: selectedObjects.filter(object => object.completing).map(object => object.name),
             candidateCount: candidateEntries.length,
+            eligibleCandidateCount: eligibleEntries.length,
             selectionPrefilteredCount,
+            optimizationPrefilteredCount,
+            candidateOptimizationMode: exhaustiveThreeStarScan ? "exhaustive" : (threeStarMagnitudeBasis === "known-exclusions" ? "safe-bounds" : "selection-only"),
             magnitudePrefilteredCount: selectionPrefilteredCount,
             catalogCount: catalogAll.length,
             stabilitySeconds: stabilityMs / 1000,
@@ -14896,7 +15060,10 @@
           lastRunMetadata.threeStarResultFound = threeStarResultData.found;
           lastRunMetadata.threeStarStabilitySeconds = stabilityMs / 1000;
           lastRunMetadata.threeStarCandidateCount = candidateEntries.length;
+          lastRunMetadata.threeStarEligibleCandidateCount = eligibleEntries.length;
           lastRunMetadata.threeStarSelectionPrefilteredCount = selectionPrefilteredCount;
+          lastRunMetadata.threeStarOptimizationPrefilteredCount = optimizationPrefilteredCount;
+          lastRunMetadata.threeStarCandidateOptimizationMode = exhaustiveThreeStarScan ? "exhaustive" : (threeStarMagnitudeBasis === "known-exclusions" ? "safe-bounds" : "selection-only");
           lastRunMetadata.threeStarMagnitudePrefilteredCount = selectionPrefilteredCount;
           rows = [];
           $("catalogCount").textContent = String(catalogAll.length);
@@ -15281,6 +15448,10 @@
       const card = $("threeStarResult");
       if (!empty || !card) return;
       if (!result) {
+        delete card.dataset.candidateCount;
+        delete card.dataset.eligibleCandidateCount;
+        delete card.dataset.optimizationPrefilteredCount;
+        delete card.dataset.candidateOptimizationMode;
         card.hidden = true;
         empty.hidden = false;
         empty.textContent = uiLanguage === "en"
@@ -15291,6 +15462,12 @@
       const countText = result.requiredCount === 2
         ? (uiLanguage === "en" ? "Two-star time" : "זמן שני כוכבים")
         : (uiLanguage === "en" ? "Three-star time" : "זמן שלושה כוכבים");
+      card.dataset.candidateCount = String(result.candidateCount ?? 0);
+      card.dataset.eligibleCandidateCount = String(result.eligibleCandidateCount ?? result.candidateCount ?? 0);
+      card.dataset.optimizationPrefilteredCount = String(result.optimizationPrefilteredCount ?? 0);
+      card.dataset.candidateOptimizationMode = String(result.candidateOptimizationMode || "selection-only");
+      card.dataset.eventTime = Number.isFinite(result.time) ? String(result.time) : "";
+      card.dataset.completingObjects = (result.completingStars || []).join("|");
       if (!result.found) {
         const selectionModeText = result.magnitudeBasis === "known-exclusions"
           ? (uiLanguage === "en" ? "selection and altitude" : "הבחירה והגובה")
@@ -15357,16 +15534,66 @@
       return dates;
     }
 
-    function hashAnnualSettings(values, year, cadence) {
+    function normalizedAnnualSettingsJson(values, year, cadence) {
       const ignored = new Set(["date", "filter", "renderLimit", "annualYear", "annualCadence", "annualChartMetric"]);
-      const calcValues = Object.keys(values).filter(id => !ignored.has(id)).sort().map(id => [id, values[id].value, values[id].checked]);
-      const source = JSON.stringify([THREE_STAR_MODEL_VERSION, year, cadence, calcValues]);
+      const controls = Object.keys(values)
+        .filter(id => !ignored.has(id) && !id.startsWith("annual"))
+        .sort()
+        .map(id => [id, String(values[id]?.value ?? ""), values[id]?.checked === true]);
+      return JSON.stringify({ schemaVersion: 3, modelVersion: THREE_STAR_MODEL_VERSION, year, cadence, controls });
+    }
+
+    function hashAnnualSettings(settingsJson) {
       let hash = 2166136261;
-      for (let i = 0; i < source.length; i++) {
-        hash ^= source.charCodeAt(i);
+      for (let i = 0; i < settingsJson.length; i++) {
+        hash ^= settingsJson.charCodeAt(i);
         hash = Math.imul(hash, 16777619);
       }
-      return `threeStarAnnualCacheV2:${(hash >>> 0).toString(16)}`;
+      return `${ANNUAL_CACHE_PREFIX}${(hash >>> 0).toString(16)}`;
+    }
+
+    function pruneAnnualCache() {
+      try {
+        const entries = [];
+        const obsoleteKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          if (key.startsWith("threeStarAnnualCacheV2:")) {
+            obsoleteKeys.push(key);
+            continue;
+          }
+          if (!key.startsWith(ANNUAL_CACHE_PREFIX)) continue;
+          try {
+            const item = JSON.parse(localStorage.getItem(key) || "null");
+            entries.push({ key, usedAt: Number(item?.lastAccessedAt || item?.createdAt || 0) });
+          } catch (_) {
+            obsoleteKeys.push(key);
+          }
+        }
+        obsoleteKeys.forEach(key => localStorage.removeItem(key));
+        entries.sort((a, b) => b.usedAt - a.usedAt);
+        entries.slice(ANNUAL_CACHE_MAX_ENTRIES).forEach(entry => localStorage.removeItem(entry.key));
+      } catch (_) {
+        // Private browsing and quota/security policies may make storage unavailable.
+      }
+    }
+
+    function saveAnnualCache(cacheKey, settingsJson, results) {
+      try {
+        const now = Date.now();
+        localStorage.setItem(cacheKey, JSON.stringify({
+          schemaVersion: 3,
+          modelVersion: THREE_STAR_MODEL_VERSION,
+          settingsJson,
+          createdAt: now,
+          lastAccessedAt: now,
+          results
+        }));
+        pruneAnnualCache();
+      } catch (_) {
+        // A failed cache write must never fail the scientific calculation itself.
+      }
     }
 
     function setAnnualUiState(running, completed = 0, total = 0) {
@@ -15375,6 +15602,8 @@
       const textEl = $("annualProgressText");
       $("calculateAnnual").disabled = running;
       $("cancelAnnual").hidden = !running;
+      $("exportAnnualCsv").disabled = running || !annualResults.length;
+      $("exportAnnualPdf").disabled = running || !annualResults.length;
       if (progress) progress.hidden = !running && completed === 0;
       if (bar) bar.value = total ? completed / total * 100 : 0;
       if (textEl) textEl.textContent = running
@@ -15398,11 +15627,21 @@
       });
       values.calculatorFeature = { value: "three-star", checked: false };
       values.kvMode = { value: values.kv?.value?.trim() ? "manual" : "preset", checked: false };
-      const cacheKey = hashAnnualSettings(values, year, cadence);
+      const settingsJson = normalizedAnnualSettingsJson(values, year, cadence);
+      const cacheKey = hashAnnualSettings(settingsJson);
       try {
         const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-        if (cached?.modelVersion === THREE_STAR_MODEL_VERSION && Array.isArray(cached.results) && cached.results.length === dates.length) {
+        if (cached?.schemaVersion === 3
+            && cached?.modelVersion === THREE_STAR_MODEL_VERSION
+            && cached?.settingsJson === settingsJson
+            && Array.isArray(cached.results)
+            && cached.results.length === dates.length) {
           annualResults = cached.results;
+          try {
+            cached.lastAccessedAt = Date.now();
+            localStorage.setItem(cacheKey, JSON.stringify(cached));
+            pruneAnnualCache();
+          } catch (_) {}
           renderAnnualResults(annualResults);
           setAnnualUiState(false, dates.length, dates.length);
           return;
@@ -15481,7 +15720,7 @@
           return;
         }
         annualResults = Array.isArray(data.results) ? data.results : [];
-        try { localStorage.setItem(cacheKey, JSON.stringify({ modelVersion: THREE_STAR_MODEL_VERSION, results: annualResults })); } catch (_) {}
+        saveAnnualCache(cacheKey, settingsJson, annualResults);
         renderAnnualResults(annualResults);
         setAnnualUiState(false, annualResults.length, dates.length);
       };
@@ -15507,6 +15746,7 @@
       tableWrap.hidden = false;
       chartWrap.hidden = false;
       $("exportAnnualCsv").disabled = !results.length;
+      $("exportAnnualPdf").disabled = !results.length;
       $("annualTableBody").innerHTML = results.map(result => {
         const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
         return `<tr><td>${escapeHtml(result?.date || "--")}</td><td>${result?.sunsetTime ? escapeHtml(formatLocal(result.sunsetTime, result.timeZone)) : "--"}</td><td>${result?.found ? escapeHtml(formatLocal(result.time, result.timeZone)) : "--"}</td><td>${Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--"}</td><td>${Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--"}</td><td>${escapeHtml(stars)}</td></tr>`;
@@ -15519,13 +15759,16 @@
       if (!canvas || !annualResults.length) return;
       const rect = canvas.getBoundingClientRect();
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width = Math.max(640, Math.round(rect.width * dpr));
+      const logicalCanvasWidth = Math.max(240, Math.round(rect.width));
+      canvas.width = Math.round(logicalCanvasWidth * dpr);
       canvas.height = Math.round(300 * dpr);
       const ctx = canvas.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const width = canvas.width / dpr;
       const height = canvas.height / dpr;
-      const pad = { left: 52, right: 18, top: 20, bottom: 42 };
+      const narrowMonthAxis = width < 430;
+      const pad = { left: 52, right: 18, top: 20, bottom: narrowMonthAxis ? 68 : 58 };
+      const plotBottom = height - pad.bottom;
       const metric = $("annualChartMetric").value;
       const values = annualResults.map(result => metric === "minutes" ? result?.minutesAfterSunset : result?.sunAltitude);
       const finite = values.filter(Number.isFinite);
@@ -15543,16 +15786,56 @@
       min -= span * 0.08;
       max += span * 0.08;
       const xFor = index => pad.left + index / Math.max(1, annualResults.length - 1) * (width - pad.left - pad.right);
-      const yFor = value => pad.top + (max - value) / (max - min) * (height - pad.top - pad.bottom);
+      const yFor = value => pad.top + (max - value) / (max - min) * (plotBottom - pad.top);
+      const chartYear = Number($("annualYear")?.value) || Number((annualResults[0]?.date || "").slice(0, 4));
+      const yearStartMs = Date.UTC(chartYear, 0, 1);
+      const yearEndMs = Date.UTC(chartYear + 1, 0, 1);
+      const xForDateMs = ms => pad.left + (ms - yearStartMs) / Math.max(1, yearEndMs - yearStartMs) * (width - pad.left - pad.right);
       ctx.strokeStyle = "rgba(159,177,198,.28)";
       ctx.fillStyle = "#9fb1c6";
       ctx.font = "11px system-ui";
       for (let i = 0; i <= 4; i++) {
-        const y = pad.top + i / 4 * (height - pad.top - pad.bottom);
+        const y = pad.top + i / 4 * (plotBottom - pad.top);
         const value = max - i / 4 * (max - min);
         ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(width - pad.right, y); ctx.stroke();
         ctx.fillText(value.toFixed(1), 8, y + 4);
       }
+
+      const monthNames = uiLanguage === "en"
+        ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        : ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני", "יולי", "אוג׳", "ספט׳", "אוק׳", "נוב׳", "דצמ׳"];
+      ctx.save();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(159,177,198,.18)";
+      for (let month = 0; month < 12; month++) {
+        const x = xForDateMs(Date.UTC(chartYear, month, 1));
+        ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, plotBottom); ctx.stroke();
+      }
+      ctx.beginPath(); ctx.moveTo(width - pad.right, pad.top); ctx.lineTo(width - pad.right, plotBottom); ctx.stroke();
+      ctx.restore();
+
+      const now = new Date();
+      if (now.getFullYear() === chartYear) {
+        const todayX = xForDateMs(Date.UTC(chartYear, now.getMonth(), now.getDate()));
+        ctx.save();
+        ctx.strokeStyle = "#69d2ff";
+        ctx.fillStyle = "#69d2ff";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(todayX, pad.top); ctx.lineTo(todayX, plotBottom); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(todayX - 4, pad.top);
+        ctx.lineTo(todayX + 4, pad.top);
+        ctx.lineTo(todayX, pad.top + 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.font = "600 9px system-ui";
+        ctx.textAlign = todayX > width - pad.right - 34 ? "right" : "left";
+        ctx.fillText(uiLanguage === "en" ? "Today" : "היום", todayX + (ctx.textAlign === "right" ? -5 : 5), pad.top + 11);
+        ctx.restore();
+      }
+
       ctx.strokeStyle = "#f6bd55";
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -15567,30 +15850,52 @@
       ctx.stroke();
       ctx.fillStyle = "#f6bd55";
       annualChartPoints.forEach(point => { ctx.beginPath(); ctx.arc(point.x, point.y, 2.2, 0, Math.PI * 2); ctx.fill(); });
+      ctx.save();
+      ctx.fillStyle = "#c9d8e8";
+      ctx.textAlign = "center";
+      ctx.font = "600 11px system-ui";
+      ctx.fillText(String(chartYear), (pad.left + width - pad.right) / 2, height - (narrowMonthAxis ? 43 : 31));
       ctx.fillStyle = "#9fb1c6";
-      const tickIndexes = [0, Math.floor((annualResults.length - 1) / 2), annualResults.length - 1];
-      tickIndexes.forEach((index, tickIndex) => {
-        const label = annualResults[index]?.date || "";
-        const measured = ctx.measureText(label).width;
-        const x = xFor(index) - (tickIndex === 0 ? 0 : tickIndex === 2 ? measured : measured / 2);
-        ctx.fillText(label, x, height - 15);
-      });
+      ctx.font = `${narrowMonthAxis ? 8 : width < 560 ? 9 : 10}px system-ui`;
+      for (let month = 0; month < 12; month++) {
+        const monthStart = Date.UTC(chartYear, month, 1);
+        const nextMonthStart = Date.UTC(chartYear, month + 1, 1);
+        const x = xForDateMs((monthStart + nextMonthStart) / 2);
+        const monthY = narrowMonthAxis ? height - (month % 2 === 0 ? 23 : 10) : height - 12;
+        ctx.fillText(monthNames[month], x, monthY);
+      }
+      ctx.restore();
     }
 
     function showAnnualChartTooltip(event) {
       if (!annualChartPoints.length) return;
       const canvas = $("annualChart");
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const point = annualChartPoints.reduce((best, item) => Math.abs(item.x - x) < Math.abs(best.x - x) ? item : best);
+      const logicalWidth = canvas.width / Math.max(1, window.devicePixelRatio || 1);
+      const logicalHeight = canvas.height / Math.max(1, window.devicePixelRatio || 1);
+      const scaleX = rect.width / Math.max(1, logicalWidth);
+      const scaleY = rect.height / Math.max(1, logicalHeight);
+      const logicalX = (event.clientX - rect.left) / Math.max(0.0001, scaleX);
+      const point = annualChartPoints.reduce((best, item) => Math.abs(item.x - logicalX) < Math.abs(best.x - logicalX) ? item : best);
       const tooltip = $("annualChartTooltip");
       const metricLabel = $("annualChartMetric").value === "minutes"
         ? (uiLanguage === "en" ? "minutes after sunset" : "דקות לאחר השקיעה")
         : (uiLanguage === "en" ? "Sun altitude" : "גובה השמש");
       tooltip.textContent = `${point.result.date}: ${Number(point.value).toFixed(2)} ${metricLabel}`;
-      tooltip.style.left = `${Math.min(rect.width - 190, Math.max(6, point.x + 8))}px`;
-      tooltip.style.top = `${Math.max(6, point.y - 38)}px`;
       tooltip.hidden = false;
+      const margin = 6;
+      const tooltipWidth = Math.min(tooltip.offsetWidth || 190, Math.max(0, rect.width - margin * 2));
+      const tooltipHeight = Math.min(tooltip.offsetHeight || 34, Math.max(0, rect.height - margin * 2));
+      const displayedX = point.x * scaleX;
+      const displayedY = point.y * scaleY;
+      const maxLeft = Math.max(margin, rect.width - tooltipWidth - margin);
+      const maxTop = Math.max(margin, rect.height - tooltipHeight - margin);
+      const preferredLeft = displayedX + 10 + tooltipWidth <= rect.width - margin
+        ? displayedX + 10
+        : displayedX - tooltipWidth - 10;
+      const preferredTop = displayedY - tooltipHeight - 10;
+      tooltip.style.left = `${Math.min(maxLeft, Math.max(margin, preferredLeft))}px`;
+      tooltip.style.top = `${Math.min(maxTop, Math.max(margin, preferredTop))}px`;
     }
 
     function exportAnnualCsv() {
@@ -15613,12 +15918,82 @@
         csvCell(result?.kVSource || ""),
         result?.modelVersion || ""
       ].join(","));
+      const exportButton = $("exportAnnualCsv");
+      exportButton.dataset.lastExportRowCount = String(lines.length);
+      exportButton.dataset.lastExportColumnCount = String(headers.length);
       const blob = new Blob(["\uFEFF" + headers.map(csvCell).join(",") + "\r\n" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `three-star-time-${$("annualYear").value}-${$("annualCadence").value}.csv`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+
+    function exportAnnualPdf() {
+      if (!annualResults.length) return;
+      const canvas = $("annualChart");
+      let chartDataUrl = "";
+      try { chartDataUrl = canvas?.toDataURL("image/png") || ""; } catch (_) {}
+      const year = $("annualYear").value;
+      const cadence = $("annualCadence").value;
+      const cadenceLabel = cadence === "daily"
+        ? (uiLanguage === "en" ? "Daily" : "יומי")
+        : (uiLanguage === "en" ? "Weekly" : "שבועי");
+      const title = uiLanguage === "en" ? "Three-Star Annual Report" : "דוח שנתי - זמן צאת הכוכבים";
+      const locationText = $("headerLocation")?.textContent?.trim() || $("customLocationName")?.value?.trim() || "--";
+      const timeZoneText = $("timezone")?.value?.trim() || "--";
+      const headers = uiLanguage === "en"
+        ? ["Date", "Sunset", "Star-count time", "Minutes after sunset", "Sun altitude", "Completing objects"]
+        : ["תאריך", "שקיעה", "זמן צאת הכוכבים", "דקות לאחר השקיעה", "גובה השמש", "העצמים שהשלימו את המניין"];
+      const rowMarkup = annualResults.map(result => {
+        const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
+        const cells = [
+          result?.date || "--",
+          result?.sunsetTime ? formatLocal(result.sunsetTime, result.timeZone) : "--",
+          result?.found ? formatLocal(result.time, result.timeZone) : "--",
+          Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--",
+          Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--",
+          stars
+        ];
+        return `<tr>${cells.map(value => `<td>${escapeHtml(String(value))}</td>`).join("")}</tr>`;
+      }).join("");
+      document.querySelector(".annual-print-report")?.remove();
+      const report = document.createElement("section");
+      report.className = "annual-print-report";
+      report.dir = uiLanguage === "en" ? "ltr" : "rtl";
+      report.lang = uiLanguage;
+      report.innerHTML = `
+        <h1>${escapeHtml(title)}</h1>
+        <div class="annual-print-meta">
+          <span><strong>${uiLanguage === "en" ? "Year" : "שנה"}:</strong> ${escapeHtml(year)}</span>
+          <span><strong>${uiLanguage === "en" ? "Interval" : "מרווח"}:</strong> ${escapeHtml(cadenceLabel)}</span>
+          <span><strong>${uiLanguage === "en" ? "Location" : "מקום"}:</strong> ${escapeHtml(locationText)}</span>
+          <span><strong>${uiLanguage === "en" ? "Time zone" : "אזור זמן"}:</strong> ${escapeHtml(timeZoneText)}</span>
+        </div>
+        ${chartDataUrl ? `<img class="annual-print-chart" src="${chartDataUrl}" alt="">` : ""}
+        <table>
+          <thead><tr>${headers.map(value => `<th>${escapeHtml(value)}</th>`).join("")}</tr></thead>
+          <tbody>${rowMarkup}</tbody>
+        </table>`;
+      document.body.appendChild(report);
+      const button = $("exportAnnualPdf");
+      button.dataset.lastPdfRowCount = String(annualResults.length);
+      button.dataset.lastPdfCadence = cadence;
+      button.dataset.lastPdfChartIncluded = String(Boolean(chartDataUrl));
+      const previousTitle = document.title;
+      document.title = `${title} ${year}`;
+      document.body.classList.add("annual-print-mode");
+      let cleaned = false;
+      const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        document.body.classList.remove("annual-print-mode");
+        document.title = previousTitle;
+        report.remove();
+      };
+      window.addEventListener("afterprint", cleanup, { once: true });
+      setTimeout(() => window.print(), 80);
+      setTimeout(cleanup, 60000);
     }
 
     function render() {
@@ -16662,6 +17037,10 @@
       $("calculateAnnual").textContent = uiLanguage === "en" ? "Calculate year" : "חשב שנה";
       $("cancelAnnual").textContent = uiLanguage === "en" ? "Cancel" : "בטל";
       $("exportAnnualCsv").textContent = uiLanguage === "en" ? "Download annual CSV" : "הורד CSV שנתי";
+      $("exportAnnualPdf").textContent = uiLanguage === "en" ? "Export annual PDF" : "ייצוא PDF שנתי";
+      $("exportAnnualPdf").title = uiLanguage === "en"
+        ? "Opens the print dialog; choose Save as PDF."
+        : "פותח את חלון ההדפסה; יש לבחור שמירה כ-PDF.";
       $("annualAtmosphereNote").textContent = uiLanguage === "en"
         ? "Annual results use the selected standard atmospheric conditions or manual kV. Actual visibility can vary with haze, humidity, aerosols, clouds, local lighting and the observer."
         : "התוצאות השנתיות מבוססות על תנאי האטמוספרה התקניים שנבחרו או על kV ידני. הראות בפועל עשויה להשתנות מחמת אובך, לחות, אירוסולים, עננים, תאורה מקומית והבדלים בין צופים.";
