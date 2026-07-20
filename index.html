@@ -158,6 +158,11 @@
       color: #c9d7e8;
       font-size: 13px;
     }
+    .three-star-pre-sunset-note bdi[dir="ltr"] {
+      direction: ltr;
+      unicode-bidi: isolate;
+      display: inline-block;
+    }
 
     .three-star-controls {
       display: grid;
@@ -349,6 +354,50 @@
     .annual-table-wrap { margin-top: 14px; max-height: 420px; overflow: auto; }
     .annual-table { min-width: 780px; }
     .annual-table th { position: sticky; top: 0; z-index: 2; }
+    .weekly-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .weekly-toolbar .action { width: auto; }
+    .weekly-range {
+      flex: 1 1 220px;
+      min-width: 0;
+      text-align: center;
+      color: #e8f3ff;
+      font-size: 14px;
+    }
+    .weekly-results-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 14px;
+    }
+    .weekly-day-card {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(3, 12, 24, 0.3);
+    }
+    .weekly-day-card.is-today { border-color: rgba(105, 210, 255, 0.6); }
+    .weekly-day-card header { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11px; }
+    .weekly-day-card header strong { color: #e8f3ff; font-size: 13px; }
+    .weekly-main-time { margin-top: 10px; color: #fff3c7; font-size: 22px; font-weight: 800; }
+    .weekly-day-card.is-missing .weekly-main-time { color: var(--muted); font-size: 15px; }
+    .weekly-day-meta { margin-top: 5px; color: #9fcfff; font-size: 11px; line-height: 1.45; }
+    .weekly-day-stars { margin-top: 8px; color: #c9d8e8; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+
+    @media (max-width: 900px) {
+      .weekly-results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .weekly-results-grid { grid-template-columns: 1fr; }
+      .weekly-toolbar .action { flex: 1 1 120px; }
+      .weekly-range { order: -1; flex-basis: 100%; }
+    }
     .annual-print-report { display: none; }
     .annual-print-report.is-preparing {
       display: block;
@@ -2308,6 +2357,26 @@
           <div id="threeStarResultGrid" class="three-star-result-grid"></div>
           <div id="threeStarObjectList" class="three-star-object-list"></div>
         </article>
+
+        <details id="weeklyView" class="annual-view weekly-view">
+          <summary id="weeklySummary">Weekly View</summary>
+          <div class="annual-body">
+            <div class="weekly-toolbar">
+              <button class="action secondary" id="previousWeek" type="button">Previous week</button>
+              <button class="action secondary" id="currentWeek" type="button">Current week</button>
+              <button class="action secondary" id="nextWeek" type="button">Next week</button>
+              <strong class="weekly-range" id="weeklyRangeLabel"></strong>
+              <button class="action" id="calculateWeekly" type="button">Calculate week</button>
+              <button class="action secondary" id="cancelWeekly" type="button" hidden>Cancel</button>
+            </div>
+            <p id="weeklyAtmosphereNote" class="note">The week runs Sunday through Saturday and uses the same location, star selection, atmosphere and observer settings as the daily calculation.</p>
+            <div id="weeklyProgress" class="annual-progress" hidden>
+              <progress id="weeklyProgressBar" max="100" value="0"></progress>
+              <div id="weeklyProgressText" class="annual-progress-text"></div>
+            </div>
+            <div id="weeklyResultsGrid" class="weekly-results-grid" hidden aria-live="polite"></div>
+          </div>
+        </details>
 
         <details id="annualView" class="annual-view">
           <summary id="annualSummary">Annual View</summary>
@@ -11743,6 +11812,10 @@
     let mode = "evening";
     let rows = [];
     let threeStarResultData = null;
+    let weeklyResults = [];
+    let weeklyStartDate = "";
+    let activeWeeklyWorker = null;
+    let weeklyCalculationVersion = 0;
     let annualResults = [];
     let annualResultSettingsJson = "";
     let activeAnnualWorker = null;
@@ -12237,6 +12310,8 @@
       if (dateEl && !dateEl.value) dateEl.valueAsDate = new Date();
       const annualYearEl = $("annualYear");
       if (annualYearEl && !annualYearEl.value) annualYearEl.value = String(Number((dateEl?.value || "").slice(0, 4)) || new Date().getFullYear());
+      weeklyStartDate = startOfWeekIso(dateEl?.value || isoDateUtc(new Date()));
+      updateWeeklyRangeLabel();
     }
 
     $("eveningMode").addEventListener("click", () => setMode("evening"));
@@ -12268,6 +12343,32 @@
       $(object.inputId)?.addEventListener("change", calculate);
     });
     $("calculate").addEventListener("click", calculate);
+    $("calculateWeekly").addEventListener("click", calculateWeeklyResults);
+    $("cancelWeekly").addEventListener("click", cancelWeeklyCalculation);
+    $("previousWeek").addEventListener("click", () => moveWeeklyView(-7));
+    $("currentWeek").addEventListener("click", () => {
+      weeklyStartDate = startOfWeekIso($("date").value || isoDateUtc(new Date()));
+      updateWeeklyRangeLabel();
+      calculateWeeklyResults();
+    });
+    $("nextWeek").addEventListener("click", () => moveWeeklyView(7));
+    $("weeklyView").addEventListener("toggle", () => {
+      if ($("weeklyView").open && !weeklyResults.length && !activeWeeklyWorker) calculateWeeklyResults();
+    });
+    document.addEventListener("change", event => {
+      if (event.target?.closest?.("#weeklyView") || event.target?.closest?.("#annualView")) return;
+      if (event.target?.id === "date") {
+        weeklyStartDate = startOfWeekIso(event.target.value);
+        updateWeeklyRangeLabel();
+      }
+      if (!weeklyResults.length) return;
+      weeklyResults = [];
+      $("weeklyResultsGrid").hidden = true;
+      $("weeklyProgress").hidden = false;
+      $("weeklyProgressText").textContent = uiLanguage === "en"
+        ? "Settings changed. Calculate the week again."
+        : "ההגדרות השתנו. יש לחשב את השבוע מחדש.";
+    });
     $("calculateAnnual").addEventListener("click", calculateAnnualResults);
     $("cancelAnnual").addEventListener("click", cancelAnnualCalculation);
     $("exportAnnualCsv").addEventListener("click", exportAnnualCsv);
@@ -15547,6 +15648,116 @@
       }).join("");
     }
 
+    function parseIsoDateUtc(dateText) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateText || ""));
+      if (!match) return null;
+      const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+      return Number.isFinite(date.getTime()) ? date : null;
+    }
+
+    function isoDateUtc(date) {
+      return new Date(date).toISOString().slice(0, 10);
+    }
+
+    function addIsoDays(dateText, days) {
+      const date = parseIsoDateUtc(dateText) || new Date();
+      date.setUTCDate(date.getUTCDate() + days);
+      return isoDateUtc(date);
+    }
+
+    function startOfWeekIso(dateText) {
+      const date = parseIsoDateUtc(dateText) || new Date();
+      date.setUTCDate(date.getUTCDate() - date.getUTCDay());
+      return isoDateUtc(date);
+    }
+
+    function weeklyDateStrings(startDate = weeklyStartDate) {
+      return Array.from({ length: 7 }, (_, index) => addIsoDays(startDate, index));
+    }
+
+    function updateWeeklyRangeLabel() {
+      const label = $("weeklyRangeLabel");
+      if (!label || !weeklyStartDate) return;
+      const dates = weeklyDateStrings();
+      const locale = uiLanguage === "en" ? "en-US" : "he-IL";
+      const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+      label.textContent = `${formatter.format(parseIsoDateUtc(dates[0]))} – ${formatter.format(parseIsoDateUtc(dates[6]))}`;
+      label.dir = uiLanguage === "en" ? "ltr" : "rtl";
+    }
+
+    function weeklyNoResultText(reason) {
+      const texts = uiLanguage === "en"
+        ? { "no-sunset": "No sunset", "fewer-qualifying-candidates": "Not enough qualifying objects", "not-enough-simultaneous-stars": "No stable simultaneous result" }
+        : { "no-sunset": "אין שקיעה", "fewer-qualifying-candidates": "אין די עצמים מתאימים", "not-enough-simultaneous-stars": "לא נמצא זמן יציב משותף" };
+      return texts[reason] || (uiLanguage === "en" ? "No result" : "אין תוצאה");
+    }
+
+    function renderWeeklyResults(results) {
+      const grid = $("weeklyResultsGrid");
+      grid.hidden = false;
+      const locale = uiLanguage === "en" ? "en-US" : "he-IL";
+      const weekdayFormatter = new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "UTC" });
+      const dateFormatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", timeZone: "UTC" });
+      const today = isoDateUtc(new Date());
+      grid.innerHTML = results.map(result => {
+        const date = parseIsoDateUtc(result?.date);
+        const found = Boolean(result?.found && Number.isFinite(result?.time));
+        const time = found ? formatLocal(result.time, result.timeZone) : weeklyNoResultText(result?.reason);
+        const minutesText = Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--";
+        const sunAltitudeText = Number.isFinite(result?.sunAltitude) ? Number(result.sunAltitude).toFixed(2) : "--";
+        const details = found
+          ? `${minutesText} ${uiLanguage === "en" ? "min after sunset" : "דקות לאחר השקיעה"} · ${uiLanguage === "en" ? "Sun" : "שמש"} <bdi dir="ltr">${sunAltitudeText}°</bdi>`
+          : weeklyNoResultText(result?.reason);
+        const stars = found && result.completingStars?.length
+          ? `${uiLanguage === "en" ? "Completing objects" : "העצמים שהשלימו את המניין"}: ${escapeHtml(result.completingStars.join(", "))}`
+          : "";
+        return `<article class="weekly-day-card${result?.date === today ? " is-today" : ""}${found ? "" : " is-missing"}">
+          <header><strong>${escapeHtml(date ? weekdayFormatter.format(date) : "--")}</strong><span>${escapeHtml(date ? dateFormatter.format(date) : result?.date || "--")}</span></header>
+          <div class="weekly-main-time" dir="ltr">${escapeHtml(time)}</div>
+          <div class="weekly-day-meta">${details}</div>
+          ${stars ? `<div class="weekly-day-stars">${stars}</div>` : ""}
+        </article>`;
+      }).join("");
+    }
+
+    function setWeeklyUiState(running, completed = 0, total = 0) {
+      ["previousWeek", "currentWeek", "nextWeek", "calculateWeekly"].forEach(id => { $(id).disabled = running; });
+      $("cancelWeekly").hidden = !running;
+      $("weeklyProgress").hidden = !running && completed === 0;
+      $("weeklyProgressBar").value = total ? completed / total * 100 : 0;
+      $("weeklyProgressText").textContent = running
+        ? (uiLanguage === "en" ? `Calculated ${completed} of ${total} days...` : `חושבו ${completed} מתוך ${total} ימים...`)
+        : (completed && total ? (uiLanguage === "en" ? `Completed ${completed} days.` : `הושלמו ${completed} ימים.`) : "");
+    }
+
+    function moveWeeklyView(days) {
+      weeklyStartDate = addIsoDays(weeklyStartDate || startOfWeekIso($("date").value), days);
+      updateWeeklyRangeLabel();
+      calculateWeeklyResults();
+    }
+
+    function cancelWeeklyCalculation() {
+      weeklyCalculationVersion++;
+      if (activeWeeklyWorker) {
+        activeWeeklyWorker.worker.terminate();
+        URL.revokeObjectURL(activeWeeklyWorker.url);
+      }
+      activeWeeklyWorker = null;
+      setWeeklyUiState(false);
+      $("weeklyProgress").hidden = false;
+      $("weeklyProgressText").textContent = uiLanguage === "en" ? "Weekly calculation cancelled." : "החישוב השבועי בוטל.";
+    }
+
+    function collectThreeStarBatchValues() {
+      const values = {};
+      document.querySelectorAll("[id]").forEach(el => {
+        values[el.id] = { value: "value" in el ? el.value : "", checked: "checked" in el ? el.checked : false };
+      });
+      values.calculatorFeature = { value: "three-star", checked: false };
+      values.kvMode = { value: values.kv?.value?.trim() ? "manual" : "preset", checked: false };
+      return values;
+    }
+
     function annualDateStrings(year, cadence) {
       const dates = [];
       const stepDays = cadence === "daily" ? 1 : 7;
@@ -15557,9 +15768,9 @@
     }
 
     function normalizedAnnualSettingsJson(values, year, cadence) {
-      const ignored = new Set(["date", "filter", "renderLimit", "annualYear", "annualCadence", "annualChartMetric"]);
+      const ignored = new Set(["date", "filter", "renderLimit", "annualYear", "annualCadence", "annualChartMetric", "previousWeek", "currentWeek", "nextWeek", "calculateWeekly", "cancelWeekly"]);
       const controls = Object.keys(values)
-        .filter(id => !ignored.has(id) && !id.startsWith("annual"))
+        .filter(id => !ignored.has(id) && !id.startsWith("annual") && !id.startsWith("weekly"))
         .sort()
         .map(id => [id, String(values[id]?.value ?? ""), values[id]?.checked === true]);
       return JSON.stringify({ schemaVersion: 3, modelVersion: THREE_STAR_MODEL_VERSION, year, cadence, controls });
@@ -15569,12 +15780,7 @@
       if (globalThis.__CALC_WORKER__) return { values: {}, settingsJson: "" };
       const year = Number($("annualYear")?.value);
       const cadence = $("annualCadence")?.value || "weekly";
-      const values = {};
-      document.querySelectorAll("[id]").forEach(el => {
-        values[el.id] = { value: "value" in el ? el.value : "", checked: "checked" in el ? el.checked : false };
-      });
-      values.calculatorFeature = { value: "three-star", checked: false };
-      values.kvMode = { value: values.kv?.value?.trim() ? "manual" : "preset", checked: false };
+      const values = collectThreeStarBatchValues();
       return { values, settingsJson: normalizedAnnualSettingsJson(values, year, cadence) };
     }
 
@@ -15643,6 +15849,104 @@
       }
     }
 
+    function createThreeStarBatchWorker(dates, values) {
+      if (typeof Worker === "undefined" || !APP_SCRIPT_SOURCE) {
+        throw new Error(uiLanguage === "en" ? "Background calculations are not supported in this browser." : "הדפדפן אינו תומך בחישובי רקע.");
+      }
+      const prefix = `
+        globalThis.__CALC_WORKER__ = true;
+        const __values = ${JSON.stringify(values)};
+        const __els = {};
+        for (const [id, state] of Object.entries(__values)) {
+          const el = { id, value: state.value, checked: state.checked, textContent: "", innerHTML: "", dataset: {}, files: null,
+            classList: { add(){}, remove(){}, toggle(){} }, addEventListener(){}, click(){} };
+          Object.defineProperty(el, "valueAsDate", { set(){} });
+          __els[id] = el;
+        }
+        globalThis.document = {
+          currentScript: { textContent: "" },
+          getElementById: id => __els[id] || null,
+          querySelectorAll: () => [],
+          createElement: () => ({ click(){} }),
+          addEventListener(){}
+        };
+        globalThis.window = globalThis;
+      `;
+      const suffix = `
+        mode = "evening";
+        const __dates = ${JSON.stringify(dates)};
+        (async () => {
+          const __results = [];
+          for (let __i = 0; __i < __dates.length; __i++) {
+            __els.date.value = __dates[__i];
+            __els.error.textContent = "";
+            threeStarResultData = null;
+            await calculate();
+            if (__els.error.textContent) throw new Error(__els.error.textContent);
+            __results.push(threeStarResultData);
+            postMessage({ type: "progress", completed: __i + 1, total: __dates.length });
+          }
+          postMessage({ type: "done", results: __results });
+        })().catch(error => postMessage({ type: "error", error: error?.message || String(error) }));
+      `;
+      const url = URL.createObjectURL(new Blob([prefix, APP_SCRIPT_SOURCE, suffix], { type: "text/javascript" }));
+      try {
+        return { worker: new Worker(url), url };
+      } catch (error) {
+        URL.revokeObjectURL(url);
+        throw error;
+      }
+    }
+
+    function calculateWeeklyResults() {
+      if (globalThis.__CALC_WORKER__) return;
+      if (!weeklyStartDate) weeklyStartDate = startOfWeekIso($("date").value || isoDateUtc(new Date()));
+      const dates = weeklyDateStrings();
+      const values = collectThreeStarBatchValues();
+      if (activeWeeklyWorker) cancelWeeklyCalculation();
+      const version = ++weeklyCalculationVersion;
+      let batch;
+      try {
+        batch = createThreeStarBatchWorker(dates, values);
+      } catch (error) {
+        $("weeklyProgress").hidden = false;
+        $("weeklyProgressText").textContent = error?.message || String(error);
+        return;
+      }
+      activeWeeklyWorker = batch;
+      $("weeklyResultsGrid").hidden = true;
+      setWeeklyUiState(true, 0, dates.length);
+      const finish = () => {
+        if (activeWeeklyWorker === batch) activeWeeklyWorker = null;
+        batch.worker.terminate();
+        URL.revokeObjectURL(batch.url);
+      };
+      batch.worker.onmessage = event => {
+        if (version !== weeklyCalculationVersion) { finish(); return; }
+        const data = event.data || {};
+        if (data.type === "progress") {
+          setWeeklyUiState(true, data.completed, data.total);
+          return;
+        }
+        finish();
+        if (data.type === "error") {
+          setWeeklyUiState(false);
+          $("weeklyProgress").hidden = false;
+          $("weeklyProgressText").textContent = data.error || (uiLanguage === "en" ? "Weekly calculation failed." : "החישוב השבועי נכשל.");
+          return;
+        }
+        weeklyResults = Array.isArray(data.results) ? data.results : [];
+        renderWeeklyResults(weeklyResults);
+        setWeeklyUiState(false, weeklyResults.length, dates.length);
+      };
+      batch.worker.onerror = event => {
+        finish();
+        setWeeklyUiState(false);
+        $("weeklyProgress").hidden = false;
+        $("weeklyProgressText").textContent = event?.message || (uiLanguage === "en" ? "Weekly calculation failed." : "החישוב השבועי נכשל.");
+      };
+    }
+
     function setAnnualUiState(running, completed = 0, total = 0) {
       const progress = $("annualProgress");
       const bar = $("annualProgressBar");
@@ -15696,52 +16000,14 @@
         return;
       }
       const version = ++annualCalculationVersion;
-      const prefix = `
-        globalThis.__CALC_WORKER__ = true;
-        const __values = ${JSON.stringify(values)};
-        const __els = {};
-        for (const [id, state] of Object.entries(__values)) {
-          const el = { id, value: state.value, checked: state.checked, textContent: "", innerHTML: "", dataset: {}, files: null,
-            classList: { add(){}, remove(){}, toggle(){} }, addEventListener(){}, click(){} };
-          Object.defineProperty(el, "valueAsDate", { set(){} });
-          __els[id] = el;
-        }
-        globalThis.document = {
-          currentScript: { textContent: "" },
-          getElementById: id => __els[id] || null,
-          querySelectorAll: () => [],
-          createElement: () => ({ click(){} }),
-          addEventListener(){}
-        };
-        globalThis.window = globalThis;
-      `;
-      const suffix = `
-        mode = "evening";
-        const __dates = ${JSON.stringify(dates)};
-        (async () => {
-          const __results = [];
-          for (let __i = 0; __i < __dates.length; __i++) {
-            __els.date.value = __dates[__i];
-            __els.error.textContent = "";
-            threeStarResultData = null;
-            await calculate();
-            if (__els.error.textContent) throw new Error(__els.error.textContent);
-            __results.push(threeStarResultData);
-            postMessage({ type: "progress", completed: __i + 1, total: __dates.length });
-          }
-          postMessage({ type: "done", results: __results });
-        })().catch(error => postMessage({ type: "error", error: error?.message || String(error) }));
-      `;
-      let url = "";
-      let worker;
+      let batch;
       try {
-        url = URL.createObjectURL(new Blob([prefix, APP_SCRIPT_SOURCE, suffix], { type: "text/javascript" }));
-        worker = new Worker(url);
+        batch = createThreeStarBatchWorker(dates, values);
       } catch (error) {
-        if (url) URL.revokeObjectURL(url);
         clearResultsAfterError(error?.message || String(error));
         return;
       }
+      const { worker, url } = batch;
       activeAnnualWorker = worker;
       setAnnualUiState(true, 0, dates.length);
       const finish = () => {
@@ -17078,9 +17344,9 @@
       $("threeStarSubtitle").textContent = uiLanguage === "en"
         ? "Calculate the earliest moment after sunset when the selected number of eligible objects are predicted to be visible simultaneously."
         : "חישוב הרגע המוקדם לאחר השקיעה שבו מספר העצמים המתאימים שנבחרו צפויים להיראות יחד.";
-      $("threeStarPreSunsetNote").textContent = uiLanguage === "en"
+      $("threeStarPreSunsetNote").innerHTML = uiLanguage === "en"
         ? "Before sunset, mainly objects with an effective magnitude of −1.5 or brighter are expected to be visible. Objects between −1.5 and −0.5 may be visible only under exceptional conditions, while objects fainter than −0.5 are not expected to be visible."
-        : "לפני השקיעה צפויים להיראות בעיקר עצמים בעלי מגניטודה אפקטיבית −1.5 או בהירים יותר. עצמים שבין −1.5 ל־−0.5 עשויים להיראות רק בתנאים חריגים, ועצמים חלשים מ־−0.5 אינם צפויים להיראות.";
+        : 'לפני השקיעה צפויים להיראות בעיקר עצמים בעלי מגניטודה אפקטיבית <bdi dir="ltr">−1.5</bdi> או בהירים יותר. עצמים שבין <bdi dir="ltr">−1.5</bdi> ל־<bdi dir="ltr">−0.5</bdi> עשויים להיראות רק בתנאים חריגים, ועצמים חלשים מ־<bdi dir="ltr">−0.5</bdi> אינם צפויים להיראות.';
       $("threeStarCountLabel").textContent = uiLanguage === "en" ? "Number of stars" : "מספר הכוכבים";
       $("threeStarBasisLabel").textContent = uiLanguage === "en" ? "Selection method" : "שיטת הבחירה";
       $("threeStarThresholdLabel").textContent = uiLanguage === "en" ? "Include stars fainter than or equal to" : "כלול כוכבים חלשים מערך זה או שווים לו";
@@ -17095,6 +17361,17 @@
         $(object.inputId + "Label").textContent = uiLanguage === "en" ? object.english : object.hebrew;
       });
       updateThreeStarSelectionControls();
+      $("weeklySummary").textContent = uiLanguage === "en" ? "Weekly View" : "חישוב שבועי";
+      $("previousWeek").textContent = uiLanguage === "en" ? "Previous week" : "השבוע הקודם";
+      $("currentWeek").textContent = uiLanguage === "en" ? "Current week" : "השבוע הנוכחי";
+      $("nextWeek").textContent = uiLanguage === "en" ? "Next week" : "השבוע הבא";
+      $("calculateWeekly").textContent = uiLanguage === "en" ? "Calculate week" : "חשב שבוע";
+      $("cancelWeekly").textContent = uiLanguage === "en" ? "Cancel" : "בטל";
+      $("weeklyAtmosphereNote").textContent = uiLanguage === "en"
+        ? "The week runs Sunday through Saturday and uses the same location, star selection, atmosphere and observer settings as the daily calculation."
+        : "השבוע מוצג מיום ראשון עד שבת ומשתמש באותם מקום, בחירת כוכבים, תנאי אטמוספרה ונתוני צופה של החישוב היומי.";
+      updateWeeklyRangeLabel();
+      if (weeklyResults.length) renderWeeklyResults(weeklyResults);
       $("annualSummary").textContent = uiLanguage === "en" ? "Annual View" : "תצוגה שנתית";
       $("annualYearLabel").textContent = uiLanguage === "en" ? "Year" : "שנה";
       $("annualCadenceLabel").textContent = uiLanguage === "en" ? "Display interval" : "מרווח תצוגה";
