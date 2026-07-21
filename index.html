@@ -17254,24 +17254,6 @@
       ctx.fillStyle = skyGradient;
       ctx.fillRect(0, 0, width, horizonY);
 
-      const compass = uiLanguage === "en"
-        ? [[0, "N"], [45, "NE"], [90, "E"], [135, "SE"], [180, "S"], [225, "SW"], [270, "W"], [315, "NW"]]
-        : [[0, "צ"], [45, "צמז׳"], [90, "מז׳"], [135, "דמז׳"], [180, "ד"], [225, "דמע׳"], [270, "מע׳"], [315, "צמע׳"]];
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      for (const [azimuth, label] of compass) {
-        const delta = skyMapAzimuthDelta(azimuth);
-        if (Math.abs(delta) > halfFov + .01) continue;
-        const x = width / 2 + delta / skyMapViewFovDeg * width;
-        const cardinal = azimuth % 90 === 0;
-        ctx.strokeStyle = cardinal ? "rgba(213, 232, 247, .56)" : "rgba(190, 216, 238, .28)";
-        ctx.lineWidth = cardinal ? 1.4 : 1;
-        ctx.beginPath(); ctx.moveTo(x, horizonY - (cardinal ? 15 : 9)); ctx.lineTo(x, horizonY + 3); ctx.stroke();
-        ctx.fillStyle = cardinal ? "#edf7ff" : "rgba(214, 232, 247, .8)";
-        ctx.font = cardinal ? "800 15px system-ui, sans-serif" : "700 11px system-ui, sans-serif";
-        ctx.fillText(label, x, horizonY + 9);
-      }
-
       ctx.fillStyle = "#08131e";
       ctx.beginPath();
       ctx.moveTo(0, height);
@@ -17297,6 +17279,33 @@
       ctx.strokeStyle = "rgba(213, 231, 246, .52)";
       ctx.lineWidth = 1.2;
       ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(width, horizonY); ctx.stroke();
+
+      const compass = uiLanguage === "en"
+        ? [[0, "N"], [45, "NE"], [90, "E"], [135, "SE"], [180, "S"], [225, "SW"], [270, "W"], [315, "NW"]]
+        : [[0, "צ"], [45, "צמז׳"], [90, "מז׳"], [135, "דמז׳"], [180, "ד"], [225, "דמע׳"], [270, "מע׳"], [315, "צמע׳"]];
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      for (const [azimuth, label] of compass) {
+        const delta = skyMapAzimuthDelta(azimuth);
+        if (Math.abs(delta) > halfFov + .01) continue;
+        const x = width / 2 + delta / skyMapViewFovDeg * width;
+        const cardinal = azimuth % 90 === 0;
+        const text = `${label} · ${azimuth}°`;
+        ctx.font = cardinal ? "800 13px system-ui, sans-serif" : "700 10.5px system-ui, sans-serif";
+        const textWidth = ctx.measureText(text).width;
+        const labelX = Math.max(textWidth / 2 + 7, Math.min(width - textWidth / 2 - 7, x));
+        const labelY = horizonY + 10;
+        ctx.strokeStyle = cardinal ? "rgba(238, 248, 255, .92)" : "rgba(199, 222, 240, .66)";
+        ctx.lineWidth = cardinal ? 1.8 : 1.2;
+        ctx.beginPath();
+        ctx.moveTo(x, horizonY - (cardinal ? 18 : 11));
+        ctx.lineTo(x, horizonY + 4);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(2, 8, 14, .82)";
+        ctx.fillRect(labelX - textWidth / 2 - 5, labelY - 2, textWidth + 10, 20);
+        ctx.fillStyle = cardinal ? "#f4f9fd" : "#cbddec";
+        ctx.fillText(text, labelX, labelY);
+      }
 
       const frameObjects = frame.objects || [];
       const objectByName = new Map(frameObjects.map(object => [normalizedSearch(object.name), object]));
