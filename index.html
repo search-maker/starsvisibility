@@ -12055,6 +12055,13 @@
     const ACTIVE_LOCATION_STORAGE_KEY = "starVisibilityLocationV3";
     const HEBREW_DATE_DISPLAY_STORAGE_KEY = "starVisibilityShowHebrewDateV1";
     const THREE_STAR_SELECTION_STORAGE_KEY = "starVisibilityThreeStarSelectionV1";
+    const USER_SETTINGS_STORAGE_KEY = "starVisibilityUserSettingsV1";
+    const USER_SETTINGS_TEXT_PREFIX = "starVisibilityUserSettingTextV1:";
+    const USER_SETTINGS_LARGE_TEXT_IDS = new Set(["catalog", "directionalSqmMap", "twilightCalibration"]);
+    const USER_SETTINGS_EXCLUDED_IDS = new Set([
+      "calculatorFeature", "locationSearch", "utcOffset", "filter", "columnManagerSearch", "columnSearch",
+      "catalogFile", "directionalSqmMapFile"
+    ]);
     let uiLanguage = "en";
     let lastHebrewModelNote = "";
     if (!globalThis.__CALC_WORKER__) {
@@ -12069,6 +12076,97 @@
     let tableColumnBaseOrder = [];
     let columnLayout = null;
     let draggingColumnId = "";
+
+    function isPersistedUserSetting(element) {
+      if (globalThis.__CALC_WORKER__ || !element?.id || USER_SETTINGS_EXCLUDED_IDS.has(element.id)) return false;
+      if (!element.matches?.("input, select, textarea")) return false;
+      const type = String(element.type || "").toLowerCase();
+      return !["button", "submit", "reset", "file", "hidden"].includes(type) && !element.readOnly;
+    }
+
+    function saveUserSettings() {
+      if (globalThis.__CALC_WORKER__) return;
+      try {
+        const values = {};
+        document.querySelectorAll("input[id], select[id], textarea[id]").forEach(element => {
+          if (!isPersistedUserSetting(element) || USER_SETTINGS_LARGE_TEXT_IDS.has(element.id)) return;
+          values[element.id] = element.type === "checkbox" || element.type === "radio"
+            ? { checked: Boolean(element.checked) }
+            : { value: String(element.value ?? "") };
+        });
+        localStorage.setItem(USER_SETTINGS_STORAGE_KEY, JSON.stringify({ version: 1, mode, values }));
+        USER_SETTINGS_LARGE_TEXT_IDS.forEach(id => {
+          const element = $(id);
+          if (!element) return;
+          const key = USER_SETTINGS_TEXT_PREFIX + id;
+          if (element.value) localStorage.setItem(key, element.value);
+          else localStorage.removeItem(key);
+        });
+      } catch (_) {
+        // Storage may be disabled or full; calculations must continue normally.
+      }
+    }
+
+    function restoreUserSettings() {
+      if (globalThis.__CALC_WORKER__) return;
+      try {
+        const saved = JSON.parse(localStorage.getItem(USER_SETTINGS_STORAGE_KEY) || "null");
+        if (saved?.values && typeof saved.values === "object") {
+          Object.entries(saved.values).forEach(([id, state]) => {
+            const element = $(id);
+            if (!isPersistedUserSetting(element) || !state || typeof state !== "object") return;
+            if (element.type === "checkbox" || element.type === "radio") {
+              if (typeof state.checked === "boolean") element.checked = state.checked;
+            } else if (typeof state.value === "string") {
+              if (element.tagName === "SELECT" && ![...element.options].some(option => option.value === state.value)) return;
+              element.value = state.value;
+            }
+          });
+        }
+        USER_SETTINGS_LARGE_TEXT_IDS.forEach(id => {
+          const element = $(id);
+          const savedText = localStorage.getItem(USER_SETTINGS_TEXT_PREFIX + id);
+          if (element && savedText != null) element.value = savedText;
+        });
+        if (["evening", "morning", "rising"].includes(saved?.mode)) mode = saved.mode;
+      } catch (_) {}
+
+      $("eveningMode").classList.toggle("active", mode === "evening");
+      $("morningMode").classList.toggle("active", mode === "morning");
+      $("risingMode").classList.toggle("active", mode === "rising");
+      sortKey = mode === "rising" ? "sunAlt" : "time";
+      sortDir = mode === "rising" ? -1 : 1;
+      weeklyStartDate = startOfWeekIso($("date").value || isoDateUtc(new Date()));
+      if (selectedLocation) {
+        const sameLocation = Math.abs(Number($("lat").value) - selectedLocation.Latitude) < 1e-7
+          && Math.abs(Number($("lon").value) - selectedLocation.Longitude) < 1e-7
+          && String($("timezone").value).trim() === selectedLocation.TimeZone
+          && Math.abs(Number($("observerElevationM").value || 0) - selectedLocation.ElevationMeters) < 0.5;
+        if (!sameLocation) selectedLocation = null;
+      }
+      updateSelectedLocationText(selectedLocation);
+      updateHebrewDateDisplay();
+      updateWeeklyRangeLabel();
+      updateThreeStarSelectionControls();
+      updateAnnualCalendarControl(false);
+    }
+
+    function initializeUserSettingsPersistence() {
+      if (globalThis.__CALC_WORKER__) return;
+      let saveTimer = 0;
+      const scheduleSave = () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveUserSettings, 180);
+      };
+      document.addEventListener("input", event => {
+        if (isPersistedUserSetting(event.target)) scheduleSave();
+      });
+      document.addEventListener("change", event => {
+        if (isPersistedUserSetting(event.target)) saveUserSettings();
+      });
+      window.addEventListener("pagehide", saveUserSettings);
+      saveUserSettings();
+    }
 
     function setCalculationUiState(isCalculating) {
       const button = $("calculate");
@@ -12648,6 +12746,7 @@
       $("risingMode").classList.toggle("active", mode === "rising");
       sortKey = mode === "rising" ? "sunAlt" : "time";
       sortDir = mode === "rising" ? -1 : 1;
+      saveUserSettings();
       calculate();
     }
 
@@ -12871,6 +12970,7 @@
           localStorage.setItem("starVisibilityLocationV2", location.EnglishName);
           localStorage.setItem(ACTIVE_LOCATION_STORAGE_KEY, locationId(location));
         } catch (_) {}
+        saveUserSettings();
       }
       if (options.calculate !== false) calculate();
     }
@@ -17225,6 +17325,8 @@
       loadThreeStarSelectionPreferences();
       updateAnnualCalendarControl(false);
       initLocations();
+      restoreUserSettings();
+      initializeUserSettingsPersistence();
       showReadyToCalculateState();
     }
   
