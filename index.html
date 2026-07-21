@@ -12426,7 +12426,7 @@
     let annualCalculationVersion = 0;
     let annualChartPoints = [];
     let standardModeBeforeThreeStar = "evening";
-    const THREE_STAR_MODEL_VERSION = "physical-v2-known-exclusions-twilight-0.95-stable-60s";
+    const THREE_STAR_MODEL_VERSION = "physical-v3-dynamic-safe-bounds-twilight-0.95-stable-60s";
     const ANNUAL_CACHE_PREFIX = "threeStarAnnualCacheV3:";
     const ANNUAL_CACHE_MAX_ENTRIES = 6;
     const THREE_STAR_KNOWN_OBJECTS = Object.freeze([
@@ -12566,6 +12566,8 @@
     }
     const APP_SCRIPT_SOURCE = document.currentScript?.textContent || "";
     let activeCalculationWorker = null;
+    let reusableCalculationWorker = null;
+    let reusableCalculationWorkerUrl = "";
     let calculationVersion = 0;
     let workerEnabled = typeof Worker !== "undefined" && APP_SCRIPT_SOURCE.length > 0;
     const COLUMN_LAYOUT_STORAGE_KEY = "starVisibilityTableColumnsV1";
@@ -12730,25 +12732,33 @@
       }, 0);
     }
 
-    function calculateInWorker() {
-      if (!workerEnabled || globalThis.__CALC_WORKER__) return false;
-      if (activeCalculationWorker) activeCalculationWorker.terminate();
-      const version = ++calculationVersion;
-      const button = $("calculate");
-      const values = {};
-      document.querySelectorAll("[id]").forEach(el => {
-        values[el.id] = { value: "value" in el ? el.value : "", checked: "checked" in el ? el.checked : false };
-      });
+    function disposeReusableCalculationWorker() {
+      if (reusableCalculationWorker) reusableCalculationWorker.terminate();
+      if (reusableCalculationWorkerUrl) URL.revokeObjectURL(reusableCalculationWorkerUrl);
+      if (activeCalculationWorker === reusableCalculationWorker) activeCalculationWorker = null;
+      reusableCalculationWorker = null;
+      reusableCalculationWorkerUrl = "";
+    }
+
+    function createReusableCalculationWorker(initialValues) {
       const prefix = `
         globalThis.__CALC_WORKER__ = true;
-        const __values = ${JSON.stringify(values)};
+        const __values = ${JSON.stringify(initialValues)};
         const __els = {};
-        for (const [id, state] of Object.entries(__values)) {
-          const el = { id, value: state.value, checked: state.checked, textContent: "", innerHTML: "", dataset: {}, files: null,
+        function __makeElement(id, state = {}) {
+          const el = { id, value: state.value ?? "", checked: Boolean(state.checked), textContent: "", innerHTML: "", dataset: {}, files: null,
             classList: { add(){}, remove(){}, toggle(){} }, addEventListener(){}, click(){} };
           Object.defineProperty(el, "valueAsDate", { set(){} });
-          __els[id] = el;
+          return el;
         }
+        function __applyValues(values) {
+          for (const [id, state] of Object.entries(values || {})) {
+            const el = __els[id] || (__els[id] = __makeElement(id, state));
+            el.value = state.value ?? "";
+            el.checked = Boolean(state.checked);
+          }
+        }
+        __applyValues(__values);
         globalThis.document = {
           currentScript: { textContent: "" },
           getElementById: id => __els[id] || null,
@@ -12759,24 +12769,51 @@
         globalThis.window = globalThis;
       `;
       const suffix = `
-        mode = ${JSON.stringify(mode)};
-        Promise.resolve(calculate()).then(() => postMessage({
-          rows,
-          threeStarResult: threeStarResultData,
-          catalogCount: __els.catalogCount?.textContent || "0",
-          modelNote: __els.modelNote?.textContent || "",
-          utcOffset: __els.utcOffset?.value || "",
-          metadata: lastRunMetadata,
-          error: __els.error?.textContent || ""
-        })).catch(err => postMessage({ error: err?.message || String(err) }));
+        globalThis.onmessage = event => {
+          const request = event.data || {};
+          __applyValues(request.values);
+          mode = request.mode;
+          rows = [];
+          threeStarResultData = null;
+          lastRunMetadata = {};
+          Promise.resolve(calculate()).then(() => postMessage({
+            version: request.version,
+            rows,
+            threeStarResult: threeStarResultData,
+            catalogCount: __els.catalogCount?.textContent || "0",
+            modelNote: __els.modelNote?.textContent || "",
+            utcOffset: __els.utcOffset?.value || "",
+            metadata: lastRunMetadata,
+            error: __els.error?.textContent || ""
+          })).catch(err => postMessage({ version: request.version, error: err?.message || String(err) }));
+        };
       `;
       let url = "";
-      let worker;
       try {
         url = URL.createObjectURL(new Blob([prefix, APP_SCRIPT_SOURCE, suffix], { type: "text/javascript" }));
-        worker = new Worker(url);
+        const worker = new Worker(url);
+        reusableCalculationWorker = worker;
+        reusableCalculationWorkerUrl = url;
+        return worker;
       } catch (err) {
         if (url) URL.revokeObjectURL(url);
+        reusableCalculationWorker = null;
+        reusableCalculationWorkerUrl = "";
+        return null;
+      }
+    }
+
+    function calculateInWorker() {
+      if (!workerEnabled || globalThis.__CALC_WORKER__) return false;
+      if (activeCalculationWorker) disposeReusableCalculationWorker();
+      const version = ++calculationVersion;
+      const button = $("calculate");
+      const values = {};
+      document.querySelectorAll("[id]").forEach(el => {
+        values[el.id] = { value: "value" in el ? el.value : "", checked: "checked" in el ? el.checked : false };
+      });
+      const worker = reusableCalculationWorker || createReusableCalculationWorker(values);
+      if (!worker) {
         calculateOnMainThread(button);
         return true;
       }
@@ -12784,13 +12821,11 @@
       setCalculationUiState(true);
       const finish = () => {
         if (activeCalculationWorker === worker) activeCalculationWorker = null;
-        worker.terminate();
-        URL.revokeObjectURL(url);
         setCalculationUiState(false);
       };
       worker.onmessage = event => {
-        if (version !== calculationVersion) { finish(); return; }
         const data = event.data || {};
+        if (data.version !== version || version !== calculationVersion) return;
         finish();
         if (data.error) {
           clearResultsAfterError(data.error);
@@ -12815,8 +12850,10 @@
       worker.onerror = () => {
         if (version !== calculationVersion) { finish(); return; }
         finish();
+        disposeReusableCalculationWorker();
         calculateOnMainThread(button);
       };
+      worker.postMessage({ version, values, mode });
       return true;
     }
 
@@ -15919,24 +15956,34 @@
           const eligibleEntries = allCatalogEntries.filter(entry => selectionPreFilter(entry.star));
           const selectionPrefilteredCount = allCatalogEntries.length - eligibleEntries.length;
 
-          // Safe reduction for the broad known-exclusions mode. The magnitude test is
+          // Safe reduction for every Three-Star selection mode. The magnitude test is
           // optimistic: extinction can only dim the object and the colour term is
           // hard-capped at -0.35 mag. The sky bound is the darkest supplied baseline,
           // with no twilight or moon penalty and with the full observer bonus. The
           // altitude test uses every time sampled by the real event scan. Therefore a
           // rejected fixed star cannot pass evalPhysical at an event-scan boundary.
           const exhaustiveThreeStarScan = globalThis.__THREE_STAR_EXHAUSTIVE__ === true;
+          const useSafeCandidateReduction = !exhaustiveThreeStarScan && Number.isFinite(sunsetMs);
           let candidateEntries = eligibleEntries;
           let optimizationPrefilteredCount = 0;
-          if (threeStarMagnitudeBasis === "known-exclusions" && !exhaustiveThreeStarScan && Number.isFinite(sunsetMs)) {
+          let initialSeedLimitMag = null;
+          if (useSafeCandidateReduction) {
             const optimisticBaselineSqm = Math.max(bestBaselineSqm, Number.isFinite(liveTotalSqm) ? liveTotalSqm : -Infinity);
             const optimisticNightLimitMag = limitingMagnitudeFromSkyBrightness({
               skyBrightnessMagArcsec2: optimisticBaselineSqm,
               observerAge, pupilMm, acuity, darkAdaptation
             }) + observerBonusMag;
-            // A small bright seed establishes an exact provisional event time. It is
-            // expanded below if it cannot establish the required count.
-            const seedLimitMag = Math.min(1.5, optimisticNightLimitMag);
+            // A small bright seed establishes a provisional upper bound for the event
+            // time. Keep it close to the selected threshold so faint selections do not
+            // make the seed itself nearly exhaustive. This is never a rejection
+            // boundary: a failed seed expands through the complete eligible set, and a
+            // successful seed is followed by the conservative geometry/brightness proof
+            // below before the event is calculated again.
+            const requestedSeedLimit = threeStarMagnitudeBasis === "known-exclusions"
+              ? 1.5
+              : Math.max(3.5, threeStarMagnitudeThreshold + 0.5);
+            const seedLimitMag = Math.min(requestedSeedLimit, optimisticNightLimitMag);
+            initialSeedLimitMag = seedLimitMag;
             candidateEntries = eligibleEntries.filter(entry => entry.star.isPlanet
               || entry.star.mag - MAX_COLOR_CORRECTION_MAG <= seedLimitMag + 1e-10);
           }
@@ -16048,10 +16095,18 @@
             eventTime = findEventTimeForCurrentCandidates();
 
             // If the bright seed did not establish an event, expand conservatively.
-            // This path is uncommon but guarantees that optimization cannot turn a
-            // real result into "not found".
-            if (threeStarMagnitudeBasis === "known-exclusions" && !exhaustiveThreeStarScan && !Number.isFinite(eventTime)) {
-              for (const expandedLimit of [2.5, 3.5, 5.0, Infinity]) {
+            // The last pass is the complete eligible set, so the optimization cannot
+            // turn a real result into "not found".
+            if (useSafeCandidateReduction && !Number.isFinite(eventTime)) {
+              const expansionLimits = [
+                Number(initialSeedLimitMag) + 1,
+                Number(initialSeedLimitMag) + 2,
+                Number(initialSeedLimitMag) + 3.5,
+                Infinity
+              ].filter((value, index, values) => Number.isFinite(value)
+                ? value > Number(initialSeedLimitMag) + 1e-10 && values.indexOf(value) === index
+                : index === values.length - 1);
+              for (const expandedLimit of expansionLimits) {
                 candidateEntries = Number.isFinite(expandedLimit)
                   ? eligibleEntries.filter(entry => entry.star.isPlanet || entry.star.mag - MAX_COLOR_CORRECTION_MAG <= expandedLimit)
                   : eligibleEntries;
@@ -16060,7 +16115,7 @@
               }
             }
 
-            if (threeStarMagnitudeBasis === "known-exclusions" && !exhaustiveThreeStarScan && Number.isFinite(eventTime)) {
+            if (useSafeCandidateReduction && Number.isFinite(eventTime)) {
               const optimisticBaselineSqm = Math.max(bestBaselineSqm, Number.isFinite(liveTotalSqm) ? liveTotalSqm : -Infinity);
               const optimisticSamples = [];
               const addOptimisticSample = t => {
@@ -16140,7 +16195,7 @@
             eligibleCandidateCount: eligibleEntries.length,
             selectionPrefilteredCount,
             optimizationPrefilteredCount,
-            candidateOptimizationMode: exhaustiveThreeStarScan ? "exhaustive" : (threeStarMagnitudeBasis === "known-exclusions" ? "safe-bounds" : "selection-only"),
+            candidateOptimizationMode: exhaustiveThreeStarScan ? "exhaustive" : "safe-bounds",
             magnitudePrefilteredCount: selectionPrefilteredCount,
             catalogCount: catalogAll.length,
             stabilitySeconds: stabilityMs / 1000,
@@ -16337,7 +16392,7 @@
           lastRunMetadata.threeStarEligibleCandidateCount = eligibleEntries.length;
           lastRunMetadata.threeStarSelectionPrefilteredCount = selectionPrefilteredCount;
           lastRunMetadata.threeStarOptimizationPrefilteredCount = optimizationPrefilteredCount;
-          lastRunMetadata.threeStarCandidateOptimizationMode = exhaustiveThreeStarScan ? "exhaustive" : (threeStarMagnitudeBasis === "known-exclusions" ? "safe-bounds" : "selection-only");
+          lastRunMetadata.threeStarCandidateOptimizationMode = exhaustiveThreeStarScan ? "exhaustive" : "safe-bounds";
           lastRunMetadata.threeStarMagnitudePrefilteredCount = selectionPrefilteredCount;
           rows = [];
           $("catalogCount").textContent = String(catalogAll.length);
@@ -17253,6 +17308,39 @@
       skyGradient.addColorStop(1, "#5a4558");
       ctx.fillStyle = skyGradient;
       ctx.fillRect(0, 0, width, horizonY);
+
+      // Quiet altitude/azimuth guides keep the natural horizon view measurable.
+      ctx.save();
+      ctx.lineWidth = 1;
+      ctx.font = "600 10px system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.direction = "ltr";
+      for (let altitude = 15; altitude < verticalMaxAltitude; altitude += 15) {
+        const altitudeFraction = Math.sin(Math.min(1, altitude / verticalMaxAltitude) * Math.PI / 2);
+        const y = horizonY - altitudeFraction * skyHeight;
+        if (y < top + 13) continue;
+        ctx.strokeStyle = "rgba(159, 196, 224, .16)";
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(204, 225, 241, .58)";
+        ctx.fillText(`${altitude}\u00b0`, 7, y - 3);
+      }
+      for (const azimuth of [0, 45, 90, 135, 180, 225, 270, 315]) {
+        const delta = skyMapAzimuthDelta(azimuth);
+        if (Math.abs(delta) > halfFov + .01) continue;
+        const x = width / 2 + delta / skyMapViewFovDeg * width;
+        ctx.strokeStyle = azimuth % 90 === 0
+          ? "rgba(159, 196, 224, .18)"
+          : "rgba(159, 196, 224, .11)";
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, horizonY);
+        ctx.stroke();
+      }
+      ctx.restore();
 
       ctx.fillStyle = "#08131e";
       ctx.beginPath();
