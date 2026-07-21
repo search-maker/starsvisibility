@@ -295,6 +295,246 @@
     .three-star-object strong { color: #fff7d6; }
     .three-star-object small { display: block; color: var(--muted); }
 
+    .sky-map-view {
+      margin: 14px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(4, 15, 29, 0.72);
+      overflow: hidden;
+    }
+
+    .sky-map-view > summary {
+      min-height: 52px;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      color: #e8f2ff;
+      font-weight: 800;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .sky-map-view > summary::-webkit-details-marker { display: none; }
+    .sky-map-view > summary::after { content: "+"; color: #7dd3fc; font-size: 21px; }
+    .sky-map-view[open] > summary { border-bottom: 1px solid var(--line); }
+    .sky-map-view[open] > summary::after { content: "−"; }
+    .sky-map-summary-copy { min-width: 0; }
+    .sky-map-summary-copy strong { display: block; }
+    .sky-map-summary-copy small { display: block; margin-top: 2px; color: var(--muted); font-weight: 500; }
+
+    .sky-map-body { padding: 16px; }
+    .sky-map-loading {
+      min-height: 120px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+    }
+    .sky-map-loading[hidden], .sky-map-content[hidden] { display: none; }
+
+    .sky-map-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 13px;
+    }
+
+    .sky-map-time-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .sky-map-toolbar-actions,
+    .sky-map-view-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sky-map-time-button,
+    .sky-map-more-button,
+    .sky-map-icon-button {
+      min-height: 34px;
+      padding: 6px 11px;
+      border: 1px solid rgba(184, 205, 229, 0.3);
+      border-radius: 6px;
+      background: #0a1a2c;
+      color: #c9d8e8;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .sky-map-icon-button {
+      width: 36px;
+      padding: 0;
+      font-size: 19px;
+      line-height: 1;
+    }
+
+    .sky-map-time-button.active {
+      border-color: #f5b942;
+      background: rgba(245, 185, 66, 0.14);
+      color: #fff1bd;
+    }
+
+    .sky-map-more-button:hover,
+    .sky-map-time-button:hover,
+    .sky-map-icon-button:hover { border-color: #7dd3fc; }
+
+    .sky-map-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sky-map-canvas-panel {
+      min-width: 0;
+      border: 1px solid rgba(184, 205, 229, 0.22);
+      background: #020914;
+      overflow: hidden;
+    }
+
+    .sky-map-now-strip {
+      min-height: 66px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid rgba(184, 205, 229, 0.18);
+      background: linear-gradient(90deg, rgba(9, 27, 48, 0.98), rgba(10, 23, 40, 0.92));
+    }
+
+    .sky-map-now-copy { min-width: 0; }
+    .sky-map-now-eyebrow {
+      display: block;
+      margin-bottom: 3px;
+      color: #f5b942;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .sky-map-now-primary {
+      display: block;
+      color: #f8fbff;
+      font-size: 18px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .sky-map-orientation {
+      flex: 0 0 auto;
+      display: grid;
+      gap: 2px;
+      text-align: end;
+      color: #d7e8f7;
+    }
+    .sky-map-orientation span { color: var(--muted); font-size: 11px; }
+    .sky-map-orientation b { font-size: 14px; }
+
+    .sky-map-stage {
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+      background: #010611;
+    }
+
+    #threeStarSkyCanvas {
+      width: 100%;
+      height: clamp(440px, 56vw, 680px);
+      min-height: 440px;
+      display: block;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    #threeStarSkyCanvas.dragging {
+      cursor: grabbing;
+    }
+
+    .sky-map-legend {
+      padding: 9px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      border-top: 1px solid rgba(184, 205, 229, 0.18);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .sky-map-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .sky-map-legend-dot { width: 10px; height: 10px; border-radius: 50%; background: #7dd3fc; }
+    .sky-map-legend-dot.primary { width: 13px; height: 13px; background: #ffe18a; box-shadow: 0 0 0 2px #f5b942; }
+    .sky-map-legend-dot.now { background: #7dd3fc; }
+    .sky-map-legend-dot.plus2 { background: #67e8b7; }
+    .sky-map-legend-dot.plus5 { background: #60a5fa; }
+    .sky-map-legend-dot.plus8 { background: #b79cff; }
+    .sky-map-legend-dot.plus10 { background: #94a3b8; }
+    .sky-map-legend-line { width: 16px; height: 0; border-top: 1px solid rgba(147, 197, 253, .58); }
+    .sky-map-legend-planet { color: #ffb45e; font-size: 13px; line-height: 1; }
+
+    .sky-map-side {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .sky-map-meta,
+    .sky-map-narrative,
+    .sky-map-object-detail,
+    .sky-map-timeline-wrap {
+      padding: 12px;
+      border: 1px solid rgba(184, 205, 229, 0.22);
+      background: rgba(8, 23, 41, 0.76);
+    }
+
+    .sky-map-meta { grid-column: span 4; }
+    .sky-map-narrative { grid-column: span 8; }
+    .sky-map-object-detail { grid-column: span 7; }
+    .sky-map-timeline-wrap { grid-column: span 5; }
+    .sky-map-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .sky-map-meta span { display: block; color: var(--muted); font-size: 11px; }
+    .sky-map-meta b { display: block; margin-top: 2px; color: #f7fbff; overflow-wrap: anywhere; }
+    .sky-map-narrative { color: #cbd9e8; line-height: 1.55; }
+    .sky-map-narrative strong { color: #fff1bd; }
+
+    .sky-map-object-detail { min-height: 92px; }
+    .sky-map-object-detail h4 { margin: 0 0 8px; color: #fff1bd; font-size: 17px; }
+    .sky-map-object-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; }
+    .sky-map-object-detail-grid span { color: var(--muted); font-size: 11px; }
+    .sky-map-object-detail-grid b { display: block; color: #e7f1fb; font-size: 13px; }
+
+    .sky-map-timeline-wrap { overflow-x: auto; }
+    .sky-map-timeline { width: 100%; min-width: 360px; border-collapse: collapse; }
+    .sky-map-timeline th, .sky-map-timeline td { padding: 7px 8px; white-space: normal; vertical-align: top; }
+    .sky-map-timeline th { position: static; background: transparent; box-shadow: none; }
+
+    .three-star-object[data-sky-object-key] { cursor: pointer; }
+    .three-star-object[data-sky-object-key]:hover,
+    .three-star-object[data-sky-object-key].sky-selected { border-color: #7dd3fc; background: rgba(14, 165, 233, 0.1); }
+
+    @media (max-width: 820px) {
+      .sky-map-side { grid-template-columns: 1fr; }
+      .sky-map-side > * { grid-column: 1; }
+      #threeStarSkyCanvas { height: 460px; min-height: 360px; }
+    }
+
+    @media (max-width: 520px) {
+      .sky-map-view { margin: 10px; }
+      .sky-map-body { padding: 10px; }
+      .sky-map-toolbar { align-items: stretch; }
+      .sky-map-time-buttons { width: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .sky-map-time-button { padding-inline: 4px; font-size: 12px; }
+      .sky-map-toolbar-actions { width: 100%; justify-content: space-between; }
+      .sky-map-now-strip { align-items: flex-start; flex-direction: column; gap: 8px; }
+      .sky-map-orientation { text-align: start; }
+      #threeStarSkyCanvas { height: min(68vh, 430px); min-height: 340px; }
+      .sky-map-meta { grid-template-columns: 1fr; }
+    }
+
     .annual-view {
       margin: 18px 20px 20px;
       border: 1px solid var(--line);
@@ -2222,8 +2462,10 @@
         </div>
         <div class="field location-picker">
           <label for="locationSearch">חיפוש מקום <button type="button" class="info-btn" data-info-key="locationSearch" aria-label="הסבר">?</button></label>
-          <input id="locationSearch" type="search" value="ירושלים" autocomplete="off" placeholder="עברית, English או כינוי">
-          <div id="locationResults" class="location-results" hidden></div>
+          <div class="location-search-control">
+            <input id="locationSearch" type="search" value="ירושלים" autocomplete="off" placeholder="עברית, English או כינוי" aria-controls="locationResults" aria-expanded="false" aria-autocomplete="list">
+            <div id="locationResults" class="location-results" role="listbox" hidden></div>
+          </div>
           <div id="selectedLocation" class="selected-location">ירושלים, Israel · 754 מטר</div>
         </div>
         <div class="manual-place-inline">
@@ -2622,6 +2864,73 @@
           <div id="threeStarResultGrid" class="three-star-result-grid"></div>
           <div id="threeStarObjectList" class="three-star-object-list"></div>
         </article>
+
+        <details id="threeStarSkyMapView" class="sky-map-view">
+          <summary>
+            <span class="sky-map-summary-copy">
+              <strong id="skyMapSummaryTitle">Sky Map</strong>
+              <small id="skyMapSummarySubtitle">Practical sky positions for this calculated time</small>
+            </span>
+          </summary>
+          <div class="sky-map-body">
+            <div id="skyMapLoading" class="sky-map-loading">Open after a successful Three-Star calculation to load the sky map.</div>
+            <div id="skyMapContent" class="sky-map-content" hidden>
+              <div class="sky-map-toolbar">
+                <div id="skyMapTimeButtons" class="sky-map-time-buttons" role="group" aria-label="Sky-map time offset">
+                  <button class="sky-map-time-button active" type="button" data-sky-offset="0">Now</button>
+                  <button class="sky-map-time-button" type="button" data-sky-offset="2">+2 min</button>
+                  <button class="sky-map-time-button" type="button" data-sky-offset="5">+5 min</button>
+                  <button class="sky-map-time-button" type="button" data-sky-offset="8">+8 min</button>
+                  <button class="sky-map-time-button" type="button" data-sky-offset="10">+10 min</button>
+                </div>
+                <div class="sky-map-toolbar-actions">
+                  <div class="sky-map-view-controls" role="group" aria-label="Sky-map view controls">
+                    <button id="skyMapZoomOut" class="sky-map-icon-button" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+                    <button id="skyMapResetView" class="sky-map-icon-button" type="button" title="Center on the three stars" aria-label="Center on the three stars">⌖</button>
+                    <button id="skyMapZoomIn" class="sky-map-icon-button" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+                  </div>
+                  <button id="skyMapShowMore" class="sky-map-more-button" type="button" aria-pressed="false">Show more stars</button>
+                </div>
+              </div>
+              <div class="sky-map-layout">
+                <div class="sky-map-canvas-panel">
+                  <div class="sky-map-now-strip">
+                    <div class="sky-map-now-copy">
+                      <span id="skyMapNowEyebrow" class="sky-map-now-eyebrow">What to look for now</span>
+                      <strong id="skyMapNowPrimary" class="sky-map-now-primary">--</strong>
+                    </div>
+                    <div id="skyMapOrientation" class="sky-map-orientation" aria-live="polite"></div>
+                  </div>
+                  <div class="sky-map-stage">
+                    <canvas id="threeStarSkyCanvas" width="1200" height="680" aria-label="Sky map for the calculated Three-Star time"></canvas>
+                  </div>
+                  <div class="sky-map-legend">
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-dot primary"></span><span id="skyMapLegendPrimary">Primary objects</span></span>
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-dot now"></span><span id="skyMapLegendVisible">Visible now</span></span>
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-dot plus2"></span><span>+2</span></span>
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-dot plus5"></span><span>+5</span></span>
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-dot plus8"></span><span>+8</span></span>
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-dot plus10"></span><span>+10</span></span>
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-line"></span><span id="skyMapLegendReference">Reference constellation</span></span>
+                    <span class="sky-map-legend-item"><span class="sky-map-legend-planet">◆</span><span id="skyMapLegendPlanet">Planet</span></span>
+                    <span id="skyMapLegendLater" hidden></span>
+                  </div>
+                </div>
+                <aside class="sky-map-side">
+                  <div id="skyMapMeta" class="sky-map-meta"></div>
+                  <div id="skyMapNarrative" class="sky-map-narrative"></div>
+                  <div id="skyMapObjectDetail" class="sky-map-object-detail"></div>
+                  <div class="sky-map-timeline-wrap">
+                    <table class="sky-map-timeline">
+                      <thead><tr><th id="skyMapTimelineTimeHead">Time</th><th id="skyMapTimelineStarsHead">Newly visible stars</th></tr></thead>
+                      <tbody id="skyMapTimelineBody"></tbody>
+                    </table>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </div>
+        </details>
 
         <details id="weeklyView" class="annual-view weekly-view">
           <summary id="weeklySummary">Weekly View</summary>
@@ -12094,6 +12403,18 @@
     let mode = "evening";
     let rows = [];
     let threeStarResultData = null;
+    let threeStarSkyMapData = null;
+    let activeSkyMapWorker = null;
+    let skyMapCalculationVersion = 0;
+    let skyMapOffsetMinutes = 0;
+    let skyMapShowMore = false;
+    let skyMapSelectedObjectKey = "";
+    let skyMapRenderedPoints = [];
+    let skyMapViewCenterAzimuth = 180;
+    let skyMapViewFovDeg = 180;
+    let skyMapViewInitialized = false;
+    let skyMapDragState = null;
+    let skyMapIgnoreNextClick = false;
     let weeklyResults = [];
     let weeklyStartDate = "";
     let activeWeeklyWorker = null;
@@ -12117,6 +12438,22 @@
       { key: "alpha-centauri-ab", inputId: "excludeKnownAlphaCentauri", english: "Alpha Centauri AB", hebrew: "אלפא קנטאורי AB" },
       { key: "arcturus", inputId: "excludeKnownArcturus", english: "Arcturus", hebrew: "ארקטורוס" }
     ]);
+    const SKY_MAP_CONSTELLATION_SEGMENTS = Object.freeze([
+      ["Dubhe", "Merak"], ["Merak", "Phad"], ["Phad", "Megrez"], ["Megrez", "Dubhe"],
+      ["Megrez", "Alioth"], ["Alioth", "Mizar"], ["Mizar", "Alkaid"],
+      ["Vega", "Deneb"], ["Deneb", "Altair"], ["Altair", "Vega"],
+      ["Deneb", "Sadr"], ["Sadr", "Albireo"],
+      ["Betelgeuse", "Bellatrix"], ["Betelgeuse", "Alnitak"], ["Bellatrix", "Mintaka"],
+      ["Mintaka", "Alnilam"], ["Alnilam", "Alnitak"], ["Alnitak", "Saiph"],
+      ["Mintaka", "Rigel"], ["Saiph", "Rigel"],
+      ["Caph", "Schedar"], ["Schedar", "Ruchbah"], ["Ruchbah", "Segin"],
+      ["Regulus", "Algieba"], ["Algieba", "Zosma"], ["Zosma", "Denebola"],
+      ["Dschubba", "Antares"], ["Antares", "Sargas"], ["Sargas", "Shaula"],
+      ["Kaus Borealis", "Kaus Media"], ["Kaus Media", "Kaus Australis"], ["Kaus Media", "Nunki"],
+      ["Vega", "Sheliak"], ["Sheliak", "Sulafat"], ["Sulafat", "Vega"],
+      ["Arcturus", "Izar"], ["Izar", "Nekkar"]
+    ]);
+    const SKY_MAP_REFERENCE_NAMES = Object.freeze([...new Set(SKY_MAP_CONSTELLATION_SEGMENTS.flat())]);
     let lastRunMetadata = {};
     let sortKey = "time";
     let sortDir = 1;
@@ -12469,7 +12806,10 @@
         $("utcOffset").value = data.utcOffset || "";
         updateHeaderSummary(lastRunMetadata);
         updateKVSummaryDisplay(lastRunMetadata);
-        if ($("calculatorFeature")?.value === "three-star") renderThreeStarResult(threeStarResultData);
+        if ($("calculatorFeature")?.value === "three-star") {
+          renderThreeStarResult(threeStarResultData);
+          if ($("threeStarSkyMapView")?.open) loadThreeStarSkyMap();
+        }
         else render();
       };
       worker.onerror = () => {
@@ -12808,6 +13148,88 @@
     });
     $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
     $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
+    $("threeStarSkyMapView").addEventListener("toggle", () => {
+      if ($("threeStarSkyMapView").open) loadThreeStarSkyMap();
+    });
+    $("skyMapTimeButtons").addEventListener("click", event => {
+      const button = event.target.closest("[data-sky-offset]");
+      if (!button || !threeStarSkyMapData?.found) return;
+      skyMapOffsetMinutes = Number(button.dataset.skyOffset) || 0;
+      renderThreeStarSkyMap();
+    });
+    $("skyMapShowMore").addEventListener("click", () => {
+      skyMapShowMore = !skyMapShowMore;
+      renderThreeStarSkyMap();
+    });
+    $("skyMapZoomOut").addEventListener("click", () => zoomSkyMap(1.22));
+    $("skyMapZoomIn").addEventListener("click", () => zoomSkyMap(1 / 1.22));
+    $("skyMapResetView").addEventListener("click", () => {
+      skyMapViewInitialized = false;
+      skyMapAutoCenter();
+      drawThreeStarSkyMap();
+    });
+    $("threeStarSkyCanvas").addEventListener("pointerdown", event => {
+      if (!threeStarSkyMapData?.found) return;
+      const canvas = event.currentTarget;
+      skyMapDragState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startCenter: skyMapViewCenterAzimuth,
+        moved: false
+      };
+      canvas.setPointerCapture?.(event.pointerId);
+      canvas.classList.add("dragging");
+    });
+    $("threeStarSkyCanvas").addEventListener("pointermove", event => {
+      if (!skyMapDragState || event.pointerId !== skyMapDragState.pointerId) return;
+      const width = Math.max(1, event.currentTarget.getBoundingClientRect().width);
+      const deltaX = event.clientX - skyMapDragState.startX;
+      if (Math.abs(deltaX) > 3) skyMapDragState.moved = true;
+      skyMapViewCenterAzimuth = normalizeSkyMapAzimuth(skyMapDragState.startCenter - deltaX / width * skyMapViewFovDeg);
+      skyMapViewInitialized = true;
+      drawThreeStarSkyMap();
+    });
+    const finishSkyMapDrag = event => {
+      if (!skyMapDragState || event.pointerId !== skyMapDragState.pointerId) return;
+      skyMapIgnoreNextClick = skyMapDragState.moved;
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      event.currentTarget.classList.remove("dragging");
+      skyMapDragState = null;
+    };
+    $("threeStarSkyCanvas").addEventListener("pointerup", finishSkyMapDrag);
+    $("threeStarSkyCanvas").addEventListener("pointercancel", finishSkyMapDrag);
+    $("threeStarSkyCanvas").addEventListener("wheel", event => {
+      event.preventDefault();
+      zoomSkyMap(event.deltaY > 0 ? 1.12 : 1 / 1.12);
+    }, { passive: false });
+    $("threeStarSkyCanvas").addEventListener("click", event => {
+      if (skyMapIgnoreNextClick) {
+        skyMapIgnoreNextClick = false;
+        return;
+      }
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const nearest = skyMapRenderedPoints
+        .map(point => ({ point, distance: Math.hypot(point.x - x, point.y - y) }))
+        .filter(item => item.distance <= item.point.radius)
+        .sort((a, b) => a.distance - b.distance)[0];
+      if (nearest) selectSkyMapObject(nearest.point.key);
+    });
+    $("threeStarObjectList").addEventListener("click", event => {
+      const card = event.target.closest("[data-sky-object-key]");
+      if (!card?.dataset.skyObjectKey) return;
+      if (!$("threeStarSkyMapView").open) $("threeStarSkyMapView").open = true;
+      selectSkyMapObject(card.dataset.skyObjectKey);
+    });
+    $("threeStarObjectList").addEventListener("keydown", event => {
+      if (!['Enter', ' '].includes(event.key)) return;
+      const card = event.target.closest("[data-sky-object-key]");
+      if (!card?.dataset.skyObjectKey) return;
+      event.preventDefault();
+      if (!$("threeStarSkyMapView").open) $("threeStarSkyMapView").open = true;
+      selectSkyMapObject(card.dataset.skyObjectKey);
+    });
     const threeStarBatchDisplayOnlyIds = new Set([
       "showHebrewDate", "timeFormat", "filter", "renderLimit", "columnSearch",
       "annualChartMetric", "locationSearch", "customLocationName"
@@ -12831,6 +13253,7 @@
     if (!globalThis.__CALC_WORKER__) {
       let annualChartResizeFrame = 0;
       window.addEventListener("resize", () => {
+        if ($("threeStarSkyMapView")?.open && threeStarSkyMapData?.found) requestAnimationFrame(drawThreeStarSkyMap);
         if (!annualResults.length || $("annualChartWrap")?.hidden) return;
         cancelAnimationFrame(annualChartResizeFrame);
         annualChartResizeFrame = requestAnimationFrame(drawAnnualChart);
@@ -13097,14 +13520,22 @@
 
     function renderLocationResults(query) {
       const box = $("locationResults");
+      const search = $("locationSearch");
       const matches = matchingLocations(query).slice(0, 14);
       box.innerHTML = matches.map(location => {
         const primary = uiLanguage === "en" ? location.EnglishName : location.HebrewName;
         const secondary = uiLanguage === "en" ? location.HebrewName : location.EnglishName;
         const savedLabel = location.isCustom ? (uiLanguage === "en" ? "Saved place · " : "מקום שמור · ") : "";
-        return `<button type="button" class="location-option" data-location-id="${escapeHtml(locationId(location))}"><strong>${escapeHtml(primary)}</strong>${secondary !== primary ? ` · ${escapeHtml(secondary)}` : ""}<small>${savedLabel}${escapeHtml(location.Region)}, ${escapeHtml(location.Country)} · ${location.ElevationMeters}m · ${escapeHtml(location.TimeZone)}</small></button>`;
+        return `<button type="button" class="location-option" role="option" data-location-id="${escapeHtml(locationId(location))}"><strong>${escapeHtml(primary)}</strong>${secondary !== primary ? ` · ${escapeHtml(secondary)}` : ""}<small>${savedLabel}${escapeHtml(location.Region)}, ${escapeHtml(location.Country)} · ${location.ElevationMeters}m · ${escapeHtml(location.TimeZone)}</small></button>`;
       }).join("") || `<div class="location-option">${uiLanguage === "en" ? "No matching place found" : "לא נמצא מקום מתאים"}</div>`;
       box.hidden = false;
+      search?.setAttribute("aria-expanded", "true");
+    }
+
+    function closeLocationResults() {
+      const box = $("locationResults");
+      if (box) box.hidden = true;
+      $("locationSearch")?.setAttribute("aria-expanded", "false");
     }
 
     function updateSelectedLocationText(location = selectedLocation) {
@@ -13124,7 +13555,7 @@
       $("observerElevationM").value = location.ElevationMeters;
       $("timezone").value = location.TimeZone;
       updateSelectedLocationText(location);
-      $("locationResults").hidden = true;
+      closeLocationResults();
       if (options.save !== false) {
         try {
           localStorage.setItem("starVisibilityLocationV2", location.EnglishName);
@@ -13185,10 +13616,52 @@
       applyLocation(initial, { save: false, calculate: false });
       $("locationSearch").addEventListener("input", event => renderLocationResults(event.target.value));
       $("locationSearch").addEventListener("focus", event => renderLocationResults(event.target.value));
+      $("locationSearch").addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          closeLocationResults();
+          return;
+        }
+        if (event.key === "ArrowDown") {
+          const firstResult = $("locationResults").querySelector("[data-location-id]");
+          if (firstResult) {
+            event.preventDefault();
+            firstResult.focus();
+          }
+          return;
+        }
+        if (event.key === "Enter") {
+          const matches = matchingLocations(event.currentTarget.value);
+          const query = normalizedSearch(event.currentTarget.value);
+          const exact = matches.find(location => [location.HebrewName, location.EnglishName, ...(location.Aliases || [])]
+            .some(name => normalizedSearch(name) === query));
+          const location = exact || (matches.length === 1 ? matches[0] : null);
+          if (location) {
+            event.preventDefault();
+            applyLocation(location);
+          }
+        }
+      });
       $("locationResults").addEventListener("click", event => {
         const button = event.target.closest("[data-location-id]");
         if (!button) return;
         applyLocation(findLocationById(button.dataset.locationId));
+      });
+      $("locationResults").addEventListener("keydown", event => {
+        const button = event.target.closest("[data-location-id]");
+        if (!button) return;
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          const buttons = [...$("locationResults").querySelectorAll("[data-location-id]")];
+          const index = buttons.indexOf(button);
+          const next = event.key === "ArrowDown" ? buttons[index + 1] : buttons[index - 1];
+          if (next) {
+            event.preventDefault();
+            next.focus();
+          }
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closeLocationResults();
+          $("locationSearch").focus();
+        }
       });
       $("saveCustomLocation").addEventListener("click", () => {
         try {
@@ -13206,7 +13679,7 @@
       $("customLocationName").addEventListener("input", () => markManualCoordinates(false));
       $("customLocationName").addEventListener("change", () => markManualCoordinates(false));
       document.addEventListener("click", event => {
-        if (!event.target.closest(".location-picker")) $("locationResults").hidden = true;
+        if (!event.target.closest(".location-picker")) closeLocationResults();
       });
     }
 
@@ -14762,6 +15235,11 @@
     }
 
     async function calculate() {
+      if (!globalThis.__CALC_WORKER__ && $("calculatorFeature")?.value === "three-star") {
+        invalidateThreeStarSkyMap(uiLanguage === "en"
+          ? "The sky map will be available after this calculation finishes."
+          : "מפת הרקיע תהיה זמינה לאחר סיום החישוב הנוכחי.");
+      }
       if (calculateInWorker()) return;
       const error = $("error");
       error.classList.remove("show");
@@ -15434,11 +15912,12 @@
             return star.isPlanet || !Number.isFinite(maxEffectiveDimmingMag)
               || star.mag + maxEffectiveDimmingMag >= threeStarMagnitudeThreshold - 1e-10;
           };
-          const eligibleEntries = catalog.map((star, index) => ({
+          const allCatalogEntries = catalog.map((star, index) => ({
             star,
             key: `${star.isPlanet ? "planet" : "star"}:${objectCatalogId(star)}:${index}`
-          })).filter(entry => selectionPreFilter(entry.star));
-          const selectionPrefilteredCount = catalog.length - eligibleEntries.length;
+          }));
+          const eligibleEntries = allCatalogEntries.filter(entry => selectionPreFilter(entry.star));
+          const selectionPrefilteredCount = allCatalogEntries.length - eligibleEntries.length;
 
           // Safe reduction for the broad known-exclusions mode. The magnitude test is
           // optimistic: extinction can only dim the object and the colour term is
@@ -15669,6 +16148,189 @@
             kV,
             kVSource
           };
+          if (globalThis.__SKY_MAP_REQUEST__ === true && threeStarResultData.found) {
+            const mapOffsets = [0, 2, 5, 8, 10];
+            const primaryKeys = new Set(selectedObjects.map(object => object.key));
+            const entryByKey = new Map(allCatalogEntries.map(entry => [entry.key, entry]));
+            const mapScans = mapOffsets.map(offsetMinutes => {
+              const t = eventTime + offsetMinutes * 60000;
+              const sm = computeSunMoon(t);
+              const visibleObjects = [];
+              for (const entry of eligibleEntries) {
+                const object = qualifyingObjectAt(entry, t, sm);
+                if (!object) continue;
+                const cleanObject = { ...object };
+                delete cleanObject.entry;
+                visibleObjects.push(cleanObject);
+              }
+              return { offsetMinutes, time: t, sunAltitude: sm.sun.alt, shared: sm, visibleObjects };
+            });
+
+            const visibleDescriptorByKey = new Map();
+            for (const scan of mapScans) {
+              for (const object of scan.visibleObjects) {
+                if (!visibleDescriptorByKey.has(object.key)) {
+                  visibleDescriptorByKey.set(object.key, {
+                    key: object.key,
+                    name: object.name,
+                    catalogId: object.catalogId,
+                    isPlanet: object.isPlanet,
+                    catalogMagnitude: object.catalogMagnitude,
+                    firstVisibleOffsetMinutes: scan.offsetMinutes,
+                    primary: primaryKeys.has(object.key),
+                    qualifying: true
+                  });
+                }
+              }
+            }
+
+            const rankedDescriptors = [...visibleDescriptorByKey.values()].sort((a, b) =>
+              (Number(b.primary) - Number(a.primary))
+              || (a.firstVisibleOffsetMinutes - b.firstVisibleOffsetMinutes)
+              || (a.catalogMagnitude - b.catalogMagnitude)
+              || a.name.localeCompare(b.name)
+            );
+            const maxMapObjects = 90;
+            const retainedDescriptors = rankedDescriptors.slice(0, maxMapObjects);
+
+            const referenceNameSet = new Set(SKY_MAP_REFERENCE_NAMES.map(normalizedSearch));
+            const referenceEntries = allCatalogEntries
+              .filter(entry => entry.star.isPlanet === true
+                || entry.star.mag <= 2.25
+                || referenceNameSet.has(normalizedSearch(entry.star.name)))
+              .sort((a, b) => (Number(b.star.isPlanet) - Number(a.star.isPlanet))
+                || (Number(referenceNameSet.has(normalizedSearch(b.star.name))) - Number(referenceNameSet.has(normalizedSearch(a.star.name))))
+                || (a.star.mag - b.star.mag)
+                || a.star.name.localeCompare(b.star.name))
+              .slice(0, 110);
+            const combinedDescriptorByKey = new Map(retainedDescriptors.map(descriptor => [descriptor.key, descriptor]));
+            for (const entry of referenceEntries) {
+              if (combinedDescriptorByKey.has(entry.key)) continue;
+              combinedDescriptorByKey.set(entry.key, {
+                key: entry.key,
+                name: entry.star.name,
+                catalogId: objectCatalogId(entry.star),
+                isPlanet: entry.star.isPlanet === true,
+                catalogMagnitude: entry.star.mag,
+                firstVisibleOffsetMinutes: null,
+                primary: false,
+                qualifying: false
+              });
+            }
+            const combinedDescriptors = [...combinedDescriptorByKey.values()];
+
+            function mapPhysicalObjectAt(entry, t, sm = null) {
+              const shared = sm || computeSunMoon(t);
+              const currentObject = objectAtTime(entry.star, t);
+              const position = altAzAtLst(shared.lst, lat, currentObject.ra, currentObject.dec);
+              const physical = evalPhysical(shared, position, currentObject);
+              return {
+                key: entry.key,
+                name: currentObject.name,
+                catalogId: objectCatalogId(currentObject),
+                isPlanet: currentObject.isPlanet === true,
+                catalogMagnitude: currentObject.mag,
+                effectiveMagnitude: physical.magEff,
+                selectionMagnitude: threeStarMagnitudeBasis === "catalog" ? currentObject.mag : physical.magEff,
+                apparentAltitude: physical.starAppAlt,
+                trueAltitude: position.alt,
+                azimuth: position.az,
+                limitMagnitude: physical.limitMag,
+                visibilityMargin: physical.limitMag - physical.magEff,
+                visible: physical.visible === true
+              };
+            }
+
+            function firstPhysicalAppearance(entry, endTime) {
+              const visibleAt = t => mapPhysicalObjectAt(entry, t).visible;
+              if (visibleAt(sunsetMs)) return sunsetMs;
+              let previous = sunsetMs;
+              for (let t = sunsetMs + scanStep; t <= endTime; t += scanStep) {
+                if (visibleAt(t)) {
+                  let lo = previous;
+                  let hi = t;
+                  for (let i = 0; i < 22 && hi - lo > 1000; i++) {
+                    const mid = (lo + hi) / 2;
+                    if (visibleAt(mid)) hi = mid; else lo = mid;
+                  }
+                  return hi;
+                }
+                previous = t;
+              }
+              return visibleAt(endTime) ? endTime : null;
+            }
+
+            const mapEndTime = eventTime + 10 * 60000;
+            const appearanceTimeByKey = new Map();
+            for (const descriptor of combinedDescriptors) {
+              const entry = entryByKey.get(descriptor.key);
+              appearanceTimeByKey.set(descriptor.key, entry ? firstPhysicalAppearance(entry, mapEndTime) : null);
+              const appearanceTime = appearanceTimeByKey.get(descriptor.key);
+              if (!Number.isFinite(appearanceTime)) continue;
+              const exactOffset = Math.max(0, (appearanceTime - eventTime) / 60000);
+              descriptor.firstVisibleOffsetMinutes = mapOffsets.find(offset => offset + 1e-8 >= exactOffset) ?? null;
+            }
+
+            const frames = mapScans.map(scan => {
+              const qualifyingVisibleKeys = new Set(scan.visibleObjects.map(object => object.key));
+              const objects = combinedDescriptors.map(descriptor => {
+                const entry = entryByKey.get(descriptor.key);
+                if (!entry) return null;
+                const mapObject = mapPhysicalObjectAt(entry, scan.time, scan.shared);
+                return {
+                  ...mapObject,
+                  primary: descriptor.primary,
+                  qualifying: descriptor.qualifying,
+                  qualifyingVisible: qualifyingVisibleKeys.has(descriptor.key),
+                  reference: descriptor.isPlanet || descriptor.catalogMagnitude <= 2.25 || referenceNameSet.has(normalizedSearch(descriptor.name)),
+                  constellationReference: referenceNameSet.has(normalizedSearch(descriptor.name)),
+                  firstVisibleOffsetMinutes: descriptor.firstVisibleOffsetMinutes,
+                  appearanceTime: appearanceTimeByKey.get(descriptor.key)
+                };
+              }).filter(Boolean);
+              return {
+                offsetMinutes: scan.offsetMinutes,
+                time: scan.time,
+                sunAltitude: scan.sunAltitude,
+                objects
+              };
+            });
+
+            threeStarSkyMapData = {
+              found: true,
+              baseTime: eventTime,
+              sunsetTime: sunsetMs,
+              timeZone,
+              minutesAfterSunset: threeStarResultData.minutesAfterSunset,
+              sunAltitude: threeStarResultData.sunAltitude,
+              requiredCount: threeStarCount,
+              primaryKeys: [...primaryKeys],
+              primaryNames: selectedObjects.map(object => object.name),
+              offsets: mapOffsets,
+              frames,
+              timeline: mapOffsets.map(offsetMinutes => ({
+                offsetMinutes,
+                names: retainedDescriptors
+                  .filter(object => object.firstVisibleOffsetMinutes === offsetMinutes)
+                  .map(object => object.name)
+              })),
+              objectCount: combinedDescriptors.length,
+              relevantObjectCount: retainedDescriptors.length,
+              referenceObjectCount: referenceEntries.length,
+              totalRelevantObjectCount: rankedDescriptors.length,
+              truncatedCount: Math.max(0, rankedDescriptors.length - retainedDescriptors.length),
+              planetsCountTowardThreeStars: true,
+              generatedWith: "existing-physical-three-star-engine-with-horizon-reference-layer"
+            };
+          } else if (globalThis.__SKY_MAP_REQUEST__ === true) {
+            threeStarSkyMapData = {
+              found: false,
+              reason: threeStarResultData.reason,
+              baseTime: null,
+              timeZone,
+              frames: []
+            };
+          }
           lastRunMetadata.threeStarResultFound = threeStarResultData.found;
           lastRunMetadata.threeStarStabilitySeconds = stabilityMs / 1000;
           lastRunMetadata.threeStarCandidateCount = candidateEntries.length;
@@ -15689,6 +16351,7 @@
             updateHeaderSummary(lastRunMetadata);
             updateKVSummaryDisplay(lastRunMetadata);
             renderThreeStarResult(threeStarResultData);
+            if ($("threeStarSkyMapView")?.open) loadThreeStarSkyMap();
           }
           return;
         }
@@ -16126,7 +16789,7 @@
         const completingText = star.completing
           ? (uiLanguage === "en" ? "Completed the required count" : "השלים את המספר הנדרש")
           : (uiLanguage === "en" ? "Already visible" : "כבר נראה");
-        return `<div class="three-star-object${star.completing ? " completing" : ""}">
+        return `<div class="three-star-object${star.completing ? " completing" : ""}" data-sky-object-key="${escapeHtml(star.key || "")}" role="button" tabindex="0">
           <div><strong>${escapeHtml(star.name)}</strong><small>${escapeHtml(star.catalogId || "--")} · ${escapeHtml(completingText)}</small></div>
           <div><small>${uiLanguage === "en" ? "Catalog mag" : "מגניטודה קטלוגית"}</small>${Number(star.catalogMagnitude).toFixed(2)}</div>
           <div><small>${uiLanguage === "en" ? "Effective mag" : "מגניטודה אפקטיבית"}</small>${Number(star.effectiveMagnitude).toFixed(2)}</div>
@@ -16135,6 +16798,696 @@
           <div><small>${uiLanguage === "en" ? "First visible" : "נראה לראשונה"}</small>${formatLocal(star.firstVisibleTime, result.timeZone)}</div>
         </div>`;
       }).join("");
+    }
+
+    function invalidateThreeStarSkyMap(message = "") {
+      if (globalThis.__CALC_WORKER__) return;
+      skyMapCalculationVersion++;
+      if (activeSkyMapWorker) {
+        activeSkyMapWorker.worker.terminate();
+        URL.revokeObjectURL(activeSkyMapWorker.url);
+      }
+      activeSkyMapWorker = null;
+      threeStarSkyMapData = null;
+      skyMapOffsetMinutes = 0;
+      skyMapShowMore = false;
+      skyMapSelectedObjectKey = "";
+      skyMapRenderedPoints = [];
+      skyMapViewCenterAzimuth = 180;
+      skyMapViewFovDeg = 180;
+      skyMapViewInitialized = false;
+      skyMapDragState = null;
+      skyMapIgnoreNextClick = false;
+      const loading = $("skyMapLoading");
+      const content = $("skyMapContent");
+      if (content) content.hidden = true;
+      if (loading) {
+        loading.hidden = false;
+        loading.textContent = message || (uiLanguage === "en"
+          ? "Open after a successful Three-Star calculation to load the sky map."
+          : "פתחו לאחר חישוב מוצלח של זמן צאת הכוכבים כדי לטעון את מפת הרקיע.");
+      }
+    }
+
+    function createThreeStarSkyMapWorker(values) {
+      if (typeof Worker === "undefined" || !APP_SCRIPT_SOURCE) {
+        throw new Error(uiLanguage === "en"
+          ? "Background sky-map calculations are not supported in this browser."
+          : "הדפדפן אינו תומך בחישוב מפת הרקיע ברקע.");
+      }
+      const prefix = `
+        globalThis.__CALC_WORKER__ = true;
+        globalThis.__SKY_MAP_REQUEST__ = true;
+        const __values = ${JSON.stringify(values)};
+        const __els = {};
+        for (const [id, state] of Object.entries(__values)) {
+          const el = { id, value: state.value, checked: state.checked, textContent: "", innerHTML: "", dataset: {}, files: null,
+            classList: { add(){}, remove(){}, toggle(){} }, addEventListener(){}, click(){} };
+          Object.defineProperty(el, "valueAsDate", { set(){} });
+          __els[id] = el;
+        }
+        globalThis.document = {
+          currentScript: { textContent: "" },
+          getElementById: id => __els[id] || null,
+          querySelectorAll: () => [],
+          createElement: () => ({ click(){} }),
+          addEventListener(){}
+        };
+        globalThis.window = globalThis;
+      `;
+      const suffix = `
+        mode = "evening";
+        Promise.resolve(calculate()).then(() => {
+          if (__els.error?.textContent) throw new Error(__els.error.textContent);
+          postMessage({ type: "done", data: threeStarSkyMapData });
+        }).catch(error => postMessage({ type: "error", error: error?.message || String(error) }));
+      `;
+      const url = URL.createObjectURL(new Blob([prefix, APP_SCRIPT_SOURCE, suffix], { type: "text/javascript" }));
+      try {
+        return { worker: new Worker(url), url };
+      } catch (error) {
+        URL.revokeObjectURL(url);
+        throw error;
+      }
+    }
+
+    function loadThreeStarSkyMap() {
+      if (globalThis.__CALC_WORKER__) return;
+      const loading = $("skyMapLoading");
+      const content = $("skyMapContent");
+      if (!threeStarResultData?.found) {
+        if (content) content.hidden = true;
+        if (loading) {
+          loading.hidden = false;
+          loading.textContent = uiLanguage === "en"
+            ? "Run a successful Three-Star calculation before opening the sky map."
+            : "יש לבצע תחילה חישוב מוצלח של זמן צאת הכוכבים.";
+        }
+        return;
+      }
+      if (threeStarSkyMapData?.found && Math.abs(threeStarSkyMapData.baseTime - threeStarResultData.time) < 2000) {
+        renderThreeStarSkyMap();
+        return;
+      }
+      if (activeSkyMapWorker) return;
+      if (content) content.hidden = true;
+      if (loading) {
+        loading.hidden = false;
+        loading.textContent = uiLanguage === "en"
+          ? "Calculating practical sky positions for five selected times..."
+          : "מחשב את מיקומי הכוכבים בחמש נקודות הזמן שנבחרו...";
+      }
+      const values = collectThreeStarBatchValues();
+      const version = ++skyMapCalculationVersion;
+      let batch;
+      try {
+        batch = createThreeStarSkyMapWorker(values);
+      } catch (error) {
+        if (loading) loading.textContent = error?.message || String(error);
+        return;
+      }
+      activeSkyMapWorker = batch;
+      const finish = () => {
+        if (activeSkyMapWorker === batch) activeSkyMapWorker = null;
+        batch.worker.terminate();
+        URL.revokeObjectURL(batch.url);
+      };
+      batch.worker.onmessage = event => {
+        if (version !== skyMapCalculationVersion) { finish(); return; }
+        const message = event.data || {};
+        finish();
+        if (message.type === "error" || !message.data?.found) {
+          if (loading) {
+            loading.hidden = false;
+            loading.textContent = message.error || (uiLanguage === "en"
+              ? "No valid sky map is available for this result."
+              : "אין מפת רקיע תקפה לתוצאה זו.");
+          }
+          return;
+        }
+        threeStarSkyMapData = message.data;
+        skyMapOffsetMinutes = 0;
+        skyMapViewInitialized = false;
+        if (!skyMapSelectedObjectKey) skyMapSelectedObjectKey = threeStarSkyMapData.primaryKeys?.[0] || "";
+        renderThreeStarSkyMap();
+      };
+      batch.worker.onerror = event => {
+        if (version !== skyMapCalculationVersion) { finish(); return; }
+        finish();
+        if (loading) loading.textContent = event?.message || (uiLanguage === "en"
+          ? "The sky-map calculation failed."
+          : "חישוב מפת הרקיע נכשל.");
+      };
+    }
+
+    function skyMapFrame() {
+      return threeStarSkyMapData?.frames?.find(frame => Number(frame.offsetMinutes) === Number(skyMapOffsetMinutes))
+        || threeStarSkyMapData?.frames?.[0]
+        || null;
+    }
+
+    function skyMapOffsetLabel(offsetMinutes) {
+      if (Number(offsetMinutes) === 0) return uiLanguage === "en" ? "Now" : "עכשיו";
+      return `+${Number(offsetMinutes)} ${uiLanguage === "en" ? "min" : "דק׳"}`;
+    }
+
+    function normalizeSkyMapAzimuth(value) {
+      return ((Number(value) % 360) + 360) % 360;
+    }
+
+    function skyMapAzimuthDelta(value, center = skyMapViewCenterAzimuth) {
+      return ((normalizeSkyMapAzimuth(value) - normalizeSkyMapAzimuth(center) + 540) % 360) - 180;
+    }
+
+    function skyMapOffsetColor(offsetMinutes) {
+      const offset = Number(offsetMinutes);
+      if (offset <= 0) return "#7dd3fc";
+      if (offset <= 2) return "#67e8b7";
+      if (offset <= 5) return "#60a5fa";
+      if (offset <= 8) return "#b79cff";
+      return "#94a3b8";
+    }
+
+    function skyMapDirectionName(azimuth, language = uiLanguage) {
+      const index = Math.round(normalizeSkyMapAzimuth(azimuth) / 45) % 8;
+      const names = language === "en"
+        ? ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+        : ["צ", "צמז׳", "מז׳", "דמז׳", "ד", "דמע׳", "מע׳", "צמע׳"];
+      return names[index];
+    }
+
+    function updateSkyMapFocusStrip(frame) {
+      if (!frame) return;
+      const primary = (frame.objects || []).filter(object => object.primary);
+      const primaryNames = primary.map(object => object.name).filter(Boolean);
+      const averageAltitude = primary.length
+        ? primary.reduce((sum, object) => sum + (Number(object.apparentAltitude) || 0), 0) / primary.length
+        : null;
+      const names = $("skyMapNowPrimary");
+      const orientation = $("skyMapOrientation");
+      if (names) names.textContent = primaryNames.join("  ·  ") || "--";
+      if (orientation) {
+        const direction = skyMapDirectionName(skyMapViewCenterAzimuth);
+        const altitudeText = Number.isFinite(averageAltitude)
+          ? `${Math.max(0, Math.round(averageAltitude))}° ${uiLanguage === "en" ? "above the horizon" : "מעל האופק"}`
+          : "";
+        orientation.innerHTML = `<span>${uiLanguage === "en" ? "Face this direction" : "פנו לכיוון זה"}</span><b>${escapeHtml(direction)}${altitudeText ? ` · <bdi dir="ltr">${escapeHtml(altitudeText)}</bdi>` : ""}</b>`;
+      }
+    }
+
+    function skyMapAutoCenter(frame = skyMapFrame()) {
+      if (!frame) return;
+      const primary = (frame.objects || []).filter(object => object.primary && Number.isFinite(object.azimuth));
+      if (!primary.length) return;
+      const azimuths = primary.map(object => normalizeSkyMapAzimuth(object.azimuth)).sort((a, b) => a - b);
+      let largestGap = -1;
+      let arcStart = azimuths[0];
+      for (let index = 0; index < azimuths.length; index++) {
+        const current = azimuths[index];
+        const next = index === azimuths.length - 1 ? azimuths[0] + 360 : azimuths[index + 1];
+        const gap = next - current;
+        if (gap > largestGap) {
+          largestGap = gap;
+          arcStart = normalizeSkyMapAzimuth(next);
+        }
+      }
+      const containingArc = Math.max(0, 360 - largestGap);
+      skyMapViewCenterAzimuth = normalizeSkyMapAzimuth(arcStart + containingArc / 2);
+      const maxAzimuthDistance = Math.max(...primary.map(object => Math.abs(skyMapAzimuthDelta(object.azimuth))));
+      const maxAltitude = Math.max(...primary.map(object => Number(object.apparentAltitude) || 0));
+      const canvas = $("threeStarSkyCanvas");
+      const rect = canvas?.getBoundingClientRect();
+      const aspect = rect?.height > 10 ? rect.width / (rect.height * .76) : 2;
+      const altitudeFitFov = Math.max(0, maxAltitude + 10) * aspect;
+      skyMapViewFovDeg = Math.max(105, Math.min(350, Math.max(maxAzimuthDistance * 2 + 34, altitudeFitFov)));
+      skyMapViewInitialized = true;
+    }
+
+    function zoomSkyMap(factor) {
+      skyMapViewFovDeg = Math.max(55, Math.min(360, skyMapViewFovDeg * factor));
+      skyMapViewInitialized = true;
+      drawThreeStarSkyMap();
+    }
+
+    function skyMapDisplayObjects(frame) {
+      if (!frame) return [];
+      const objects = (frame.objects || [])
+        .filter(object => Number.isFinite(object.apparentAltitude) && object.apparentAltitude >= -5)
+        .sort((a, b) => (Number(b.primary) - Number(a.primary))
+          || (Number(b.qualifying) - Number(a.qualifying))
+          || ((a.firstVisibleOffsetMinutes ?? 99) - (b.firstVisibleOffsetMinutes ?? 99))
+          || (a.effectiveMagnitude - b.effectiveMagnitude));
+      const primary = objects.filter(object => object.primary);
+      const relevant = objects.filter(object => !object.primary && object.qualifying);
+      const reference = objects.filter(object => !object.primary && object.reference && !object.qualifying);
+      const planets = objects.filter(object => object.isPlanet);
+      const limitRelevant = skyMapShowMore ? 48 : 9;
+      const limitReference = skyMapShowMore ? 55 : 24;
+      return [...new Map([
+        ...primary,
+        ...relevant.slice(0, limitRelevant),
+        ...reference.slice(0, limitReference),
+        ...planets
+      ].map(object => [object.key, object])).values()];
+    }
+
+    function skyMapCompactNames(names, limit = 6) {
+      const cleanNames = [...new Set((names || []).filter(Boolean))];
+      if (skyMapShowMore || cleanNames.length <= limit) return cleanNames.join(", ");
+      const hiddenCount = cleanNames.length - limit;
+      const suffix = uiLanguage === "en" ? `+${hiddenCount} more` : `+${hiddenCount} נוספים`;
+      return `${cleanNames.slice(0, limit).join(", ")} (${suffix})`;
+    }
+
+    function renderSkyMapObjectDetail(object) {
+      const detail = $("skyMapObjectDetail");
+      if (!detail) return;
+      if (!object) {
+        detail.innerHTML = `<h4>${uiLanguage === "en" ? "Select a star" : "בחרו כוכב"}</h4><span>${uiLanguage === "en" ? "Select a point on the map or a primary-star card." : "לחצו על נקודה במפה או על כרטיס של כוכב עיקרי."}</span>`;
+        return;
+      }
+      const visibilityText = object.primary
+        ? (uiLanguage === "en" ? "Primary star for this time" : "כוכב עיקרי לזמן זה")
+        : object.visible
+          ? (uiLanguage === "en" ? "Visible at the selected time" : "צפוי להיראות בזמן שנבחר")
+          : (uiLanguage === "en" ? `Expected by ${skyMapOffsetLabel(object.firstVisibleOffsetMinutes)}` : `צפוי להיראות עד ${skyMapOffsetLabel(object.firstVisibleOffsetMinutes)}`);
+      detail.innerHTML = `<h4>${escapeHtml(object.name)}</h4>
+        <div class="sky-map-object-detail-grid">
+          <div><span>${uiLanguage === "en" ? "Group" : "קבוצה"}</span><b>${escapeHtml(visibilityText)}</b></div>
+          <div><span>${uiLanguage === "en" ? "Catalog ID" : "מזהה קטלוגי"}</span><b>${escapeHtml(object.catalogId || "--")}</b></div>
+          <div><span>${uiLanguage === "en" ? "Effective mag" : "מגניטודה אפקטיבית"}</span><b>${Number(object.effectiveMagnitude).toFixed(2)}</b></div>
+          <div><span>${uiLanguage === "en" ? "Apparent altitude" : "גובה נראה"}</span><b><bdi dir="ltr">${Number(object.apparentAltitude).toFixed(1)}°</bdi></b></div>
+          <div><span>${uiLanguage === "en" ? "Azimuth" : "אזימוט"}</span><b><bdi dir="ltr">${Number(object.azimuth).toFixed(1)}°</bdi></b></div>
+          <div><span>${uiLanguage === "en" ? "Visibility margin" : "מרווח ראות"}</span><b><bdi dir="ltr">${Number(object.visibilityMargin).toFixed(2)} mag</bdi></b></div>
+        </div>`;
+      const groupValue = detail.querySelector(".sky-map-object-detail-grid > div:first-child b");
+      if (groupValue && object.isPlanet) groupValue.textContent = object.primary
+        ? (uiLanguage === "en" ? "Primary object · Planet" : "עצם עיקרי · כוכב לכת")
+        : object.qualifying
+          ? (uiLanguage === "en" ? "Qualifying object · Planet" : "עצם מתאים · כוכב לכת")
+          : (uiLanguage === "en" ? "Planet reference" : "כוכב לכת לייחוס");
+      else if (groupValue && !object.qualifying && !object.primary) groupValue.textContent = uiLanguage === "en"
+        ? "Bright reference star"
+        : "כוכב ייחוס בהיר";
+      const appearanceText = Number.isFinite(object.appearanceTime)
+        ? formatLocal(object.appearanceTime, threeStarSkyMapData?.timeZone)
+        : (uiLanguage === "en" ? "Not predicted within this interval" : "אינו צפוי להיראות בטווח זה");
+      const appearanceItem = document.createElement("div");
+      const appearanceLabel = document.createElement("span");
+      const appearanceValue = document.createElement("b");
+      appearanceLabel.textContent = uiLanguage === "en" ? "Predicted appearance" : "זמן הופעה משוער";
+      appearanceValue.textContent = appearanceText;
+      appearanceValue.dir = "ltr";
+      appearanceItem.append(appearanceLabel, appearanceValue);
+      detail.querySelector(".sky-map-object-detail-grid")?.appendChild(appearanceItem);
+    }
+
+    function selectSkyMapObject(key) {
+      if (!key) return;
+      skyMapSelectedObjectKey = key;
+      document.querySelectorAll(".three-star-object[data-sky-object-key]").forEach(card => {
+        card.classList.toggle("sky-selected", card.dataset.skyObjectKey === key);
+      });
+      const frame = skyMapFrame();
+      renderSkyMapObjectDetail(frame?.objects?.find(object => object.key === key) || null);
+      drawThreeStarSkyMap();
+    }
+
+    function drawThreeStarSkyMapPolarLegacy() {
+      if (globalThis.__CALC_WORKER__) return;
+      const canvas = $("threeStarSkyCanvas");
+      const frame = skyMapFrame();
+      if (!canvas || !frame || canvas.getBoundingClientRect().width < 10) return;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const width = Math.max(320, Math.round(rect.width));
+      const height = Math.max(250, Math.round(rect.height));
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const background = ctx.createRadialGradient(width / 2, height / 2, 20, width / 2, height / 2, Math.max(width, height) * .65);
+      background.addColorStop(0, "#10284a");
+      background.addColorStop(1, "#020812");
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, width, height);
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.max(90, Math.min(width, height) * .405);
+      ctx.save();
+      ctx.strokeStyle = "rgba(166, 202, 235, .48)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = "rgba(166, 202, 235, .17)";
+      ctx.lineWidth = 1;
+      [30, 60].forEach(altitude => {
+        const ringRadius = radius * (90 - altitude) / 90;
+        ctx.beginPath(); ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.moveTo(centerX - radius, centerY); ctx.lineTo(centerX + radius, centerY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(centerX, centerY - radius); ctx.lineTo(centerX, centerY + radius); ctx.stroke();
+      ctx.restore();
+
+      const directions = uiLanguage === "en"
+        ? [["N", 0, -1], ["E", 1, 0], ["S", 0, 1], ["W", -1, 0]]
+        : [["צ", 0, -1], ["מז׳", 1, 0], ["ד", 0, 1], ["מע׳", -1, 0]];
+      ctx.fillStyle = "#bcd9ef";
+      ctx.font = "700 13px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      directions.forEach(([label, dx, dy]) => ctx.fillText(label, centerX + dx * (radius + 18), centerY + dy * (radius + 18)));
+      ctx.fillStyle = "rgba(188, 217, 239, .58)";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.fillText("60°", centerX + 20, centerY - radius / 3);
+      ctx.fillText("30°", centerX + 20, centerY - radius * 2 / 3);
+
+      const objects = skyMapDisplayObjects(frame);
+      skyMapRenderedPoints = [];
+      for (const object of objects) {
+        const altitude = Math.max(0, Math.min(90, object.apparentAltitude));
+        const radialDistance = radius * (90 - altitude) / 90;
+        const azimuthRadians = object.azimuth * Math.PI / 180;
+        const x = centerX + Math.sin(azimuthRadians) * radialDistance;
+        const y = centerY - Math.cos(azimuthRadians) * radialDistance;
+        const selected = object.key === skyMapSelectedObjectKey;
+        const later = !object.visible && object.firstVisibleOffsetMinutes > frame.offsetMinutes;
+        const pointRadius = object.primary ? 6.5 : Math.max(2.5, Math.min(5.2, 5.6 - (Number(object.effectiveMagnitude) + 1) * .55));
+        ctx.save();
+        if (later) ctx.globalAlpha = .52;
+        if (object.primary || selected) {
+          ctx.strokeStyle = selected ? "#7dd3fc" : "#f5b942";
+          ctx.lineWidth = selected ? 3 : 2;
+          ctx.beginPath(); ctx.arc(x, y, pointRadius + 4, 0, Math.PI * 2); ctx.stroke();
+        }
+        if (later) {
+          ctx.strokeStyle = "#8ea4bf";
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(x, y, pointRadius, 0, Math.PI * 2); ctx.stroke();
+        } else {
+          ctx.fillStyle = object.primary ? "#ffe18a" : (object.isPlanet ? "#ffd28a" : "#d9f0ff");
+          ctx.shadowColor = object.primary ? "#f5b942" : "#7dd3fc";
+          ctx.shadowBlur = object.primary ? 11 : 6;
+          ctx.beginPath(); ctx.arc(x, y, pointRadius, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+        ctx.font = `${object.primary ? "700" : "600"} ${object.primary ? 12 : 11}px system-ui, sans-serif`;
+        ctx.textAlign = x > centerX ? "left" : "right";
+        ctx.textBaseline = "middle";
+        const label = later ? `${object.name} · ${skyMapOffsetLabel(object.firstVisibleOffsetMinutes)}` : object.name;
+        const labelX = x + (x > centerX ? pointRadius + 6 : -pointRadius - 6);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(2, 8, 18, .92)";
+        ctx.strokeText(label, labelX, y);
+        ctx.fillStyle = later ? "#8fa6bf" : (object.primary ? "#fff1bd" : "#cce8fb");
+        ctx.fillText(label, labelX, y);
+        ctx.restore();
+        skyMapRenderedPoints.push({ key: object.key, x, y, radius: Math.max(14, pointRadius + 7) });
+      }
+    }
+
+    function drawThreeStarSkyMap() {
+      if (globalThis.__CALC_WORKER__) return;
+      const canvas = $("threeStarSkyCanvas");
+      const frame = skyMapFrame();
+      if (!canvas || !frame || canvas.getBoundingClientRect().width < 10) return;
+      if (!skyMapViewInitialized) skyMapAutoCenter(frame);
+      updateSkyMapFocusStrip(frame);
+
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const width = Math.max(320, Math.round(rect.width));
+      const height = Math.max(250, Math.round(rect.height));
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const top = 0;
+      const horizonY = Math.round(height * .86);
+      const skyHeight = horizonY - top;
+      const verticalMaxAltitude = Math.max(38, Math.min(100, skyMapViewFovDeg * skyHeight / width));
+      const halfFov = skyMapViewFovDeg / 2;
+      const project = object => {
+        if (!object || !Number.isFinite(object.azimuth) || !Number.isFinite(object.apparentAltitude)) return null;
+        const delta = skyMapAzimuthDelta(object.azimuth);
+        if (Math.abs(delta) > halfFov + 4 || object.apparentAltitude < -3 || object.apparentAltitude > verticalMaxAltitude + 6) return null;
+        const altitude = Number(object.apparentAltitude);
+        const altitudeFraction = altitude >= 0
+          ? Math.sin(Math.min(1, altitude / verticalMaxAltitude) * Math.PI / 2)
+          : altitude / verticalMaxAltitude;
+        return {
+          x: width / 2 + delta / skyMapViewFovDeg * width,
+          y: horizonY - altitudeFraction * skyHeight,
+          delta
+        };
+      };
+
+      const skyGradient = ctx.createLinearGradient(0, top, 0, horizonY);
+      skyGradient.addColorStop(0, "#01050f");
+      skyGradient.addColorStop(.5, "#06182e");
+      skyGradient.addColorStop(.82, "#173653");
+      skyGradient.addColorStop(1, "#5a4558");
+      ctx.fillStyle = skyGradient;
+      ctx.fillRect(0, 0, width, horizonY);
+
+      const compass = uiLanguage === "en"
+        ? [[0, "N"], [45, "NE"], [90, "E"], [135, "SE"], [180, "S"], [225, "SW"], [270, "W"], [315, "NW"]]
+        : [[0, "צ"], [45, "צמז׳"], [90, "מז׳"], [135, "דמז׳"], [180, "ד"], [225, "דמע׳"], [270, "מע׳"], [315, "צמע׳"]];
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      for (const [azimuth, label] of compass) {
+        const delta = skyMapAzimuthDelta(azimuth);
+        if (Math.abs(delta) > halfFov + .01) continue;
+        const x = width / 2 + delta / skyMapViewFovDeg * width;
+        const cardinal = azimuth % 90 === 0;
+        ctx.strokeStyle = cardinal ? "rgba(213, 232, 247, .56)" : "rgba(190, 216, 238, .28)";
+        ctx.lineWidth = cardinal ? 1.4 : 1;
+        ctx.beginPath(); ctx.moveTo(x, horizonY - (cardinal ? 15 : 9)); ctx.lineTo(x, horizonY + 3); ctx.stroke();
+        ctx.fillStyle = cardinal ? "#edf7ff" : "rgba(214, 232, 247, .8)";
+        ctx.font = cardinal ? "800 15px system-ui, sans-serif" : "700 11px system-ui, sans-serif";
+        ctx.fillText(label, x, horizonY + 9);
+      }
+
+      ctx.fillStyle = "#08131e";
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      ctx.lineTo(0, horizonY + 3);
+      for (let x = 0; x <= width; x += Math.max(12, width / 36)) {
+        const ridge = 8 + Math.sin(x * .026) * 4 + Math.sin(x * .009) * 7;
+        ctx.lineTo(x, horizonY + ridge);
+      }
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#02070c";
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      ctx.lineTo(0, horizonY + 18);
+      for (let x = 0; x <= width; x += Math.max(18, width / 30)) {
+        const ridge = 22 + Math.sin(x * .018 + 1.4) * 6 + Math.sin(x * .006) * 10;
+        ctx.lineTo(x, horizonY + ridge);
+      }
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(213, 231, 246, .52)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(width, horizonY); ctx.stroke();
+
+      const frameObjects = frame.objects || [];
+      const objectByName = new Map(frameObjects.map(object => [normalizedSearch(object.name), object]));
+      ctx.strokeStyle = "rgba(128, 184, 229, .34)";
+      ctx.lineWidth = 1.1;
+      for (const [fromName, toName] of SKY_MAP_CONSTELLATION_SEGMENTS) {
+        const from = project(objectByName.get(normalizedSearch(fromName)));
+        const to = project(objectByName.get(normalizedSearch(toName)));
+        if (!from || !to || from.y > horizonY || to.y > horizonY) continue;
+        ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke();
+      }
+
+      const objects = skyMapDisplayObjects(frame);
+      const labelBoxes = [];
+      skyMapRenderedPoints = [];
+      const drawLabel = (text, x, y, color, strong = false) => {
+        ctx.font = `${strong ? "800" : "600"} ${strong ? 13 : 10.5}px system-ui, sans-serif`;
+        const textWidth = ctx.measureText(text).width;
+        const alignLeft = x < width * .68;
+        const labelX = alignLeft ? x + 9 : x - 9;
+        const boxLeft = alignLeft ? labelX : labelX - textWidth;
+        const candidates = [0, -16, 16, -32, 32, -48, 48];
+        let labelY = y;
+        let placed = false;
+        for (const offset of candidates) {
+          const candidate = { left: boxLeft - 6, right: boxLeft + textWidth + 6, top: y + offset - 11, bottom: y + offset + 11 };
+          if (candidate.left < 2 || candidate.right > width - 2) continue;
+          if (!labelBoxes.some(box => candidate.left < box.right && candidate.right > box.left && candidate.top < box.bottom && candidate.bottom > box.top)) {
+            labelY = y + offset;
+            labelBoxes.push(candidate);
+            placed = true;
+            break;
+          }
+        }
+        if (!placed && !strong) return false;
+        ctx.textAlign = alignLeft ? "left" : "right";
+        ctx.textBaseline = "middle";
+        if (strong) {
+          const left = alignLeft ? labelX - 6 : labelX - textWidth - 6;
+          ctx.fillStyle = "rgba(2, 10, 22, .86)";
+          ctx.fillRect(left, labelY - 12, textWidth + 12, 24);
+          ctx.strokeStyle = "rgba(245, 185, 66, .68)";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(left, labelY - 12, textWidth + 12, 24);
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(alignLeft ? left : left + textWidth + 12, labelY);
+          ctx.stroke();
+        } else {
+          ctx.lineWidth = 3.5;
+          ctx.strokeStyle = "rgba(1, 6, 14, .95)";
+          ctx.strokeText(text, labelX, labelY);
+        }
+        ctx.fillStyle = color;
+        ctx.fillText(text, labelX, labelY);
+        return true;
+      };
+
+      let relevantLabelCount = 0;
+      let referenceLabelCount = 0;
+      let planetLabelCount = 0;
+      const compactMap = width < 620;
+      const primaryOrder = threeStarSkyMapData?.primaryNames || [];
+      for (const object of objects) {
+        const point = project(object);
+        if (!point || point.y > horizonY + 5) continue;
+        const selected = object.key === skyMapSelectedObjectKey;
+        const categoryOffset = Number.isFinite(object.firstVisibleOffsetMinutes) ? object.firstVisibleOffsetMinutes : null;
+        const categoryColor = categoryOffset == null ? "#b9cee0" : skyMapOffsetColor(categoryOffset);
+        const magnitude = Number.isFinite(object.effectiveMagnitude) ? object.effectiveMagnitude : object.catalogMagnitude;
+        const pointRadius = object.primary ? 6.7 : Math.max(2.1, Math.min(5, 4.8 - (magnitude + 1) * .42));
+        const notYetVisible = Number.isFinite(categoryOffset) && categoryOffset > frame.offsetMinutes;
+        ctx.save();
+        if (!object.primary && !object.visible) ctx.globalAlpha = notYetVisible ? .54 : .38;
+        if (object.reference && !object.qualifying && !object.isPlanet) ctx.globalAlpha = Math.min(ctx.globalAlpha, .68);
+
+        if (object.primary) {
+          ctx.strokeStyle = "rgba(245, 185, 66, .24)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(point.x, point.y, pointRadius + 12, 0, Math.PI * 2); ctx.stroke();
+        }
+        if (selected || object.primary) {
+          ctx.strokeStyle = selected ? "#7dd3fc" : "#f5b942";
+          ctx.lineWidth = selected ? 3 : 2.4;
+          ctx.beginPath(); ctx.arc(point.x, point.y, pointRadius + 5, 0, Math.PI * 2); ctx.stroke();
+        }
+        if (object.isPlanet) {
+          ctx.translate(point.x, point.y);
+          ctx.rotate(Math.PI / 4);
+          ctx.fillStyle = "#ffb45e";
+          ctx.shadowColor = "#ffb45e";
+          ctx.shadowBlur = 9;
+          ctx.fillRect(-pointRadius, -pointRadius, pointRadius * 2, pointRadius * 2);
+          ctx.rotate(-Math.PI / 4);
+          ctx.translate(-point.x, -point.y);
+        } else if (notYetVisible) {
+          ctx.strokeStyle = categoryColor;
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(point.x, point.y, pointRadius, 0, Math.PI * 2); ctx.stroke();
+        } else {
+          ctx.fillStyle = object.primary ? "#ffe18a" : categoryColor;
+          ctx.shadowColor = object.primary ? "#f5b942" : categoryColor;
+          ctx.shadowBlur = object.primary ? 13 : 5;
+          ctx.beginPath(); ctx.arc(point.x, point.y, pointRadius, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+
+        const hasUsefulName = !/^HR\s*\d+$/i.test(object.name || "");
+        const planetLabel = object.isPlanet && (object.visible || (Number.isFinite(categoryOffset) && categoryOffset <= 2))
+          && (skyMapShowMore || planetLabelCount < 2);
+        const relevantLabel = !object.primary && object.qualifying
+          && (categoryOffset == null || categoryOffset <= (skyMapShowMore ? 8 : 2))
+          && (skyMapShowMore || relevantLabelCount < (compactMap ? 2 : 3));
+        const referenceLabel = object.constellationReference && hasUsefulName
+          && Number(object.catalogMagnitude) <= (skyMapShowMore ? 1.2 : .4)
+          && (skyMapShowMore || referenceLabelCount < (compactMap ? 3 : 5));
+        const shouldLabel = object.primary || selected || planetLabel || relevantLabel || referenceLabel;
+        if (shouldLabel) {
+          const suffix = !object.primary && Number.isFinite(categoryOffset) && categoryOffset > 0
+            ? ` · ${skyMapOffsetLabel(categoryOffset)}` : "";
+          const primaryIndex = object.primary ? primaryOrder.indexOf(object.name) : -1;
+          const prefix = primaryIndex >= 0 ? `${primaryIndex + 1}. ` : "";
+          const drawn = drawLabel(`${prefix}${object.name}${suffix}`, point.x + pointRadius, point.y, object.primary ? "#fff1bd" : categoryColor, object.primary || selected);
+          if (drawn && planetLabel) planetLabelCount++;
+          if (drawn && relevantLabel) relevantLabelCount++;
+          if (drawn && referenceLabel) referenceLabelCount++;
+        }
+        skyMapRenderedPoints.push({ key: object.key, x: point.x, y: point.y, radius: Math.max(14, pointRadius + 8) });
+      }
+
+      ctx.strokeStyle = "rgba(245, 185, 66, .9)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - 7, horizonY - 4);
+      ctx.lineTo(width / 2, horizonY + 2);
+      ctx.lineTo(width / 2 + 7, horizonY - 4);
+      ctx.stroke();
+      canvas.dataset.viewCenterAzimuth = skyMapViewCenterAzimuth.toFixed(2);
+      canvas.dataset.fieldOfViewDeg = skyMapViewFovDeg.toFixed(2);
+      canvas.dataset.renderedObjectCount = String(skyMapRenderedPoints.length);
+    }
+
+    function renderThreeStarSkyMap() {
+      if (globalThis.__CALC_WORKER__) return;
+      const data = threeStarSkyMapData;
+      const loading = $("skyMapLoading");
+      const content = $("skyMapContent");
+      const frame = skyMapFrame();
+      if (!data?.found || !frame) {
+        if (content) content.hidden = true;
+        if (loading) {
+          loading.hidden = false;
+          loading.textContent = uiLanguage === "en" ? "No valid sky map is available." : "אין מפת רקיע תקפה.";
+        }
+        return;
+      }
+      loading.hidden = true;
+      content.hidden = false;
+      document.querySelectorAll("[data-sky-offset]").forEach(button => {
+        button.classList.toggle("active", Number(button.dataset.skyOffset) === Number(frame.offsetMinutes));
+        button.textContent = skyMapOffsetLabel(Number(button.dataset.skyOffset));
+      });
+      $("skyMapShowMore").textContent = skyMapShowMore
+        ? (uiLanguage === "en" ? "Show fewer stars" : "הצג פחות כוכבים")
+        : (uiLanguage === "en" ? "Show more stars" : "הצג עוד כוכבים");
+      $("skyMapShowMore").setAttribute("aria-pressed", String(skyMapShowMore));
+      $("skyMapMeta").innerHTML = [
+        [uiLanguage === "en" ? "Local time" : "שעה מקומית", formatLocal(frame.time, data.timeZone)],
+        [uiLanguage === "en" ? "After sunset" : "לאחר השקיעה", `${(Number(data.minutesAfterSunset) + Number(frame.offsetMinutes)).toFixed(1)} ${uiLanguage === "en" ? "min" : "דקות"}`],
+        [uiLanguage === "en" ? "Sun altitude" : "גובה השמש", `<bdi dir="ltr">${Number(frame.sunAltitude).toFixed(2)}°</bdi>`]
+      ].map(([label, value]) => `<div><span>${escapeHtml(label)}</span><b>${value}</b></div>`).join("");
+
+      const primaryNames = data.primaryNames || [];
+      const visibleNowNames = (data.timeline?.find(item => Number(item.offsetMinutes) === 0)?.names || [])
+        .filter(name => !primaryNames.includes(name));
+      const laterNames = [...new Set((data.timeline || []).filter(item => item.offsetMinutes > 0).flatMap(item => item.names || []))];
+      $("skyMapNarrative").innerHTML = `<strong>${uiLanguage === "en" ? "Primary objects for this time" : "העצמים העיקריים לזמן זה"}:</strong> ${escapeHtml(primaryNames.join(", ") || "--")}<br>
+        ${visibleNowNames.length ? `${uiLanguage === "en" ? "Also visible around this time" : "נראים גם בערך בזמן זה"}: ${escapeHtml(skyMapCompactNames(visibleNowNames, 5))}<br>` : ""}
+        ${laterNames.length ? `${uiLanguage === "en" ? "Stars expected a few minutes later" : "כוכבים שיופיעו בעוד כמה דקות"}: ${escapeHtml(skyMapCompactNames(laterNames, 8))}<br>` : ""}
+        <small>${uiLanguage === "en" ? "If these later stars are already visible, additional time may have passed since the initial stage." : "אם כבר נראים גם הכוכבים המאוחרים יותר, ייתכן שכבר עבר זמן נוסף מן השלב הראשוני."}</small>`;
+
+      $("skyMapTimelineBody").innerHTML = (data.timeline || []).map(item => `<tr>
+        <td>${escapeHtml(skyMapOffsetLabel(item.offsetMinutes))}</td>
+        <td>${escapeHtml(skyMapCompactNames(item.names || [], 6) || (uiLanguage === "en" ? "No newly visible stars in this sample" : "אין כוכבים חדשים בדגימה זו"))}</td>
+      </tr>`).join("");
+      const selectedObject = frame.objects?.find(object => object.key === skyMapSelectedObjectKey)
+        || frame.objects?.find(object => object.primary)
+        || null;
+      if (selectedObject && !skyMapSelectedObjectKey) skyMapSelectedObjectKey = selectedObject.key;
+      renderSkyMapObjectDetail(selectedObject);
+      requestAnimationFrame(drawThreeStarSkyMap);
     }
 
     function parseIsoDateUtc(dateText) {
@@ -16297,6 +17650,7 @@
     }
 
     function clearThreeStarBatchResults() {
+      invalidateThreeStarSkyMap();
       clearWeeklyBatchResults();
       clearAnnualBatchResults();
     }
@@ -18195,6 +19549,37 @@
         $(object.inputId + "Label").textContent = uiLanguage === "en" ? object.english : object.hebrew;
       });
       updateThreeStarSelectionControls();
+      $("skyMapSummaryTitle").textContent = uiLanguage === "en" ? "Sky Map" : "מפת הרקיע";
+      $("skyMapSummarySubtitle").textContent = uiLanguage === "en"
+        ? "Practical sky positions for this calculated time"
+        : "מיקומי הכוכבים המעשיים לזמן צאת הכוכבים המחושב";
+      $("skyMapNowEyebrow").textContent = uiLanguage === "en" ? "What to look for now" : "מה לחפש עכשיו";
+      $("skyMapLegendPrimary").textContent = uiLanguage === "en" ? "Primary objects" : "העצמים העיקריים";
+      $("skyMapLegendVisible").textContent = uiLanguage === "en" ? "Visible at this time" : "נראים בזמן זה";
+      $("skyMapLegendLater").textContent = uiLanguage === "en" ? "Expected a few minutes later" : "צפויים להיראות בעוד כמה דקות";
+      $("skyMapTimelineTimeHead").textContent = uiLanguage === "en" ? "Time" : "זמן";
+      $("skyMapTimelineStarsHead").textContent = uiLanguage === "en" ? "Newly visible stars" : "כוכבים חדשים הצפויים להיראות";
+      $("skyMapTimeButtons").setAttribute("aria-label", uiLanguage === "en" ? "Sky-map time offset" : "הפרש הזמן במפת הרקיע");
+      $("threeStarSkyCanvas").setAttribute("aria-label", uiLanguage === "en"
+        ? "Sky map for the calculated Three-Star time"
+        : "מפת הרקיע לזמן צאת הכוכבים המחושב");
+      $("skyMapLegendReference").textContent = uiLanguage === "en" ? "Reference constellation" : "\u05E7\u05D5\u05D5\u05D9 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05DC\u05D9\u05D9\u05D7\u05D5\u05E1";
+      $("skyMapLegendPlanet").textContent = uiLanguage === "en" ? "Planet" : "\u05DB\u05D5\u05DB\u05D1 \u05DC\u05DB\u05EA";
+      const skyViewControls = document.querySelector(".sky-map-view-controls");
+      skyViewControls?.setAttribute("aria-label", uiLanguage === "en" ? "Sky-map view controls" : "\u05DB\u05E4\u05EA\u05D5\u05E8\u05D9 \u05EA\u05E6\u05D5\u05D2\u05EA \u05DE\u05E4\u05EA \u05D4\u05E8\u05E7\u05D9\u05E2");
+      const skyViewButtonText = uiLanguage === "en"
+        ? { out: "Zoom out", reset: "Center on the selected objects", in: "Zoom in" }
+        : { out: "\u05D4\u05E8\u05D7\u05E7", reset: "\u05DE\u05E8\u05DB\u05D6 \u05E2\u05DC \u05D4\u05E2\u05E6\u05DE\u05D9\u05DD \u05E9\u05E0\u05D1\u05D7\u05E8\u05D5", in: "\u05E7\u05E8\u05D1" };
+      [["skyMapZoomOut", skyViewButtonText.out], ["skyMapResetView", skyViewButtonText.reset], ["skyMapZoomIn", skyViewButtonText.in]].forEach(([id, text]) => {
+        $(id).title = text;
+        $(id).setAttribute("aria-label", text);
+      });
+      if (threeStarSkyMapData?.found) renderThreeStarSkyMap();
+      else if (!activeSkyMapWorker) {
+        $("skyMapLoading").textContent = uiLanguage === "en"
+          ? "Open after a successful Three-Star calculation to load the sky map."
+          : "פתחו לאחר חישוב מוצלח של זמן צאת הכוכבים כדי לטעון את מפת הרקיע.";
+      }
       $("weeklySummary").textContent = uiLanguage === "en" ? "Weekly View" : "חישוב שבועי";
       $("weeklyFocusEyebrow").textContent = uiLanguage === "en" ? "Three-Star Time" : "זמן צאת הכוכבים";
       $("weeklyFocusTitle").textContent = uiLanguage === "en" ? "Weekly View" : "תצוגה שבועית";
