@@ -438,42 +438,6 @@
       background: rgba(3, 12, 24, 0.3);
     }
     .weekly-day-card.is-today { border-color: rgba(105, 210, 255, 0.6); }
-    .weekly-sky {
-      position: relative;
-      height: 118px;
-      margin: -12px -12px 12px;
-      overflow: hidden;
-      border-bottom: 1px solid rgba(125, 211, 252, 0.2);
-      background:
-        radial-gradient(circle at 22% 24%, rgba(255,255,255,.95) 0 1.5px, transparent 2.4px),
-        radial-gradient(circle at 71% 18%, rgba(255,255,255,.75) 0 1px, transparent 1.8px),
-        radial-gradient(circle at 42% 46%, rgba(186,230,253,.72) 0 1px, transparent 2px),
-        radial-gradient(circle at 84% 52%, rgba(255,255,255,.58) 0 1px, transparent 1.8px),
-        radial-gradient(circle at 13% 63%, rgba(255,255,255,.48) 0 1px, transparent 1.7px),
-        linear-gradient(180deg, #06142b 0%, #0c2850 62%, #3a4763 100%);
-    }
-    .weekly-sky::before {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 42%;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #f7fbff;
-      box-shadow: 0 0 9px 2px rgba(125, 211, 252, .72);
-      transform: translate(-50%, -50%);
-    }
-    .weekly-sky::after {
-      content: "";
-      position: absolute;
-      inset: auto 0 0;
-      height: 34px;
-      background:
-        linear-gradient(155deg, transparent 0 28%, rgba(2, 8, 23, .82) 28.5% 58%, transparent 58.5%),
-        linear-gradient(25deg, transparent 0 44%, rgba(2, 8, 23, .9) 44.5% 78%, transparent 78.5%),
-        linear-gradient(180deg, transparent, rgba(2, 8, 23, .92));
-    }
     .weekly-main-time { color: #fff3c7; font-size: 22px; font-weight: 800; }
     .weekly-day-card.is-missing .weekly-main-time { color: var(--muted); font-size: 15px; }
     .weekly-day-meta { margin-top: 5px; color: #9fcfff; font-size: 11px; line-height: 1.45; }
@@ -16022,7 +15986,6 @@
           ? `${uiLanguage === "en" ? "Completing objects" : "העצמים שהשלימו את המניין"}: ${escapeHtml(result.completingStars.join(", "))}`
           : "";
         return `<article class="weekly-day-card${result?.date === today ? " is-today" : ""}${found ? "" : " is-missing"}">
-          <div class="weekly-sky" aria-hidden="true"></div>
           <div class="weekly-main-time" dir="ltr">${escapeHtml(time)}</div>
           <div class="weekly-day-meta">${details}</div>
           ${stars ? `<div class="weekly-day-stars">${stars}</div>` : ""}
