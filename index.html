@@ -993,19 +993,126 @@
       max-height: none;
       direction: ltr;
       scroll-behavior: smooth;
+      scrollbar-gutter: stable both-edges;
+      scrollbar-width: auto;
+      scrollbar-color: #93a4b8 #182536;
     }
 
-    .table-scroll-top {
-      height: 16px;
-      overflow-x: auto;
-      overflow-y: hidden;
+    .table-wrap::-webkit-scrollbar {
+      width: 14px;
+      height: 14px;
+    }
+
+    .table-wrap::-webkit-scrollbar-track {
+      background: #182536;
+      border: 1px solid rgba(184, 205, 229, 0.3);
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      min-width: 42px;
+      border: 3px solid #182536;
+      border-radius: 8px;
+      background: #93a4b8;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb:hover { background: #c2cfdd; }
+
+    .table-scroll-control {
+      min-height: 32px;
+      padding: 4px 7px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
       direction: ltr;
-      border-bottom: 1px solid var(--line);
-      background: var(--panel);
+      flex: 0 0 auto;
+      border-block: 1px solid rgba(184, 205, 229, 0.34);
+      background: #111e2d;
+      z-index: 6;
     }
 
-    .table-scroll-top[hidden] { display: none; }
-    .table-scroll-top-inner { height: 1px; }
+    .table-scroll-control[hidden] { display: none; }
+
+    .table-scroll-control.top { position: sticky; top: 0; }
+    .table-scroll-control.bottom { position: sticky; bottom: 0; }
+
+    .table-scroll-control.bottom.floating {
+      position: fixed;
+      bottom: 0;
+      margin: 0;
+      box-shadow: 0 -5px 18px rgba(0, 0, 0, 0.42);
+      z-index: 40;
+    }
+
+    .table-scroll-button {
+      width: 28px;
+      height: 24px;
+      min-width: 28px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(184, 205, 229, 0.42);
+      border-radius: 5px;
+      background: #203249;
+      color: #f1f5f9;
+      font: 700 18px/1 sans-serif;
+      cursor: pointer;
+    }
+
+    .table-scroll-button:hover,
+    .table-scroll-button:focus-visible {
+      background: #2f4866;
+      border-color: #7dd3fc;
+      outline: none;
+    }
+
+    .table-scroll-range {
+      width: 100%;
+      min-width: 0;
+      height: 22px;
+      margin: 0;
+      padding: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: ew-resize;
+    }
+
+    .table-scroll-range::-webkit-slider-runnable-track {
+      height: 9px;
+      border: 1px solid rgba(184, 205, 229, 0.45);
+      border-radius: 5px;
+      background: #26384d;
+    }
+
+    .table-scroll-range::-webkit-slider-thumb {
+      width: 52px;
+      height: 17px;
+      margin-top: -5px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 2px solid #0b1726;
+      border-radius: 6px;
+      background: #aebdcb;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.24);
+    }
+
+    .table-scroll-range::-moz-range-track {
+      height: 9px;
+      border: 1px solid rgba(184, 205, 229, 0.45);
+      border-radius: 5px;
+      background: #26384d;
+    }
+
+    .table-scroll-range::-moz-range-thumb {
+      width: 52px;
+      height: 17px;
+      border: 2px solid #0b1726;
+      border-radius: 6px;
+      background: #aebdcb;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.24);
+    }
+
+    .table-scroll-range:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
 
     table {
       width: 100%;
@@ -2302,8 +2409,10 @@
           <p id="advancedHint" class="advanced-hint" hidden>העמודות המתקדמות פתוחות. הטבלה הועברה לתחילתן; אפשר לגלול אופקית להמשך הנתונים.</p>
         </div>
 
-        <div id="tableScrollTop" class="table-scroll-top" hidden aria-label="גלילה אופקית של הטבלה">
-          <div id="tableScrollTopInner" class="table-scroll-top-inner"></div>
+        <div id="tableScrollTop" class="table-scroll-control top" hidden>
+          <button class="table-scroll-button" type="button" data-table-scroll-step="-1" aria-label="Scroll table left">&#8249;</button>
+          <input id="tableScrollTopRange" class="table-scroll-range" type="range" min="0" max="0" value="0" step="1" aria-label="Horizontal table position">
+          <button class="table-scroll-button" type="button" data-table-scroll-step="1" aria-label="Scroll table right">&#8250;</button>
         </div>
         <div id="tableWrap" class="table-wrap">
           <table id="resultsTable">
@@ -2423,6 +2532,11 @@
             </thead>
             <tbody id="tbody"></tbody>
           </table>
+        </div>
+        <div id="tableScrollBottom" class="table-scroll-control bottom" hidden>
+          <button class="table-scroll-button" type="button" data-table-scroll-step="-1" aria-label="Scroll table left">&#8249;</button>
+          <input id="tableScrollBottomRange" class="table-scroll-range" type="range" min="0" max="0" value="0" step="1" aria-label="Horizontal table position">
+          <button class="table-scroll-button" type="button" data-table-scroll-step="1" aria-label="Scroll table right">&#8250;</button>
         </div>
         <div class="legend">
           <div class="legend-title">מקרא ערכים בטבלה</div>
@@ -12016,36 +12130,82 @@
     }
 
     let syncingTableScrollRail = false;
+    let tableScrollPositionFrame = 0;
+
+    function updateFloatingTableScrollRail() {
+      if (globalThis.__CALC_WORKER__) return;
+      const wrap = $("tableWrap");
+      const bottomRail = $("tableScrollBottom");
+      if (!wrap || !bottomRail) return;
+      const wrapRect = wrap.getBoundingClientRect();
+      const railHeight = bottomRail.offsetHeight || 32;
+      const intersectsViewport = wrapRect.top < window.innerHeight && wrapRect.bottom > 0;
+      const shouldFloat = !bottomRail.hidden && intersectsViewport && wrapRect.bottom + railHeight > window.innerHeight;
+      if (shouldFloat && bottomRail.parentElement !== document.body) document.body.append(bottomRail);
+      if (!shouldFloat && bottomRail.parentElement === document.body) wrap.insertAdjacentElement("afterend", bottomRail);
+      bottomRail.classList.toggle("floating", shouldFloat);
+      if (shouldFloat) {
+        const left = Math.max(0, wrapRect.left);
+        bottomRail.style.left = `${left}px`;
+        bottomRail.style.width = `${Math.max(0, Math.min(wrapRect.right, window.innerWidth) - left)}px`;
+      } else {
+        bottomRail.style.left = "";
+        bottomRail.style.width = "";
+      }
+    }
+
+    function scheduleTableScrollRailPosition() {
+      if (tableScrollPositionFrame) return;
+      tableScrollPositionFrame = requestAnimationFrame(() => {
+        tableScrollPositionFrame = 0;
+        updateFloatingTableScrollRail();
+      });
+    }
+
     function syncTableScrollRail() {
       if (globalThis.__CALC_WORKER__) return;
       const wrap = $("tableWrap");
-      const rail = $("tableScrollTop");
-      const railInner = $("tableScrollTopInner");
-      if (!wrap || !rail || !railInner) return;
+      const rails = [$("tableScrollTop"), $("tableScrollBottom")].filter(Boolean);
+      const ranges = [$("tableScrollTopRange"), $("tableScrollBottomRange")].filter(Boolean);
+      if (!wrap || !rails.length || !ranges.length) return;
       const needsHorizontalScroll = wrap.scrollWidth > wrap.clientWidth + 1;
-      rail.hidden = !needsHorizontalScroll;
-      railInner.style.width = `${wrap.scrollWidth}px`;
-      if (!syncingTableScrollRail) rail.scrollLeft = wrap.scrollLeft;
+      const maxScroll = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+      rails.forEach(rail => { rail.hidden = !needsHorizontalScroll; });
+      ranges.forEach(range => {
+        range.max = String(maxScroll);
+        if (!syncingTableScrollRail) range.value = String(Math.min(maxScroll, wrap.scrollLeft));
+      });
+      scheduleTableScrollRailPosition();
     }
 
     function initializeTableScrollRail() {
       if (globalThis.__CALC_WORKER__) return;
       const wrap = $("tableWrap");
-      const rail = $("tableScrollTop");
-      if (!wrap || !rail) return;
+      const ranges = [$("tableScrollTopRange"), $("tableScrollBottomRange")].filter(Boolean);
+      if (!wrap || !ranges.length) return;
       wrap.addEventListener("scroll", () => {
         if (syncingTableScrollRail) return;
         syncingTableScrollRail = true;
-        rail.scrollLeft = wrap.scrollLeft;
+        ranges.forEach(range => { range.value = String(wrap.scrollLeft); });
         syncingTableScrollRail = false;
       });
-      rail.addEventListener("scroll", () => {
-        if (syncingTableScrollRail) return;
-        syncingTableScrollRail = true;
-        wrap.scrollLeft = rail.scrollLeft;
-        syncingTableScrollRail = false;
+      ranges.forEach(range => {
+        range.addEventListener("input", () => {
+          if (syncingTableScrollRail) return;
+          syncingTableScrollRail = true;
+          wrap.scrollLeft = Number(range.value);
+          ranges.forEach(other => { if (other !== range) other.value = range.value; });
+          syncingTableScrollRail = false;
+        });
+      });
+      document.querySelectorAll("[data-table-scroll-step]").forEach(button => {
+        button.addEventListener("click", () => {
+          const direction = Number(button.dataset.tableScrollStep) || 0;
+          wrap.scrollBy({ left: direction * Math.max(120, wrap.clientWidth * 0.35), behavior: "smooth" });
+        });
       });
       window.addEventListener("resize", () => requestAnimationFrame(syncTableScrollRail));
+      window.addEventListener("scroll", scheduleTableScrollRailPosition, { passive: true });
       requestAnimationFrame(syncTableScrollRail);
     }
     let currentTemperatureC = 10;
