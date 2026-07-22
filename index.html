@@ -764,7 +764,7 @@
       margin: 0;
       border-color: rgba(125, 211, 252, .3);
     }
-    body.weekly-focus-mode #weeklyView > summary { display: none; }
+    body.weekly-focus-mode #weeklyView[open] > summary { display: none; }
     body.weekly-focus-mode #weeklyView[open] > .annual-body { padding: 18px; }
     body.weekly-focus-mode #annualView { margin-top: 14px; }
     @media (max-width: 520px) {
@@ -13223,6 +13223,7 @@
       updateThreeStarWideOutputMode();
       if (open && !weeklyResults.length && !activeWeeklyWorker) calculateWeeklyResults();
     });
+    $("annualView").addEventListener("toggle", updateThreeStarWideOutputMode);
     $("closeWeeklyFocus").addEventListener("click", () => { $("weeklyView").open = false; });
     $("calculateAnnual").addEventListener("click", calculateAnnualResults);
     $("cancelAnnual").addEventListener("click", cancelAnnualCalculation);
@@ -13438,6 +13439,7 @@
       if (!isThreeStar) {
         if ($("threeStarSkyMapView")?.open) $("threeStarSkyMapView").open = false;
         if ($("weeklyView")?.open) $("weeklyView").open = false;
+        if ($("annualView")?.open) $("annualView").open = false;
         updateThreeStarWideOutputMode();
       }
       updateThreeStarSelectionControls();
@@ -17752,18 +17754,17 @@
       if (globalThis.__CALC_WORKER__) return;
       const skyOpen = Boolean($("threeStarSkyMapView")?.open);
       const weeklyOpen = Boolean($("weeklyView")?.open);
-      setWeeklyFocusMode(skyOpen || weeklyOpen);
+      const annualOpen = Boolean($("annualView")?.open);
+      const expandedOpen = skyOpen || weeklyOpen || annualOpen;
+      setWeeklyFocusMode(expandedOpen);
       document.body.classList.toggle("sky-map-wide-mode", skyOpen);
-      document.body.classList.toggle("three-star-wide-output", skyOpen || weeklyOpen);
+      document.body.classList.toggle("three-star-wide-output", expandedOpen);
       if (skyOpen) moveThreeStarViewToFullWidth($("threeStarSkyMapView"));
       else restoreThreeStarViewHome($("threeStarSkyMapView"));
-      if (weeklyOpen) {
-        moveThreeStarViewToFullWidth($("weeklyView"));
-        moveThreeStarViewToFullWidth($("annualView"));
-      } else {
-        restoreThreeStarViewHome($("weeklyView"));
-        restoreThreeStarViewHome($("annualView"));
-      }
+      if (weeklyOpen) moveThreeStarViewToFullWidth($("weeklyView"));
+      else restoreThreeStarViewHome($("weeklyView"));
+      if (weeklyOpen || annualOpen) moveThreeStarViewToFullWidth($("annualView"));
+      else restoreThreeStarViewHome($("annualView"));
       orderThreeStarFullWidthViews();
       const host = threeStarWideViewState.host;
       if (host) host.hidden = host.children.length === 0;
