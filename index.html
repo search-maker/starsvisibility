@@ -789,12 +789,20 @@
       }
       .annual-print-report h1 { margin: 0 0 5mm; font-size: 20pt; }
       .annual-print-meta { display: flex; flex-wrap: wrap; gap: 3mm 8mm; margin-bottom: 5mm; color: #333; }
-      .annual-print-chart { display: block; width: 100%; max-height: 92mm; object-fit: contain; margin: 0 0 6mm; }
+      .annual-print-settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2mm 5mm; margin: 0 0 5mm; padding: 3mm; border: .25mm solid #a9b7c5; border-radius: 1.5mm; background: #f7f9fb; }
+      .annual-print-settings h2 { grid-column: 1 / -1; margin: 0; font-size: 10pt; }
+      .annual-print-settings div { min-width: 0; overflow-wrap: anywhere; }
+      .annual-print-chart { display: block; width: 100%; max-height: 92mm; object-fit: contain; margin: 6mm 0 0; break-before: avoid; page-break-before: avoid; }
       .annual-print-report table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8.5pt; }
       .annual-print-report th, .annual-print-report td { border: .25mm solid #888; padding: 1.5mm; text-align: start; overflow-wrap: anywhere; }
       .annual-print-report th { background: #eaf0f6 !important; font-weight: 700; }
       .annual-print-report thead { display: table-header-group; }
       .annual-print-report tr { break-inside: avoid; page-break-inside: avoid; }
+      html[dir="rtl"] .annual-print-report table { direction: rtl; }
+      html[dir="rtl"] .annual-print-report .annual-print-gregorian-date { direction: ltr; text-align: left !important; }
+      html[dir="rtl"] .annual-print-report .annual-print-number,
+      html[dir="rtl"] .annual-print-report .annual-print-time { direction: ltr; unicode-bidi: isolate; }
+      @media print and (max-width: 210mm) { .annual-print-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     }
 
     .community-info {
@@ -18411,6 +18419,43 @@
         ];
         return `<tr>${cells.map(value => `<td>${escapeHtml(String(value))}</td>`).join("")}</tr>`;
       }).join("");
+      const printUsesHebrewColumns = uiLanguage === "he";
+      const printHeaders = printUsesHebrewColumns
+        ? ["\u05ea\u05d0\u05e8\u05d9\u05da \u05e2\u05d1\u05e8\u05d9", "\u05e9\u05e7\u05d9\u05e2\u05d4", "\u05d6\u05de\u05df \u05e6\u05d0\u05ea \u05d4\u05db\u05d5\u05db\u05d1\u05d9\u05dd", "\u05d3\u05e7\u05d5\u05ea \u05dc\u05d0\u05d7\u05e8 \u05d4\u05e9\u05e7\u05d9\u05e2\u05d4", "\u05d2\u05d5\u05d1\u05d4 \u05d4\u05e9\u05de\u05e9", "\u05db\u05d5\u05db\u05d1\u05d9\u05dd \u05d4\u05de\u05e9\u05dc\u05d9\u05de\u05d9\u05dd", "\u05ea\u05d0\u05e8\u05d9\u05da \u05dc\u05d5\u05e2\u05d6\u05d9"]
+        : headers;
+      const printRowMarkup = printUsesHebrewColumns
+        ? annualResults.map(result => {
+            const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
+            const hebrewDate = formatHebrewCalendarDate(result?.date || "", "he");
+            const sunset = result?.sunsetTime ? formatLocal(result.sunsetTime, result.timeZone) : "--";
+            const starTime = result?.found ? formatLocal(result.time, result.timeZone) : "--";
+            const minutes = Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--";
+            const sunAltitude = Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}\u00b0` : "--";
+            return `<tr><td>${escapeHtml(hebrewDate || "--")}</td><td class="annual-print-time">${escapeHtml(sunset)}</td><td class="annual-print-time">${escapeHtml(starTime)}</td><td class="annual-print-number">${escapeHtml(minutes)}</td><td class="annual-print-number">${escapeHtml(sunAltitude)}</td><td><bdi dir="ltr">${escapeHtml(stars)}</bdi></td><td class="annual-print-gregorian-date">${escapeHtml(result?.date || "--")}</td></tr>`;
+          }).join("")
+        : rowMarkup;
+      const optionLabel = id => {
+        const element = $(id);
+        if (!element) return "--";
+        if (element instanceof HTMLSelectElement) return element.selectedOptions[0]?.textContent?.trim() || element.value || "--";
+        return String(element.value || "--").trim() || "--";
+      };
+      const printLabel = (english, hebrew) => uiLanguage === "en" ? english : hebrew;
+      const magnitudeSelection = $("threeStarMagnitudeBasis")?.value === "known-exclusions"
+        ? printLabel("Known-object exclusions", "\u05db\u05dc \u05d4\u05e2\u05e6\u05de\u05d9\u05dd \u05dc\u05de\u05e2\u05d8 \u05d4\u05de\u05d5\u05db\u05e8\u05d9\u05dd")
+        : `${optionLabel("threeStarMagnitudeBasis")}: ${optionLabel("threeStarMagnitudeThreshold")}`;
+      const printSettings = [
+        [printLabel("Location", "\u05de\u05e7\u05d5\u05dd"), `${locationText} (${optionLabel("lat")}, ${optionLabel("lon")})`],
+        [printLabel("Time zone", "\u05d0\u05d6\u05d5\u05e8 \u05d6\u05de\u05df"), timeZoneText],
+        [printLabel("Required objects", "\u05e2\u05e6\u05de\u05d9\u05dd \u05e0\u05d3\u05e8\u05e9\u05d9\u05dd"), `${optionLabel("threeStarCount")} \u00d7 ${magnitudeSelection}`],
+        [printLabel("Sky / horizon", "\u05e9\u05de\u05d9\u05dd / \u05d0\u05d5\u05e4\u05e7"), optionLabel("horizon")],
+        [printLabel("Moon", "\u05d9\u05e8\u05d7"), optionLabel("moonOn")],
+        [printLabel("Extinction kV", "\u05d0\u05e7\u05e1\u05d8\u05d9\u05e0\u05e7\u05e6\u05d9\u05d4 kV"), optionLabel("kv")],
+        [printLabel("Weather / elevation", "\u05de\u05d6\u05d2 \u05d0\u05d5\u05d5\u05d9\u05e8 / \u05d2\u05d5\u05d1\u05d4"), `${optionLabel("temperatureC")}\u00b0C, ${optionLabel("pressureHPa")} hPa, ${optionLabel("observerElevationM")} m`],
+        [printLabel("Observer", "\u05e0\u05ea\u05d5\u05e0\u05d9 \u05e6\u05d5\u05e4\u05d4"), `${optionLabel("observerMode")}; ${printLabel("age", "\u05d2\u05d9\u05dc")} ${optionLabel("observerAge")}; ${printLabel("pupil", "\u05d0\u05d9\u05e9\u05d5\u05df")} ${optionLabel("pupilMm")} mm`],
+        [printLabel("Vision / adaptation", "\u05d7\u05d3\u05d5\u05ea / \u05d4\u05e1\u05ea\u05d2\u05dc\u05d5\u05ea"), `${optionLabel("acuity")}; ${optionLabel("darkAdaptation")}`]
+      ];
+      const printSettingsMarkup = `<section class="annual-print-settings"><h2>${escapeHtml(printLabel("Selected calculation settings", "\u05e0\u05ea\u05d5\u05e0\u05d9 \u05d4\u05dc\u05d5\u05d7 \u05d4\u05e0\u05d1\u05d7\u05e8"))}</h2>${printSettings.map(([label, value]) => `<div><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</div>`).join("")}</section>`;
       document.querySelector(".annual-print-report")?.remove();
       const report = document.createElement("section");
       report.className = "annual-print-report";
@@ -18425,11 +18470,12 @@
           <span><strong>${uiLanguage === "en" ? "Location" : "מקום"}:</strong> ${escapeHtml(locationText)}</span>
           <span><strong>${uiLanguage === "en" ? "Time zone" : "אזור זמן"}:</strong> ${escapeHtml(timeZoneText)}</span>
         </div>
-        ${chartDataUrl ? `<img class="annual-print-chart" src="${chartDataUrl}" alt="">` : ""}
+        ${printSettingsMarkup}
         <table>
-          <thead><tr>${headers.map(value => `<th>${escapeHtml(value)}</th>`).join("")}</tr></thead>
-          <tbody>${rowMarkup}</tbody>
-        </table>`;
+          <thead><tr>${printHeaders.map(value => `<th>${escapeHtml(value)}</th>`).join("")}</tr></thead>
+          <tbody>${printRowMarkup}</tbody>
+        </table>
+        ${chartDataUrl ? `<img class="annual-print-chart" src="${chartDataUrl}" alt="">` : ""}`;
       document.body.appendChild(report);
       const button = $("exportAnnualPdf");
       button.dataset.lastPdfRowCount = String(annualResults.length);
@@ -19777,6 +19823,7 @@
       $("cancelAnnual").textContent = uiLanguage === "en" ? "Cancel" : "בטל";
       $("exportAnnualCsv").textContent = uiLanguage === "en" ? "Download annual CSV" : "הורד CSV שנתי";
       $("exportAnnualPdf").textContent = uiLanguage === "en" ? "Export annual PDF" : "ייצוא לוח שנתי";
+      $("exportAnnualPdf").textContent = uiLanguage === "en" ? "Print annual calendar" : "\u05d4\u05d3\u05e4\u05e1 \u05dc\u05d5\u05d7 \u05e9\u05e0\u05ea\u05d9";
       $("exportAnnualPdf").title = uiLanguage === "en"
         ? "Opens the print dialog; choose Save as PDF."
         : "פותח את חלון ההדפסה; יש לבחור שמירה כ-PDF.";
