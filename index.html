@@ -13220,7 +13220,6 @@
     $("nextWeek").addEventListener("click", () => moveWeeklyView(7));
     $("weeklyView").addEventListener("toggle", () => {
       const open = $("weeklyView").open;
-      setWeeklyFocusMode(open);
       updateThreeStarWideOutputMode();
       if (open && !weeklyResults.length && !activeWeeklyWorker) calculateWeeklyResults();
     });
@@ -17753,6 +17752,7 @@
       if (globalThis.__CALC_WORKER__) return;
       const skyOpen = Boolean($("threeStarSkyMapView")?.open);
       const weeklyOpen = Boolean($("weeklyView")?.open);
+      setWeeklyFocusMode(skyOpen || weeklyOpen);
       document.body.classList.toggle("sky-map-wide-mode", skyOpen);
       document.body.classList.toggle("three-star-wide-output", skyOpen || weeklyOpen);
       if (skyOpen) moveThreeStarViewToFullWidth($("threeStarSkyMapView"));
