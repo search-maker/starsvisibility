@@ -13220,10 +13220,12 @@
     $("nextWeek").addEventListener("click", () => moveWeeklyView(7));
     $("weeklyView").addEventListener("toggle", () => {
       const open = $("weeklyView").open;
-      updateThreeStarWideOutputMode();
+      updateThreeStarWideOutputMode(open ? "weeklyView" : null);
       if (open && !weeklyResults.length && !activeWeeklyWorker) calculateWeeklyResults();
     });
-    $("annualView").addEventListener("toggle", updateThreeStarWideOutputMode);
+    $("annualView").addEventListener("toggle", () => {
+      updateThreeStarWideOutputMode($("annualView").open ? "annualView" : null);
+    });
     $("closeWeeklyFocus").addEventListener("click", () => { $("weeklyView").open = false; });
     $("calculateAnnual").addEventListener("click", calculateAnnualResults);
     $("cancelAnnual").addEventListener("click", cancelAnnualCalculation);
@@ -13237,7 +13239,7 @@
     $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
     $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
     $("threeStarSkyMapView").addEventListener("toggle", () => {
-      updateThreeStarWideOutputMode();
+      updateThreeStarWideOutputMode($("threeStarSkyMapView").open ? "threeStarSkyMapView" : null);
       if ($("threeStarSkyMapView").open) loadThreeStarSkyMap();
     });
     $("skyMapTimeButtons").addEventListener("click", event => {
@@ -17750,7 +17752,7 @@
       });
     }
 
-    function updateThreeStarWideOutputMode() {
+    function updateThreeStarWideOutputMode(revealViewId = null) {
       if (globalThis.__CALC_WORKER__) return;
       const skyOpen = Boolean($("threeStarSkyMapView")?.open);
       const weeklyOpen = Boolean($("weeklyView")?.open);
@@ -17768,6 +17770,10 @@
       orderThreeStarFullWidthViews();
       const host = threeStarWideViewState.host;
       if (host) host.hidden = host.children.length === 0;
+      const revealView = revealViewId ? $(revealViewId) : null;
+      if (revealView?.open && revealView.parentNode === host) {
+        requestAnimationFrame(() => revealView.scrollIntoView({ block: "start", behavior: "smooth" }));
+      }
     }
 
     function initializeWeeklyFocusLayout() {
