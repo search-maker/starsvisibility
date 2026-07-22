@@ -594,6 +594,12 @@
     .annual-table-wrap { margin-top: 14px; max-height: 420px; overflow: auto; }
     .annual-table { min-width: 780px; }
     .annual-table th { position: sticky; top: 0; z-index: 2; }
+    html[dir="rtl"] .annual-table.has-split-hebrew-dates { direction: rtl; }
+    html[dir="rtl"] .annual-table.has-split-hebrew-dates th,
+    html[dir="rtl"] .annual-table.has-split-hebrew-dates td { text-align: right; }
+    .annual-table .annual-gregorian-date { direction: ltr; text-align: left !important; }
+    .annual-table .annual-time-value,
+    .annual-table .annual-number-value { direction: ltr; unicode-bidi: isolate; }
     .weekly-toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -3016,7 +3022,7 @@
             </div>
             <div id="annualTableWrap" class="annual-table-wrap" hidden>
               <table class="annual-table">
-                <thead><tr><th id="annualDateHead">Date</th><th id="annualSunsetHead">Sunset</th><th id="annualTimeHead">Star-count time</th><th id="annualMinutesHead">Minutes after sunset</th><th id="annualSunAltHead">Sun altitude</th><th id="annualStarsHead">Stars completing the count</th></tr></thead>
+                <thead><tr><th id="annualHebrewDateHead" hidden>Hebrew date</th><th id="annualDateHead">Date</th><th id="annualSunsetHead">Sunset</th><th id="annualTimeHead">Star-count time</th><th id="annualMinutesHead">Minutes after sunset</th><th id="annualSunAltHead">Sun altitude</th><th id="annualStarsHead">Stars completing the count</th><th id="annualGregorianDateHead" class="annual-gregorian-date" hidden>Gregorian date</th></tr></thead>
                 <tbody id="annualTableBody"></tbody>
               </table>
             </div>
@@ -13340,6 +13346,7 @@
       updateHebrewDateDisplay();
       updateWeeklyRangeLabel();
       if (weeklyResults.length) renderWeeklyResults(weeklyResults);
+      if (annualResults.length) renderAnnualResults(annualResults);
     });
     $("advancedToggleButton").addEventListener("click", () => {
       const open = !advancedColumnIds().some(id => columnLayout?.visible.includes(id));
@@ -18162,13 +18169,27 @@
       const chartWrap = $("annualChartWrap");
       tableWrap.hidden = false;
       chartWrap.hidden = false;
+      const splitHebrewDates = uiLanguage === "he" && (annualResultPeriod?.calendar === "hebrew" || $("showHebrewDate")?.checked);
+      $("annualDateHead").hidden = splitHebrewDates;
+      $("annualHebrewDateHead").hidden = !splitHebrewDates;
+      $("annualGregorianDateHead").hidden = !splitHebrewDates;
       $("annualDateHead").textContent = annualResultPeriod?.calendar === "hebrew"
         ? (uiLanguage === "en" ? "Hebrew / Gregorian date" : "תאריך עברי / לועזי")
         : (uiLanguage === "en" ? "Date" : "תאריך");
+      $("annualHebrewDateHead").textContent = "תאריך עברי";
+      $("annualGregorianDateHead").textContent = "תאריך לועזי";
+      $("annualTableWrap").querySelector(".annual-table")?.classList.toggle("has-split-hebrew-dates", splitHebrewDates);
       updateAnnualExportAvailability();
       $("annualTableBody").innerHTML = results.map(result => {
         const stars = result?.found ? (result.completingStars || []).join(", ") : "--";
-        return `<tr><td>${escapeHtml(annualResultDateText(result?.date))}</td><td>${result?.sunsetTime ? escapeHtml(formatLocal(result.sunsetTime, result.timeZone)) : "--"}</td><td>${result?.found ? escapeHtml(formatLocal(result.time, result.timeZone)) : "--"}</td><td>${Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--"}</td><td>${Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--"}</td><td>${escapeHtml(stars)}</td></tr>`;
+        const hebrewDate = formatHebrewCalendarDate(result?.date, "he");
+        const sunset = result?.sunsetTime ? escapeHtml(formatLocal(result.sunsetTime, result.timeZone)) : "--";
+        const starTime = result?.found ? escapeHtml(formatLocal(result.time, result.timeZone)) : "--";
+        const minutes = Number.isFinite(result?.minutesAfterSunset) ? Number(result.minutesAfterSunset).toFixed(1) : "--";
+        const sunAltitude = Number.isFinite(result?.sunAltitude) ? `${Number(result.sunAltitude).toFixed(2)}°` : "--";
+        return splitHebrewDates
+          ? `<tr><td>${escapeHtml(hebrewDate || "--")}</td><td class="annual-time-value">${sunset}</td><td class="annual-time-value">${starTime}</td><td class="annual-number-value">${minutes}</td><td class="annual-number-value">${sunAltitude}</td><td><bdi dir="ltr">${escapeHtml(stars)}</bdi></td><td class="annual-gregorian-date">${escapeHtml(result?.date || "--")}</td></tr>`
+          : `<tr><td>${escapeHtml(annualResultDateText(result?.date))}</td><td class="annual-time-value">${sunset}</td><td class="annual-time-value">${starTime}</td><td class="annual-number-value">${minutes}</td><td class="annual-number-value">${sunAltitude}</td><td><bdi dir="ltr">${escapeHtml(stars)}</bdi></td></tr>`;
       }).join("");
       drawAnnualChart();
     }
@@ -18204,7 +18225,14 @@
       const span = Math.max(1, max - min);
       min -= span * 0.08;
       max += span * 0.08;
-      const xFor = index => pad.left + index / Math.max(1, annualResults.length - 1) * (width - pad.left - pad.right);
+      // Hebrew interface: read the annual time axis from right to left, while
+      // preserving the same chronological data and numerical values.
+      const rtlChart = uiLanguage === "he";
+      const plotWidth = width - pad.left - pad.right;
+      const xFromFraction = fraction => rtlChart
+        ? width - pad.right - fraction * plotWidth
+        : pad.left + fraction * plotWidth;
+      const xFor = index => xFromFraction(index / Math.max(1, annualResults.length - 1));
       const yFor = value => pad.top + (max - value) / (max - min) * (plotBottom - pad.top);
       const period = annualResultPeriod || {
         calendar: "gregorian",
@@ -18215,7 +18243,7 @@
       };
       const periodStartMs = Date.parse(`${period.startIso}T00:00:00Z`);
       const periodEndMs = Date.parse(`${period.endExclusiveIso}T00:00:00Z`);
-      const xForDateMs = ms => pad.left + (ms - periodStartMs) / Math.max(1, periodEndMs - periodStartMs) * (width - pad.left - pad.right);
+      const xForDateMs = ms => xFromFraction((ms - periodStartMs) / Math.max(1, periodEndMs - periodStartMs));
       ctx.strokeStyle = "rgba(159,177,198,.28)";
       ctx.fillStyle = "#9fb1c6";
       ctx.font = "11px system-ui";
@@ -18234,7 +18262,8 @@
         const x = xForDateMs(marker.ms);
         ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, plotBottom); ctx.stroke();
       }
-      ctx.beginPath(); ctx.moveTo(width - pad.right, pad.top); ctx.lineTo(width - pad.right, plotBottom); ctx.stroke();
+      const chartEndX = rtlChart ? pad.left : width - pad.right;
+      ctx.beginPath(); ctx.moveTo(chartEndX, pad.top); ctx.lineTo(chartEndX, plotBottom); ctx.stroke();
       ctx.restore();
 
       const now = new Date();
@@ -19747,7 +19776,7 @@
       $("calculateAnnual").textContent = uiLanguage === "en" ? "Calculate year" : "חשב שנה";
       $("cancelAnnual").textContent = uiLanguage === "en" ? "Cancel" : "בטל";
       $("exportAnnualCsv").textContent = uiLanguage === "en" ? "Download annual CSV" : "הורד CSV שנתי";
-      $("exportAnnualPdf").textContent = uiLanguage === "en" ? "Export annual PDF" : "ייצוא PDF שנתי";
+      $("exportAnnualPdf").textContent = uiLanguage === "en" ? "Export annual PDF" : "ייצוא לוח שנתי";
       $("exportAnnualPdf").title = uiLanguage === "en"
         ? "Opens the print dialog; choose Save as PDF."
         : "פותח את חלון ההדפסה; יש לבחור שמירה כ-PDF.";
@@ -19758,6 +19787,8 @@
         ? ["Date", "Sunset", "Star-count time", "Minutes after sunset", "Sun altitude", "Stars completing the count"]
         : ["תאריך", "שקיעה", "זמן צאת הכוכבים", "דקות לאחר השקיעה", "גובה השמש", "כוכבים שהשלימו את המניין"];
       ["annualDateHead", "annualSunsetHead", "annualTimeHead", "annualMinutesHead", "annualSunAltHead", "annualStarsHead"].forEach((id, index) => { $(id).textContent = annualHeads[index]; });
+      $("annualHebrewDateHead").textContent = uiLanguage === "en" ? "Hebrew date" : "תאריך עברי";
+      $("annualGregorianDateHead").textContent = uiLanguage === "en" ? "Gregorian date" : "תאריך לועזי";
       $("exportCsv").textContent = uiLanguage === "en" ? "Download CSV" : "הורד CSV";
       $("communityFeedbackTitle").textContent = uiLanguage === "en" ? "comments or feedback ?" : "שאלות והערות";
       $("communityFeedbackText").textContent = uiLanguage === "en"
