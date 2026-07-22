@@ -305,6 +305,17 @@
 
     .three-star-object strong { color: #fff7d6; }
     .three-star-object small { display: block; color: var(--muted); }
+    .three-star-object-first-visible { min-width: 0; }
+    .three-star-object-sunset-offset {
+      display: block;
+      margin-top: 2px;
+      color: #93c5fd;
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: normal;
+    }
+    .three-star-object-sunset-offset bdi { color: #f6bd55; font-weight: 900; }
 
     .sky-map-view {
       margin: 14px;
@@ -766,7 +777,7 @@
     }
     body.weekly-focus-mode #weeklyView[open] > summary { display: none; }
     body.weekly-focus-mode #weeklyView[open] > .annual-body { padding: 18px; }
-    body.weekly-focus-mode #annualView { margin-top: 14px; }
+    body.weekly-focus-mode #annualView { margin: 14px 0 0; }
     @media (max-width: 520px) {
       .weekly-toolbar .action { flex: 1 1 120px; }
       .weekly-range { order: -1; flex-basis: 100%; }
@@ -16408,6 +16419,10 @@
                 offsetMinutes: scan.offsetMinutes,
                 time: scan.time,
                 sunAltitude: scan.sunAltitude,
+                sunAzimuth: scan.shared?.sun?.az ?? null,
+                moonAltitude: scan.shared?.moon?.alt ?? null,
+                moonAzimuth: scan.shared?.moon?.az ?? null,
+                moonIllumination: scan.shared?.moon?.illum ?? 0,
                 objects
               };
             });
@@ -16905,13 +16920,19 @@
         const completingText = star.completing
           ? (uiLanguage === "en" ? "Completed the required count" : "השלים את המספר הנדרש")
           : (uiLanguage === "en" ? "Already visible" : "כבר נראה");
+        const minutesAfterSunset = Number.isFinite(star.firstVisibleTime) && Number.isFinite(result.sunsetTime)
+          ? (star.firstVisibleTime - result.sunsetTime) / 60000
+          : null;
+        const sunsetOffsetHtml = Number.isFinite(minutesAfterSunset)
+          ? `<span class="three-star-object-sunset-offset"><bdi dir="ltr">${minutesAfterSunset >= 0 ? "+" : "−"}${Math.abs(minutesAfterSunset).toFixed(1)}</bdi> ${uiLanguage === "en" ? (minutesAfterSunset >= 0 ? "min after sunset" : "min before sunset") : (minutesAfterSunset >= 0 ? "דק׳ מהשקיעה" : "דק׳ לפני השקיעה")}</span>`
+          : "";
         return `<div class="three-star-object${star.completing ? " completing" : ""}" data-sky-object-key="${escapeHtml(star.key || "")}" role="button" tabindex="0">
           <div><strong>${escapeHtml(star.name)}</strong><small>${escapeHtml(star.catalogId || "--")} · ${escapeHtml(completingText)}</small></div>
           <div><small>${uiLanguage === "en" ? "Catalog mag" : "מגניטודה קטלוגית"}</small>${Number(star.catalogMagnitude).toFixed(2)}</div>
           <div><small>${uiLanguage === "en" ? "Effective mag" : "מגניטודה אפקטיבית"}</small>${Number(star.effectiveMagnitude).toFixed(2)}</div>
           <div><small>${uiLanguage === "en" ? "Apparent altitude" : "גובה נראה"}</small>${Number(star.apparentAltitude).toFixed(2)}°</div>
           <div><small>${uiLanguage === "en" ? "Azimuth" : "אזימוט"}</small>${Number(star.azimuth).toFixed(1)}°</div>
-          <div><small>${uiLanguage === "en" ? "First visible" : "נראה לראשונה"}</small>${formatLocal(star.firstVisibleTime, result.timeZone)}</div>
+          <div class="three-star-object-first-visible"><small>${uiLanguage === "en" ? "First visible" : "נראה לראשונה"}</small>${formatLocal(star.firstVisibleTime, result.timeZone)}${sunsetOffsetHtml}</div>
         </div>`;
       }).join("");
     }
@@ -17362,13 +17383,61 @@
         };
       };
 
+      const clampVisual = value => Math.max(0, Math.min(1, Number(value) || 0));
+      const mixSkyColor = (night, twilight, amount) => night.map((value, index) =>
+        Math.round(value + (twilight[index] - value) * amount)
+      );
+      const rgbSky = values => `rgb(${values.join(",")})`;
+      const twilightLevel = clampVisual((Number(frame.sunAltitude) + 18) / 18);
+      const twilightVisual = Math.pow(twilightLevel, .72);
+      const zenithColor = mixSkyColor([1, 5, 15], [8, 22, 43], twilightVisual);
+      const middleColor = mixSkyColor([3, 13, 27], [18, 47, 74], twilightVisual);
+      const horizonBandColor = mixSkyColor([7, 19, 33], [43, 78, 107], twilightVisual);
+      const horizonEdgeColor = mixSkyColor([2, 8, 18], [20, 35, 48], twilightVisual);
       const skyGradient = ctx.createLinearGradient(0, top, 0, horizonY);
-      skyGradient.addColorStop(0, "#01050f");
-      skyGradient.addColorStop(.5, "#06182e");
-      skyGradient.addColorStop(.82, "#173653");
-      skyGradient.addColorStop(1, "#5a4558");
+      skyGradient.addColorStop(0, rgbSky(zenithColor));
+      skyGradient.addColorStop(.58, rgbSky(middleColor));
+      skyGradient.addColorStop(.9, rgbSky(horizonBandColor));
+      skyGradient.addColorStop(1, rgbSky(horizonEdgeColor));
       ctx.fillStyle = skyGradient;
       ctx.fillRect(0, 0, width, horizonY);
+
+      // Twilight warmth belongs near the Sun, not uniformly along every horizon.
+      // The opposite (usually eastern) horizon keeps a cooler, darker Earth-shadow band.
+      if (Number.isFinite(frame.sunAzimuth) && twilightLevel > .002) {
+        const sunDelta = skyMapAzimuthDelta(frame.sunAzimuth);
+        const sunX = width / 2 + sunDelta / skyMapViewFovDeg * width;
+        const glowRadius = Math.max(width * .42, 320);
+        if (sunX > -glowRadius && sunX < width + glowRadius) {
+          const twilightGlow = ctx.createRadialGradient(sunX, horizonY, 0, sunX, horizonY, glowRadius);
+          twilightGlow.addColorStop(0, `rgba(151, 88, 76, ${(.42 * twilightVisual).toFixed(3)})`);
+          twilightGlow.addColorStop(.42, `rgba(83, 53, 79, ${(.2 * twilightVisual).toFixed(3)})`);
+          twilightGlow.addColorStop(1, "rgba(28, 38, 59, 0)");
+          ctx.fillStyle = twilightGlow;
+          ctx.fillRect(0, 0, width, horizonY);
+        }
+      }
+
+      // A restrained cool halo gives moonlit frames a little lift without trying
+      // to reproduce a full atmospheric scattering model.
+      if (Number(frame.moonAltitude) > 0 && Number.isFinite(frame.moonAzimuth)) {
+        const moonDelta = skyMapAzimuthDelta(frame.moonAzimuth);
+        const moonX = width / 2 + moonDelta / skyMapViewFovDeg * width;
+        const moonAltitudeFraction = Math.sin(Math.min(1, Number(frame.moonAltitude) / verticalMaxAltitude) * Math.PI / 2);
+        const moonY = horizonY - moonAltitudeFraction * skyHeight;
+        const moonStrength = clampVisual(frame.moonIllumination)
+          * clampVisual((Number(frame.moonAltitude) + 4) / 48)
+          * (.35 + .65 * (1 - twilightLevel));
+        const moonRadius = Math.max(190, width * .28);
+        if (moonStrength > .003 && moonX > -moonRadius && moonX < width + moonRadius) {
+          const moonGlow = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, moonRadius);
+          moonGlow.addColorStop(0, `rgba(205, 222, 244, ${(.15 * moonStrength).toFixed(3)})`);
+          moonGlow.addColorStop(.45, `rgba(128, 166, 211, ${(.07 * moonStrength).toFixed(3)})`);
+          moonGlow.addColorStop(1, "rgba(83, 119, 167, 0)");
+          ctx.fillStyle = moonGlow;
+          ctx.fillRect(0, 0, width, horizonY);
+        }
+      }
 
       // Quiet altitude/azimuth guides keep the natural horizon view measurable.
       ctx.save();
