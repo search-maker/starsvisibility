@@ -19650,6 +19650,10 @@
       loadComparisonPreferences();
       initializeUserSettingsPersistence();
       showReadyToCalculateState();
+      setTimeout(() => {
+        const calculateButton = $("calculate");
+        if (calculateButton && !calculateButton.disabled && !activeCalculationWorker) calculate();
+      }, 500);
     }
   
     const INFO_TEXT = {
