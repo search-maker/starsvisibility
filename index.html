@@ -601,6 +601,15 @@
       gap: 8px;
     }
     .weekly-toolbar .action { width: auto; }
+    .weekly-toolbar #currentWeek {
+      color: #201607;
+      background: linear-gradient(135deg, #ffd46e, #f6ad2f);
+      border-color: #ffd979;
+      box-shadow: 0 4px 14px rgba(246, 173, 47, 0.2);
+    }
+    .weekly-toolbar #currentWeek:hover:not(:disabled) {
+      background: linear-gradient(135deg, #ffe096, #ffc34f);
+    }
     .weekly-range {
       flex: 1 1 220px;
       min-width: 0;
@@ -677,7 +686,11 @@
       border-radius: 7px;
       background: rgba(3, 12, 24, 0.3);
     }
-    .weekly-day-card.is-today { border-color: rgba(105, 210, 255, 0.6); }
+    .weekly-day-card.is-today {
+      border-color: rgba(105, 210, 255, 0.82);
+      background: linear-gradient(180deg, rgba(25, 112, 163, 0.36), rgba(6, 29, 53, 0.66));
+      box-shadow: inset 0 0 0 1px rgba(105, 210, 255, 0.18), 0 0 18px rgba(31, 163, 225, 0.14);
+    }
     .weekly-main-time { color: #fff3c7; font-size: 22px; font-weight: 800; }
     .weekly-day-card.is-missing .weekly-main-time { color: var(--muted); font-size: 15px; }
     .weekly-day-meta { margin-top: 5px; color: #9fcfff; font-size: 11px; line-height: 1.45; }
@@ -2664,13 +2677,15 @@
                 <th data-sort="time">First visible <button type="button" class="info-btn" data-info-key="col-time" aria-label="הסבר">?</button></th>
                 <th data-sort="sunAlt">Sun altitude <button type="button" class="info-btn" data-info-key="col-sunAlt" aria-label="הסבר">?</button></th>
                 <th data-sort="mag">Mag <button type="button" class="info-btn" data-info-key="col-mag" aria-label="הסבר">?</button></th>
+                <th data-sort="physicalMag">Effective mag <button type="button" class="info-btn" data-info-key="col-physicalMag" aria-label="הסבר">?</button></th>
                 <th data-sort="brightness">Brightness / appearance <button type="button" class="info-btn" data-info-key="col-brightness" aria-label="הסבר">?</button></th>
                 <th data-sort="name">Star / planet <button type="button" class="info-btn" data-info-key="col-name" aria-label="הסבר">?</button></th>
                 <th data-sort="starAppAlt">Star apparent altitude <button type="button" class="info-btn" data-info-key="col-starAlt" aria-label="הסבר">?</button></th>
+                <th data-sort="starAz">Star azimuth <button type="button" class="info-btn" data-info-key="col-starAz" aria-label="הסבר">?</button></th>
                 <th data-sort="reason">Limiting factor <button type="button" class="info-btn" data-info-key="col-reason" aria-label="הסבר">?</button></th>
-                <th data-sort="confidence">Confidence <button type="button" class="info-btn" data-info-key="col-confidence" aria-label="הסבר">?</button></th>
-                <th data-sort="firstVisibleStatus">First-visible status <button type="button" class="info-btn" data-info-key="col-firstVisibleStatus" aria-label="הסבר">?</button></th>
-                <th data-sort="status">Best-night status <button type="button" class="info-btn" data-info-key="col-status" aria-label="הסבר">?</button></th>
+                <th class="advanced-col" data-sort="confidence">Confidence <button type="button" class="info-btn" data-info-key="col-confidence" aria-label="הסבר">?</button></th>
+                <th class="advanced-col" data-sort="firstVisibleStatus">First-visible status <button type="button" class="info-btn" data-info-key="col-firstVisibleStatus" aria-label="הסבר">?</button></th>
+                <th class="advanced-col" data-sort="status">Best-night status <button type="button" class="info-btn" data-info-key="col-status" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="bv">B-V <button type="button" class="info-btn" data-info-key="col-bv" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="colorCorrection">Color corr <button type="button" class="info-btn" data-info-key="col-colorCorrection" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="purkinjeEyeTermMag">Purkinje eye term <button type="button" class="info-btn" data-info-key="col-purkinjeEyeTermMag" aria-label="הסבר">?</button></th>
@@ -2682,7 +2697,6 @@
                 <th class="advanced-col" data-sort="airmass">Air mass <button type="button" class="info-btn" data-info-key="col-airmass" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="empiricalRequiredDepression">Required depression (emp) <button type="button" class="info-btn" data-info-key="col-empiricalRequiredDepression" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="physicalRequiredSunAltitude">Required Sun alt (phys) <button type="button" class="info-btn" data-info-key="col-physicalRequiredSunAltitude" aria-label="הסבר">?</button></th>
-                <th class="advanced-col" data-sort="physicalMag">Physical effective mag <button type="button" class="info-btn" data-info-key="col-physicalMag" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="empiricalFinalMag">Empirical final mag <button type="button" class="info-btn" data-info-key="col-empiricalFinalMag" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="skyBrightness">Sky bright mag/arcsec² <button type="button" class="info-btn" data-info-key="col-skyBrightness" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="limitMag">Local limit mag <button type="button" class="info-btn" data-info-key="col-limitMag" aria-label="הסבר">?</button></th>
@@ -2714,7 +2728,6 @@
                 <th class="advanced-col" data-sort="diff">Diff phys/emp? <button type="button" class="info-btn" data-info-key="col-diff" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="empiricalNearSunPenalty">Near-sun penalty (emp) <button type="button" class="info-btn" data-info-key="col-empiricalNearSunPenalty" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="sunAz">Sun az <button type="button" class="info-btn" data-info-key="col-sunAz" aria-label="הסבר">?</button></th>
-                <th class="advanced-col" data-sort="starAz">Star az <button type="button" class="info-btn" data-info-key="col-starAz" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="sep">Sun-star sep <button type="button" class="info-btn" data-info-key="col-sep" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="azDiff">Az diff <button type="button" class="info-btn" data-info-key="col-azDiff" aria-label="הסבר">?</button></th>
                 <th class="advanced-col" data-sort="skySide">Sky side <button type="button" class="info-btn" data-info-key="col-skySide" aria-label="הסבר">?</button></th>
@@ -12572,6 +12585,10 @@
     let workerEnabled = typeof Worker !== "undefined" && APP_SCRIPT_SOURCE.length > 0;
     const COLUMN_LAYOUT_STORAGE_KEY = "starVisibilityTableColumnsV1";
     const FIXED_COLUMN_IDS = ["rowNumber", "time"];
+    const LEGACY_DEFAULT_VISIBLE_COLUMN_IDS = [
+      "rowNumber", "time", "sunAlt", "mag", "brightness", "name", "starAppAlt", "reason",
+      "confidence", "firstVisibleStatus", "status"
+    ];
     let tableColumnBaseOrder = [];
     let columnLayout = null;
     let draggingColumnId = "";
@@ -12919,6 +12936,12 @@
       };
     }
 
+    function isLegacyDefaultColumnLayout(value) {
+      const visible = Array.isArray(value?.visible) ? value.visible : [];
+      return visible.length === LEGACY_DEFAULT_VISIBLE_COLUMN_IDS.length
+        && LEGACY_DEFAULT_VISIBLE_COLUMN_IDS.every(id => visible.includes(id));
+    }
+
     function normalizeColumnLayout(value) {
       const manageable = manageableColumnIds();
       const savedOrder = Array.isArray(value?.order) ? value.order : [];
@@ -13039,7 +13062,12 @@
       });
       let saved = null;
       try { saved = JSON.parse(localStorage.getItem(COLUMN_LAYOUT_STORAGE_KEY) || "null"); } catch (_) {}
+      // Move an untouched pre-update default to the cleaner new default without
+      // overwriting layouts that users deliberately customized.
+      const migrateLegacyDefault = isLegacyDefaultColumnLayout(saved);
+      if (migrateLegacyDefault) saved = null;
       columnLayout = normalizeColumnLayout(saved);
+      if (migrateLegacyDefault) saveColumnLayout();
 
       $("columnManagerButton").addEventListener("click", () => {
         const open = $("columnManagerPanel").hidden;
@@ -17026,8 +17054,8 @@
     function skyMapDirectionName(azimuth, language = uiLanguage) {
       const index = Math.round(normalizeSkyMapAzimuth(azimuth) / 45) % 8;
       const names = language === "en"
-        ? ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
-        : ["צ", "צמז׳", "מז׳", "דמז׳", "ד", "דמע׳", "מע׳", "צמע׳"];
+        ? ["North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"]
+        : ["צפון", "צפון־מזרח", "מזרח", "דרום־מזרח", "דרום", "דרום־מערב", "מערב", "צפון־מערב"];
       return names[index];
     }
 
@@ -17369,8 +17397,8 @@
       ctx.beginPath(); ctx.moveTo(0, horizonY); ctx.lineTo(width, horizonY); ctx.stroke();
 
       const compass = uiLanguage === "en"
-        ? [[0, "N"], [45, "NE"], [90, "E"], [135, "SE"], [180, "S"], [225, "SW"], [270, "W"], [315, "NW"]]
-        : [[0, "צ"], [45, "צמז׳"], [90, "מז׳"], [135, "דמז׳"], [180, "ד"], [225, "דמע׳"], [270, "מע׳"], [315, "צמע׳"]];
+        ? [[0, "North"], [45, "Northeast"], [90, "East"], [135, "Southeast"], [180, "South"], [225, "Southwest"], [270, "West"], [315, "Northwest"]]
+        : [[0, "צפון"], [45, "צפון־מזרח"], [90, "מזרח"], [135, "דרום־מזרח"], [180, "דרום"], [225, "דרום־מערב"], [270, "מערב"], [315, "צפון־מערב"]];
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       for (const [azimuth, label] of compass) {
@@ -18493,13 +18521,15 @@
           <td class="primary-time">${primaryTimeCellHtml(row, timeZone, referenceMsForDisplay, referenceKindForDisplay)}</td>
           <td>${Number.isFinite(row.sunAlt) ? fmtDeg(row.sunAlt) : "--"}</td>
           <td>${row.mag.toFixed(2)}</td>
+          <td>${Number.isFinite(row.physicalMag) ? row.physicalMag.toFixed(2) : "--"}</td>
           <td class="brightness-cell"><div class="brightness-text">${escapeHtml(brightnessDescription(row))}</div><button class="brightness-expand" type="button" hidden>${uiLanguage === "en" ? "More" : "עוד"}</button></td>
           <td class="name">${objectBadges(row)}${escapeHtml(row.name)}</td>
           <td>${Number.isFinite(row.starAppAlt) ? fmtDeg(row.starAppAlt) : "--"}</td>
+          <td>${Number.isFinite(row.starAz) ? row.starAz.toFixed(0) + "\u00b0" : "--"}</td>
           <td class="reason-cell">${escapeHtml(displayReason(row.reason))}</td>
-          <td>${confidenceLabel(row.confidence, row.modelBasis)}</td>
-          <td><span class="tag ${row.firstVisibleStatus || row.status}">${statusLabel(row.firstVisibleStatus)}</span></td>
-          <td><span class="tag ${row.status}">${statusLabel(row.status)}</span></td>
+          <td class="advanced-col">${confidenceLabel(row.confidence, row.modelBasis)}</td>
+          <td class="advanced-col"><span class="tag ${row.firstVisibleStatus || row.status}">${statusLabel(row.firstVisibleStatus)}</span></td>
+          <td class="advanced-col"><span class="tag ${row.status}">${statusLabel(row.status)}</span></td>
           <td class="advanced-col">${row.bvProvided ? row.bv.toFixed(2) : "0.65 neutral"}</td>
           <td class="advanced-col">${row.bvProvided && Number.isFinite(row.colorCorrection) ? row.colorCorrection.toFixed(3) : "--"}</td>
           <td class="advanced-col">${row.bvProvided && Number.isFinite(row.purkinjeEyeTermMag) ? row.purkinjeEyeTermMag.toFixed(3) : "--"}</td>
@@ -18511,7 +18541,6 @@
           <td class="advanced-col">${Number.isFinite(row.airMass) ? row.airMass.toFixed(2) : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.empiricalRequiredDepression) ? row.empiricalRequiredDepression.toFixed(2) + "°" : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.physicalRequiredSunAltitude) ? fmtDeg(row.physicalRequiredSunAltitude) : "--"}</td>
-          <td class="advanced-col">${Number.isFinite(row.physicalMag) ? row.physicalMag.toFixed(2) : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.empiricalFinalMag) ? row.empiricalFinalMag.toFixed(2) : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.skyBrightness) ? row.skyBrightness.toFixed(2) : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.limitMag) ? row.limitMag.toFixed(2) : "--"}</td>
@@ -18543,7 +18572,6 @@
           <td class="advanced-col">${diffLabel(row.diff)}</td>
           <td class="advanced-col">${Number.isFinite(row.empiricalNearSunPenalty) ? row.empiricalNearSunPenalty.toFixed(2) : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.sunAz) ? row.sunAz.toFixed(0) + "\u00b0" : "--"}</td>
-          <td class="advanced-col">${Number.isFinite(row.starAz) ? row.starAz.toFixed(0) + "\u00b0" : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.sep) ? row.sep.toFixed(0) + "\u00b0" : "--"}</td>
           <td class="advanced-col">${Number.isFinite(row.azDiff) ? row.azDiff.toFixed(0) + "\u00b0" : "--"}</td>
           <td class="advanced-col">${row.skySide || "--"}</td>
@@ -19531,6 +19559,13 @@
       textNode.textContent = uiLanguage === "en" ? englishText + " " : el.dataset.originalLeadText;
     }
 
+    function setLocalizedLeadText(selector, englishText, hebrewText) {
+      const el = document.querySelector(selector);
+      if (!el) return;
+      const textNode = Array.from(el.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+      if (textNode) textNode.textContent = (uiLanguage === "en" ? englishText : hebrewText) + " ";
+    }
+
     function setPlainText(selector, englishText) {
       const el = document.querySelector(selector);
       if (!el) return;
@@ -19825,9 +19860,11 @@
       setLeadText('th[data-sort="time"]', "First visible");
       setLeadText('th[data-sort="sunAlt"]', "Sun altitude");
       setLeadText('th[data-sort="mag"]', "Mag");
+      setLocalizedLeadText('th[data-sort="physicalMag"]', "Effective magnitude", "מגניטודה אפקטיבית");
       setLeadText('th[data-sort="brightness"]', "Brightness / appearance");
       setLeadText('th[data-sort="name"]', "Star / planet");
       setLeadText('th[data-sort="starAppAlt"]', "Star apparent altitude");
+      setLocalizedLeadText('th[data-sort="starAz"]', "Star azimuth", "אזימוט הכוכב");
       setLeadText('th[data-sort="reason"]', "Limiting factor");
       setLeadText('th[data-sort="confidence"]', "Confidence");
       setLeadText('th[data-sort="firstVisibleStatus"]', "First-visible status");
