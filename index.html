@@ -94,6 +94,17 @@
       align-items: stretch;
     }
 
+    .three-star-full-width-host {
+      display: grid;
+      grid-column: 1 / -1;
+      gap: 14px;
+      width: 100%;
+      margin-top: 4px;
+    }
+    .three-star-full-width-host[hidden] { display: none; }
+    .three-star-full-width-host > .sky-map-view,
+    .three-star-full-width-host > .annual-view { margin: 0; width: 100%; }
+
     .calculator-tabs {
       display: inline-flex;
       gap: 4px;
@@ -721,9 +732,6 @@
     .weekly-lower-settings { display: contents; }
     .weekly-lower-settings > summary { display: none; }
 
-    body.weekly-focus-mode #threeStarView > .three-star-header,
-    body.weekly-focus-mode #threeStarView > #threeStarEmpty,
-    body.weekly-focus-mode #threeStarView > #threeStarResult { display: none; }
     body.weekly-focus-mode #threeStarView > #threeStarControls {
       margin-bottom: 14px;
       border-color: rgba(125, 211, 252, .3);
@@ -2868,7 +2876,7 @@
           </div>
           <div class="field three-star-threshold-field" id="threeStarThresholdField">
             <label for="threeStarMagnitudeThreshold" id="threeStarThresholdLabel">Include stars fainter than or equal to</label>
-            <input id="threeStarMagnitudeThreshold" type="number" step="0.1" value="1.5">
+            <input id="threeStarMagnitudeThreshold" type="number" step="0.1" value="1.7">
           </div>
           <p class="note wide" id="threeStarMagnitudeNote">A smaller magnitude number means a brighter star. Effective magnitude includes atmospheric extinction and the star's altitude at that moment.</p>
           <fieldset class="known-object-exclusions" id="threeStarKnownExclusions" hidden>
@@ -13213,6 +13221,7 @@
     $("weeklyView").addEventListener("toggle", () => {
       const open = $("weeklyView").open;
       setWeeklyFocusMode(open);
+      updateThreeStarWideOutputMode();
       if (open && !weeklyResults.length && !activeWeeklyWorker) calculateWeeklyResults();
     });
     $("closeWeeklyFocus").addEventListener("click", () => { $("weeklyView").open = false; });
@@ -13228,6 +13237,7 @@
     $("annualChart").addEventListener("pointermove", showAnnualChartTooltip);
     $("annualChart").addEventListener("pointerleave", () => { $("annualChartTooltip").hidden = true; });
     $("threeStarSkyMapView").addEventListener("toggle", () => {
+      updateThreeStarWideOutputMode();
       if ($("threeStarSkyMapView").open) loadThreeStarSkyMap();
     });
     $("skyMapTimeButtons").addEventListener("click", event => {
@@ -13426,6 +13436,11 @@
       $("threeStarCalculatorTab").tabIndex = isThreeStar ? 0 : -1;
       $("standardResultsView").hidden = isThreeStar;
       $("threeStarView").hidden = !isThreeStar;
+      if (!isThreeStar) {
+        if ($("threeStarSkyMapView")?.open) $("threeStarSkyMapView").open = false;
+        if ($("weeklyView")?.open) $("weeklyView").open = false;
+        updateThreeStarWideOutputMode();
+      }
       updateThreeStarSelectionControls();
       if (isThreeStar) {
         mode = "evening";
@@ -13470,7 +13485,7 @@
         localStorage.setItem(THREE_STAR_SELECTION_STORAGE_KEY, JSON.stringify({
           count: $("threeStarCount")?.value || "3",
           magnitudeBasis: $("threeStarMagnitudeBasis")?.value || "effective",
-          magnitudeThreshold: $("threeStarMagnitudeThreshold")?.value || "1.5",
+          magnitudeThreshold: $("threeStarMagnitudeThreshold")?.value || "1.7",
           excludedKnownObjects: selectedKnownObjectExclusionKeys()
         }));
       } catch (_) {}
@@ -17682,6 +17697,76 @@
         ? { "no-sunset": "No sunset", "fewer-qualifying-candidates": "Not enough qualifying objects", "not-enough-simultaneous-stars": "No stable simultaneous result" }
         : { "no-sunset": "אין שקיעה", "fewer-qualifying-candidates": "אין די עצמים מתאימים", "not-enough-simultaneous-stars": "לא נמצא זמן יציב משותף" };
       return texts[reason] || (uiLanguage === "en" ? "No result" : "אין תוצאה");
+    }
+
+    const threeStarWideViewState = {
+      host: null,
+      placeholders: new Map()
+    };
+
+    function ensureThreeStarFullWidthHost() {
+      if (globalThis.__CALC_WORKER__) return null;
+      if (threeStarWideViewState.host?.isConnected) return threeStarWideViewState.host;
+      const shell = document.querySelector(".shell");
+      const advancedSettings = $("advancedSettingsArea");
+      if (!shell || !advancedSettings || advancedSettings.parentNode !== shell) return null;
+      const host = document.createElement("section");
+      host.id = "threeStarFullWidthHost";
+      host.className = "three-star-full-width-host";
+      host.hidden = true;
+      host.setAttribute("aria-label", "Expanded Three-Star views");
+      shell.insertBefore(host, advancedSettings);
+      threeStarWideViewState.host = host;
+      return host;
+    }
+
+    function moveThreeStarViewToFullWidth(element) {
+      const host = ensureThreeStarFullWidthHost();
+      if (!host || !element || element.parentNode === host) return;
+      if (!threeStarWideViewState.placeholders.has(element.id)) {
+        const placeholder = document.createComment(`${element.id}-home`);
+        element.parentNode.insertBefore(placeholder, element);
+        threeStarWideViewState.placeholders.set(element.id, placeholder);
+      }
+      host.appendChild(element);
+      host.hidden = false;
+    }
+
+    function restoreThreeStarViewHome(element) {
+      if (!element) return;
+      const placeholder = threeStarWideViewState.placeholders.get(element.id);
+      if (placeholder?.parentNode) placeholder.parentNode.insertBefore(element, placeholder.nextSibling);
+      const host = threeStarWideViewState.host;
+      if (host) host.hidden = host.children.length === 0;
+    }
+
+    function orderThreeStarFullWidthViews() {
+      const host = threeStarWideViewState.host;
+      if (!host) return;
+      ["threeStarSkyMapView", "weeklyView", "annualView"].forEach(id => {
+        const element = $(id);
+        if (element?.parentNode === host) host.appendChild(element);
+      });
+    }
+
+    function updateThreeStarWideOutputMode() {
+      if (globalThis.__CALC_WORKER__) return;
+      const skyOpen = Boolean($("threeStarSkyMapView")?.open);
+      const weeklyOpen = Boolean($("weeklyView")?.open);
+      document.body.classList.toggle("sky-map-wide-mode", skyOpen);
+      document.body.classList.toggle("three-star-wide-output", skyOpen || weeklyOpen);
+      if (skyOpen) moveThreeStarViewToFullWidth($("threeStarSkyMapView"));
+      else restoreThreeStarViewHome($("threeStarSkyMapView"));
+      if (weeklyOpen) {
+        moveThreeStarViewToFullWidth($("weeklyView"));
+        moveThreeStarViewToFullWidth($("annualView"));
+      } else {
+        restoreThreeStarViewHome($("weeklyView"));
+        restoreThreeStarViewHome($("annualView"));
+      }
+      orderThreeStarFullWidthViews();
+      const host = threeStarWideViewState.host;
+      if (host) host.hidden = host.children.length === 0;
     }
 
     function initializeWeeklyFocusLayout() {
