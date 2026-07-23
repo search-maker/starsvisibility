@@ -1,0 +1,44 @@
+{
+ "patat": {
+  "coefficientStatus": "TRANSCRIBED-FROM-BRIEF-NEEDS-PRIMARY-VERIFICATION",
+  "matchedElevation": false,
+  "rows": [
+   {
+    "sunDepressionDeg": 8,
+    "patatZenithV": 15.881,
+    "simSyntheticV": 15.268,
+    "simVWithFloor": 15.268,
+    "residualMag": -0.613,
+    "matched": false,
+    "simSiteElevationM": 0,
+    "simAod550": 0.15
+   },
+   {
+    "sunDepressionDeg": 10,
+    "patatZenithV": 18.005,
+    "simSyntheticV": 16.952,
+    "simVWithFloor": 16.952,
+    "residualMag": -1.053,
+    "matched": false,
+    "simSiteElevationM": 0,
+    "simAod550": 0.15
+   }
+  ],
+  "note": "UNMATCHED sea-level AOD-0.15 comparison"
+ },
+ "spitschan": {
+  "status": "OBTAINED",
+  "ruralSessions": 10,
+  "citySessions": 9,
+  "solarElevationCoverageDeg": [
+   -29.19,
+   70.54
+  ],
+  "note": "spectral S/P-vs-elevation extraction requires the calibrated spectra (reproduce via git clone); irradiance source, used for spectral/S-P trend only, not directional radiance"
+ },
+ "koomen": {
+  "status": "BLOCKED",
+  "note": "transcribe Koomen tables to validation-data/koomen_table*.csv to activate the directional-ratio comparison"
+ },
+ "primaryObservationalValidationStatus": "PENDING-VERIFICATION (Patat coefficients unverified from primary PDF; Koomen tables not transcribed; comparisons are indicative)"
+}
