@@ -6,6 +6,24 @@ simulation outputs; regenerate `FEASIBILITY_REPORT.json` first, then this prose
 never exceeds the data. Companion machine-readable file:
 `reports/FEASIBILITY_REPORT.json`.
 
+> **⚠️ CORRECTIONS (Milestone 3 §2).** This Milestone-2 report is retained as
+> the historical M2 record but several statements below are **superseded**;
+> the authoritative status is in `FEASIBILITY_REPORT.json.statistics.statusModel`
+> / `.supportedDomain` and in `reports/MILESTONE3_REPORT.md`:
+> 1. **Supported domain is NOT the full 0–10° hypercube.** Evidence supports
+>    **0–8° across the core geometry** at baseline AOD; **9–10° is a
+>    provisional zenith-only extension**; 12° is marginal; altitude <10° is
+>    untested; AOD extremes were sampled only in limited geometries. Wherever
+>    the prose below says "0–10°", read "0–8° demonstrated + 9–10° zenith-only".
+> 2. **"observation-consistent" / "physically faithful" → "consistent with
+>    broad literature plausibility ranges under UNMATCHED atmospheric
+>    assumptions."** The 9/9 checks are broad-anchor plausibility, **not**
+>    primary matched-geometry observational validation.
+> 3. **The "525-cell / ≈10 h" projection is withdrawn.** The canonical grid is
+>    defined once in `scripts/grid_def.py`; it has **540 unique nodes** (zenith
+>    azimuth deduplicated), 925 total runs, ≈18.5 CPU-h. No cell count or cost
+>    is hand-written any more.
+
 ## 0. Verdict in one paragraph
 
 libRadtran **can** generate physically plausible, numerically stable,
@@ -68,8 +86,9 @@ clouds are out of scope for this phase.
 - **Runtime per case: median 39.8 s, max 224 s** (deep + high-photon), total
   1.5 h wall on 4 cores.
 - **Raw output: 148 MB** for 67 cases (git-ignored; small fixture committed).
-- **Projected 525-cell proof-of-concept grid: ≈10.0 h single-core** (≈2.5 h on
-  4 cores) — comfortably practical.
+- **Projected proof-of-concept grid cost** — the earlier 525-cell/≈10 h figure
+  is **withdrawn** (§2 correction banner). Authoritative count is derived from
+  `scripts/grid_def.py`: 540 unique nodes, 925 runs, ≈18.5 CPU-h — practical.
 
 ## 4. Numerical stability and Monte Carlo uncertainty
 

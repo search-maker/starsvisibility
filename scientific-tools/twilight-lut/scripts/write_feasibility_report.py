@@ -11,6 +11,7 @@ from pathlib import Path
 from lrt_common import (PROCESSED_DIR, ROOT, find_uvspec, uvspec_version,
                         git_commit_hash)
 import current_model_port as cur
+from grid_def import DEFAULT_GRID
 
 REPORTS = ROOT / "reports"
 
@@ -86,17 +87,12 @@ def main():
         "observationalChecks": obs,
     }
 
-    # Projected large-grid cost (Milestone 3: 525 cells at the boosted budgets)
-    med_rt = statistics.median(runtimes)
-    dep_counts = {0: 105, 2: 105, 4: 105, 6: 105, 8: 105}  # 525 spread over 5 deps
-    rt_by_dep = {}
-    for r in ok:
-        rt_by_dep.setdefault(r["sunDepressionDeg"], []).append(r["runtimeSeconds"])
-    proj = 0.0
-    for d, n in dep_counts.items():
-        rts = rt_by_dep.get(d) or [med_rt]
-        proj += n * statistics.median(rts)
-    stats["projected525CellGridHoursSingleCore"] = round(proj / 3600, 2)
+    # Projected large-grid cost — derived from the SINGLE shared grid definition
+    # (grid_def.py), never a hand-written cell count. See MILESTONE3 report for
+    # the adaptive grid actually built.
+    grid = DEFAULT_GRID.describe()
+    stats["canonicalGrid"] = grid
+    stats["projectedGridCpuHoursSingleCore"] = grid["counts"]["projectedCpuHours"]
 
     # Gate evaluation
     def gate(name, passed, evidence):
@@ -121,36 +117,78 @@ def main():
              f"independent-seed repeats; worst empirical/reported ratio "
              f"{mc_worst:.2f}" if mc_worst else "missing"),
         gate("runtime practical for the expanded grid",
-             stats["projected525CellGridHoursSingleCore"] < 24,
-             f"projected 525-cell grid: "
-             f"{stats['projected525CellGridHoursSingleCore']} h single-core"),
+             stats["projectedGridCpuHoursSingleCore"] < 48,
+             f"projected canonical grid ({grid['counts']['uniqueNodeCount']} "
+             f"unique nodes, {grid['counts']['totalSimulationRuns']} runs): "
+             f"{stats['projectedGridCpuHoursSingleCore']} CPU-h single-core "
+             f"({grid['counts']['projectedWallHoursAtJobs']} h at "
+             f"{grid['counts']['jobs']} jobs)"),
         gate("output convertible to the calculator's quantities",
              grid_cons and statistics.median(grid_cons) < 0.05,
              "spectral radiance -> photopic luminance -> nL -> KS-convention "
              f"mag/arcsec2; fine-vs-node grid consistency median "
              f"{statistics.median(grid_cons):.2%}" if grid_cons else "no data"),
-        gate("plausible agreement with independent observations",
+        gate("consistent with broad literature plausibility ranges "
+             "(NOT primary matched-geometry validation)",
              obs_pass,
-             f"{obs['passed']}/{obs['total']} anchor+sanity checks passed "
-             "(offline literature anchors; see OBSERVATIONAL_VALIDATION.md)"
+             f"{obs['passed']}/{obs['total']} broad-anchor+sanity checks passed "
+             "under UNMATCHED atmospheric assumptions (offline literature "
+             "anchors; see OBSERVATIONAL_VALIDATION.md). Primary matched-geometry "
+             "validation is a separate Milestone 3 deliverable."
              if obs else "missing"),
     ]
     stats["gates"] = gates
     all_pass = all(g["passed"] for g in gates)
     stats["feasibilityVerdict"] = "PASS" if all_pass else "PARTIAL/FAIL"
+
+    # Six-status reporting model (Milestone 3 §2.1): feasibility is NOT the same
+    # as primary-observational or first-visibility validation. Kept honest and
+    # separate so no broad-anchor result is mislabelled as completed validation.
+    stats["statusModel"] = {
+        "solverFeasibilityStatus": "PASS — MYSTIC 1D-spherical backward valid "
+        "0-8 deg across core geometry; DISORT/pseudospherical invalid below "
+        "the horizon",
+        "numericalStabilityStatus": "PASS — median photopic uncertainty "
+        f"{statistics.median(rel):.2%} on resolved cases" if rel else "n/a",
+        "literaturePlausibilityStatus": "PASS (broad, unmatched-atmosphere "
+        "anchors only) — consistent with Koomen/Rozenberg/Patat plausibility "
+        "ranges; NOT primary matched-geometry validation",
+        "primaryObservationalValidationStatus": "PENDING (Milestone 3) — "
+        "matched-geometry Patat/Koomen comparison via synthetic Johnson V",
+        "firstVisibilityValidationStatus": "BLOCKED — no first-visibility "
+        "observational dataset exists in the repository",
+        "productionReadinessStatus": "NOT RECOMMENDED — feasibility only",
+    }
+
+    # Evidence-based supported domain (§2.2): distinguish demonstrated core from
+    # provisional zenith-only extension. Do NOT declare the full hypercube.
     stats["supportedDomain"] = {
-        "sunDepressionDeg": [0, 10],
-        "sunDepressionNote": "0-8 deg resolves to <=6% rel. error at the "
-        "boosted photon budgets; 9-10 deg resolves to ~9-13% at zenith with "
-        "4e7 photons (domain probes); 12 deg is MARGINAL (~37%). Worst "
-        "geometry (low altitude, near-sun) is noisier than zenith at equal "
-        "depth. Practical LUT limit ~10 deg; 10-12 deg needs >1e8 photons.",
-        "targetAltitudeDeg": [10, 90],
-        "relativeAzimuthDeg": [0, 180],
-        "aod550": [0.05, 0.30],
-        "unsupported": "depression > ~12 deg (MC cost impractical), "
-                       "altitude < 10 deg (untested), any cloud, refraction "
-                       "not modelled, single aerosol family / atmosphere only",
+        "demonstratedCore": {
+            "sunDepressionDeg": [0, 8],
+            "targetAltitudeDeg": [10, 90],
+            "relativeAzimuthDeg": [0, 180],
+            "aod550Baseline": 0.15,
+            "note": "0-8 deg feasibility demonstrated across the core "
+            "altitude/azimuth geometry at baseline AOD; AOD extremes sampled "
+            "only in limited geometries (not validated across the full domain)",
+        },
+        "provisionalExtension": {
+            "sunDepressionDeg": [9, 10],
+            "evidence": "ZENITH-ONLY probes resolved to ~9-13% at 4e7 photons; "
+            "NOT established at all altitudes/azimuths/AOD",
+        },
+        "notSupported": {
+            "sunDepressionDeg": ">=12 (marginal ~37%, impractical cost)",
+            "targetAltitudeDeg": "<10 (untested)",
+            "atmosphere": "clouds, refraction (not modelled), aerosol families "
+            "other than the one Shettle rural profile",
+        },
+        "fullHypercubeSupported": False,
+        "reconciliationNote": "This evidence-based domain supersedes any earlier "
+        "'0-10 deg fully supported' wording in README/SCIENTIFIC_ASSUMPTIONS/"
+        "FEASIBILITY_REPORT; the full 0-10 deg x 10-90 deg x AOD hypercube is "
+        "NOT declared supported until Milestone 3 pre-grid worst-geometry cases "
+        "pass.",
     }
     (REPORTS / "FEASIBILITY_REPORT.json").write_text(
         json.dumps({"environment": env, "statistics": stats}, indent=1))

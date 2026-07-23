@@ -2,6 +2,21 @@
 raw-output/
 processed-output/
 build/
+lut/*.nc
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Ordinary MYSTIC outputs must never be committed except as documented fixtures.
+# (fixtures/ is whitelisted below.)
+mc.rad
+mc.rad.spc
+mc.rad.std
+mc.rad.std.spc
+mc.flx
+mc.flx.spc
+mc.flx.std.spc
+mc[0-9]*.rad
+mc[0-9]*.rad.std
+randomseed
+!fixtures/**
