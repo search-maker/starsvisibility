@@ -1,0 +1,7 @@
+# Generated simulation data — regenerate with scripts/; keep small fixtures in fixtures/
+raw-output/
+processed-output/
+build/
+__pycache__/
+*.pyc
+.pytest_cache/
