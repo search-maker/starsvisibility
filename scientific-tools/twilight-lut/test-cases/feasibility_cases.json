@@ -5,7 +5,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -13,6 +12,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt10p0_raz000p0_aod0p150"
  },
  {
@@ -21,7 +21,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -29,6 +28,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt10p0_raz090p0_aod0p150"
  },
  {
@@ -37,7 +37,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -45,6 +44,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt10p0_raz180p0_aod0p150"
  },
  {
@@ -53,7 +53,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -61,6 +60,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt30p0_raz000p0_aod0p150"
  },
  {
@@ -69,7 +69,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -77,6 +76,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt30p0_raz090p0_aod0p150"
  },
  {
@@ -85,7 +85,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -93,6 +92,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt30p0_raz180p0_aod0p150"
  },
  {
@@ -101,7 +101,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -109,6 +108,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt60p0_raz000p0_aod0p150"
  },
  {
@@ -117,7 +117,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -125,6 +124,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt60p0_raz090p0_aod0p150"
  },
  {
@@ -133,7 +133,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -141,6 +140,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt60p0_raz180p0_aod0p150"
  },
  {
@@ -149,7 +149,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -157,6 +156,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt90p0_raz000p0_aod0p150"
  },
  {
@@ -165,7 +165,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -173,6 +172,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt90p0_raz090p0_aod0p150"
  },
  {
@@ -181,7 +181,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 0,
@@ -189,6 +188,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 2000000,
   "caseId": "sd00p0_alt90p0_raz180p0_aod0p150"
  },
  {
@@ -197,7 +197,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -205,6 +204,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt10p0_raz000p0_aod0p150"
  },
  {
@@ -213,7 +213,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -221,6 +220,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt10p0_raz090p0_aod0p150"
  },
  {
@@ -229,7 +229,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -237,6 +236,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt10p0_raz180p0_aod0p150"
  },
  {
@@ -245,7 +245,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -253,6 +252,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz000p0_aod0p150"
  },
  {
@@ -261,7 +261,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -269,6 +268,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz090p0_aod0p150"
  },
  {
@@ -277,7 +277,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -285,6 +284,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz180p0_aod0p150"
  },
  {
@@ -293,7 +293,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -301,6 +300,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt60p0_raz000p0_aod0p150"
  },
  {
@@ -309,7 +309,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -317,6 +316,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt60p0_raz090p0_aod0p150"
  },
  {
@@ -325,7 +325,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -333,6 +332,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt60p0_raz180p0_aod0p150"
  },
  {
@@ -341,7 +341,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -349,6 +348,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt90p0_raz000p0_aod0p150"
  },
  {
@@ -357,7 +357,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -365,6 +364,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt90p0_raz090p0_aod0p150"
  },
  {
@@ -373,7 +373,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -381,6 +380,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt90p0_raz180p0_aod0p150"
  },
  {
@@ -389,7 +389,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -397,6 +396,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt10p0_raz000p0_aod0p150"
  },
  {
@@ -405,7 +405,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -413,6 +412,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt10p0_raz090p0_aod0p150"
  },
  {
@@ -421,7 +421,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -429,6 +428,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt10p0_raz180p0_aod0p150"
  },
  {
@@ -437,7 +437,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -445,6 +444,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt30p0_raz000p0_aod0p150"
  },
  {
@@ -453,7 +453,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -461,6 +460,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt30p0_raz090p0_aod0p150"
  },
  {
@@ -469,7 +469,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -477,6 +476,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt30p0_raz180p0_aod0p150"
  },
  {
@@ -485,7 +485,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -493,6 +492,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt60p0_raz000p0_aod0p150"
  },
  {
@@ -501,7 +501,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -509,6 +508,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt60p0_raz090p0_aod0p150"
  },
  {
@@ -517,7 +517,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -525,6 +524,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt60p0_raz180p0_aod0p150"
  },
  {
@@ -533,7 +533,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -541,6 +540,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt90p0_raz000p0_aod0p150"
  },
  {
@@ -549,7 +549,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -557,6 +556,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt90p0_raz090p0_aod0p150"
  },
  {
@@ -565,7 +565,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 8,
@@ -573,6 +572,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "core",
+  "photonCount": 40000000,
   "caseId": "sd08p0_alt90p0_raz180p0_aod0p150"
  },
  {
@@ -581,7 +581,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 2,
@@ -589,6 +588,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "sensitivity-depression",
+  "photonCount": 2000000,
   "caseId": "sd02p0_alt30p0_raz000p0_aod0p150"
  },
  {
@@ -597,7 +597,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 2,
@@ -605,6 +604,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "sensitivity-depression",
+  "photonCount": 2000000,
   "caseId": "sd02p0_alt30p0_raz090p0_aod0p150"
  },
  {
@@ -613,7 +613,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 2,
@@ -621,6 +620,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "sensitivity-depression",
+  "photonCount": 2000000,
   "caseId": "sd02p0_alt30p0_raz180p0_aod0p150"
  },
  {
@@ -629,7 +629,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 6,
@@ -637,6 +636,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "sensitivity-depression",
+  "photonCount": 20000000,
   "caseId": "sd06p0_alt30p0_raz000p0_aod0p150"
  },
  {
@@ -645,7 +645,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 6,
@@ -653,6 +652,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "sensitivity-depression",
+  "photonCount": 20000000,
   "caseId": "sd06p0_alt30p0_raz090p0_aod0p150"
  },
  {
@@ -661,7 +661,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 6,
@@ -669,6 +668,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.15,
   "group": "sensitivity-depression",
+  "photonCount": 20000000,
   "caseId": "sd06p0_alt30p0_raz180p0_aod0p150"
  },
  {
@@ -677,7 +677,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -685,6 +684,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.05,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt10p0_raz000p0_aod0p050"
  },
  {
@@ -693,7 +693,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -701,6 +700,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.05,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt10p0_raz180p0_aod0p050"
  },
  {
@@ -709,7 +709,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -717,6 +716,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.05,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz000p0_aod0p050"
  },
  {
@@ -725,7 +725,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -733,6 +732,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.05,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz180p0_aod0p050"
  },
  {
@@ -741,7 +741,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -749,6 +748,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.3,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt10p0_raz000p0_aod0p300"
  },
  {
@@ -757,7 +757,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -765,6 +764,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.3,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt10p0_raz180p0_aod0p300"
  },
  {
@@ -773,7 +773,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -781,6 +780,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.3,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz000p0_aod0p300"
  },
  {
@@ -789,7 +789,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -797,6 +796,7 @@
   "relativeAzimuthDeg": 180,
   "aod550": 0.3,
   "group": "sensitivity-aod",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz180p0_aod0p300"
  },
  {
@@ -805,7 +805,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -813,6 +812,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "sensitivity-altitude",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt20p0_raz090p0_aod0p150"
  },
  {
@@ -821,7 +821,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -829,6 +828,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "sensitivity-altitude",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt45p0_raz090p0_aod0p150"
  },
  {
@@ -837,7 +837,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -845,6 +844,7 @@
   "relativeAzimuthDeg": 45,
   "aod550": 0.15,
   "group": "sensitivity-azimuth",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz045p0_aod0p150"
  },
  {
@@ -853,7 +853,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -861,6 +860,7 @@
   "relativeAzimuthDeg": 135,
   "aod550": 0.15,
   "group": "sensitivity-azimuth",
+  "photonCount": 8000000,
   "caseId": "sd04p0_alt30p0_raz135p0_aod0p150"
  },
  {
@@ -869,7 +869,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 2001,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -877,6 +876,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "mc-repeat",
+  "photonCount": 8000000,
   "repeatIndex": 1,
   "caseId": "sd04p0_alt30p0_raz090p0_aod0p150_rep1"
  },
@@ -886,7 +886,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 2002,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -894,6 +893,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "mc-repeat",
+  "photonCount": 8000000,
   "repeatIndex": 2,
   "caseId": "sd04p0_alt30p0_raz090p0_aod0p150_rep2"
  },
@@ -903,7 +903,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 2003,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -911,6 +910,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "mc-repeat",
+  "photonCount": 8000000,
   "repeatIndex": 3,
   "caseId": "sd04p0_alt30p0_raz090p0_aod0p150_rep3"
  },
@@ -920,7 +920,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 2004,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -928,6 +927,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "mc-repeat",
+  "photonCount": 8000000,
   "repeatIndex": 4,
   "caseId": "sd04p0_alt30p0_raz090p0_aod0p150_rep4"
  },
@@ -937,7 +937,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 200000,
   "randomSeed": 2005,
   "vroom": "on",
   "sunDepressionDeg": 4,
@@ -945,6 +944,7 @@
   "relativeAzimuthDeg": 90,
   "aod550": 0.15,
   "group": "mc-repeat",
+  "photonCount": 8000000,
   "repeatIndex": 5,
   "caseId": "sd04p0_alt30p0_raz090p0_aod0p150_rep5"
  },
@@ -954,7 +954,91 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 2000000,
+  "randomSeed": 3001,
+  "vroom": "on",
+  "sunDepressionDeg": 8,
+  "targetAltitudeDeg": 10,
+  "relativeAzimuthDeg": 90,
+  "aod550": 0.15,
+  "group": "mc-repeat-deep",
+  "photonCount": 40000000,
+  "repeatIndex": 1,
+  "caseId": "sd08p0_alt10p0_raz090p0_aod0p150_rep1"
+ },
+ {
+  "atmosphere": "afglus",
+  "aerosolModel": "libRadtran aerosol_default (Shettle rural boundary layer, background above), scaled via aerosol_modify tau550 set",
+  "surfaceAlbedo": 0.15,
+  "observerElevationM": 0,
+  "solver": "mystic",
+  "randomSeed": 3002,
+  "vroom": "on",
+  "sunDepressionDeg": 8,
+  "targetAltitudeDeg": 10,
+  "relativeAzimuthDeg": 90,
+  "aod550": 0.15,
+  "group": "mc-repeat-deep",
+  "photonCount": 40000000,
+  "repeatIndex": 2,
+  "caseId": "sd08p0_alt10p0_raz090p0_aod0p150_rep2"
+ },
+ {
+  "atmosphere": "afglus",
+  "aerosolModel": "libRadtran aerosol_default (Shettle rural boundary layer, background above), scaled via aerosol_modify tau550 set",
+  "surfaceAlbedo": 0.15,
+  "observerElevationM": 0,
+  "solver": "mystic",
+  "randomSeed": 3003,
+  "vroom": "on",
+  "sunDepressionDeg": 8,
+  "targetAltitudeDeg": 10,
+  "relativeAzimuthDeg": 90,
+  "aod550": 0.15,
+  "group": "mc-repeat-deep",
+  "photonCount": 40000000,
+  "repeatIndex": 3,
+  "caseId": "sd08p0_alt10p0_raz090p0_aod0p150_rep3"
+ },
+ {
+  "atmosphere": "afglus",
+  "aerosolModel": "libRadtran aerosol_default (Shettle rural boundary layer, background above), scaled via aerosol_modify tau550 set",
+  "surfaceAlbedo": 0.15,
+  "observerElevationM": 0,
+  "solver": "mystic",
+  "randomSeed": 3004,
+  "vroom": "on",
+  "sunDepressionDeg": 8,
+  "targetAltitudeDeg": 10,
+  "relativeAzimuthDeg": 90,
+  "aod550": 0.15,
+  "group": "mc-repeat-deep",
+  "photonCount": 40000000,
+  "repeatIndex": 4,
+  "caseId": "sd08p0_alt10p0_raz090p0_aod0p150_rep4"
+ },
+ {
+  "atmosphere": "afglus",
+  "aerosolModel": "libRadtran aerosol_default (Shettle rural boundary layer, background above), scaled via aerosol_modify tau550 set",
+  "surfaceAlbedo": 0.15,
+  "observerElevationM": 0,
+  "solver": "mystic",
+  "randomSeed": 3005,
+  "vroom": "on",
+  "sunDepressionDeg": 8,
+  "targetAltitudeDeg": 10,
+  "relativeAzimuthDeg": 90,
+  "aod550": 0.15,
+  "group": "mc-repeat-deep",
+  "photonCount": 40000000,
+  "repeatIndex": 5,
+  "caseId": "sd08p0_alt10p0_raz090p0_aod0p150_rep5"
+ },
+ {
+  "atmosphere": "afglus",
+  "aerosolModel": "libRadtran aerosol_default (Shettle rural boundary layer, background above), scaled via aerosol_modify tau550 set",
+  "surfaceAlbedo": 0.15,
+  "observerElevationM": 0,
+  "solver": "mystic",
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 9,
@@ -962,6 +1046,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "domain-probe",
+  "photonCount": 40000000,
   "caseId": "sd09p0_alt90p0_raz000p0_aod0p150"
  },
  {
@@ -970,7 +1055,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 2000000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 10,
@@ -978,6 +1062,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "domain-probe",
+  "photonCount": 40000000,
   "caseId": "sd10p0_alt90p0_raz000p0_aod0p150"
  },
  {
@@ -986,7 +1071,6 @@
   "surfaceAlbedo": 0.15,
   "observerElevationM": 0,
   "solver": "mystic",
-  "photonCount": 2000000,
   "randomSeed": 1000,
   "vroom": "on",
   "sunDepressionDeg": 12,
@@ -994,6 +1078,7 @@
   "relativeAzimuthDeg": 0,
   "aod550": 0.15,
   "group": "domain-probe",
+  "photonCount": 40000000,
   "caseId": "sd12p0_alt90p0_raz000p0_aod0p150"
  }
 ]

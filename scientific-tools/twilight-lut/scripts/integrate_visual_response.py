@@ -51,32 +51,62 @@ def nl_from_mag(sb):
     return 34.08 * math.exp(20.7233 - 0.92104 * sb)
 
 
+def interp_v(table, wavelength_nm):
+    """Linear interpolation of a 380..780/10nm table."""
+    x = (wavelength_nm - 380.0) / 10.0
+    i = int(math.floor(x))
+    if i < 0 or i >= len(table) - 1:
+        return table[0] if i < 0 else table[-1]
+    f = x - i
+    return table[i] * (1 - f) + table[i + 1] * f
+
+
 def weighted_sum(rad_mw, std_mw, weights, km):
-    """Return (value, sigma) of km * sum w*L_e*dl with L_e in W units."""
+    """(value, sigma) of km * sum w*L_e*dl on the 41-node/10nm grid,
+    radiance in mW units. Used for uncertainty (node noise is coherent)."""
     val = km * sum(w * r * 1e-3 * DL_NM for w, r in zip(weights, rad_mw))
-    var = 0.0
-    complete = True
+    var, missing = 0.0, 0
     for w, s in zip(weights, std_mw):
         if s is None:
-            complete = False
+            missing += 1
             continue
         var += (km * w * s * 1e-3 * DL_NM) ** 2
-    return val, (math.sqrt(var) if complete or var > 0 else None)
+    if missing == len(std_mw):
+        return val, None
+    return val, math.sqrt(var)
+
+
+def fine_weighted_sum(wl, rad_mw, table, km):
+    """km * trapezoid of interpolated table * radiance over the binned fine
+    grid (1 nm bins). Primary luminance value: keeps solar-spectrum structure."""
+    total = 0.0
+    for i in range(len(wl) - 1):
+        dl = wl[i + 1] - wl[i]
+        f0 = interp_v(table, wl[i]) * rad_mw[i]
+        f1 = interp_v(table, wl[i + 1]) * rad_mw[i + 1]
+        total += 0.5 * (f0 + f1) * dl
+    return km * total * 1e-3
 
 
 def integrate_record(rec):
-    rad = rec["radiance_mW_m2_nm_sr"]
-    std = rec["radianceStd_mW_m2_nm_sr"]
-    L, sL = weighted_sum(rad, std, V_PHOT, KM_PHOTOPIC)
-    Ls, sLs = weighted_sum(rad, std, V_SCOT, KM_SCOTOPIC)
+    wl_fine = rec["binnedWavelengthNm"]
+    rad_fine = rec["binnedRadiance_mW_m2_nm_sr"]
+    rad = rec["nodeRadiance_mW_m2_nm_sr"]
+    std = rec["nodeRadianceStd_mW_m2_nm_sr"]
+    L = fine_weighted_sum(wl_fine, rad_fine, V_PHOT, KM_PHOTOPIC)
+    Ls = fine_weighted_sum(wl_fine, rad_fine, V_SCOT, KM_SCOTOPIC)
+    L_node, sL = weighted_sum(rad, std, V_PHOT, KM_PHOTOPIC)
+    _, sLs = weighted_sum(rad, std, V_SCOT, KM_SCOTOPIC)
     out = {
         "photopicLuminanceCdM2": L,
         "photopicLuminanceStdCdM2": sL,
+        "photopicLuminanceNodeGridCdM2": L_node,
+        "wavelengthGridConsistency": (abs(L - L_node) / L) if L > 0 else None,
         "scotopicLuminanceScotCdM2": Ls,
         "scotopicLuminanceStdScotCdM2": sLs,
         "sToPRatio": (Ls / L) if L > 0 else None,
-        "negativeSpectralValues": sum(1 for r in rad if r < 0),
-        "zeroSpectralValues": sum(1 for r in rad if r == 0),
+        "negativeSpectralValues": sum(1 for r in rad_fine if r < 0),
+        "zeroSpectralValues": sum(1 for r in rad_fine if r == 0),
     }
     out["photopicRelativeUncertainty"] = (sL / L) if (sL and L > 0) else None
     if L > 0:

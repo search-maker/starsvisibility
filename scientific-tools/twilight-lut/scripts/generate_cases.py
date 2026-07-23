@@ -7,6 +7,12 @@ Sensitivity:     intermediate depression/altitude/azimuth, low/high AOD,
                  Monte Carlo seed repeats, deep-depression domain probes.
 All cases: afglus atmosphere, default rural aerosol scaled to tau550,
 albedo 0.15, sea level, MYSTIC 1D-spherical backward, VROOM on.
+
+Photon budget: mc_photons in spectral mode is the TOTAL photon count
+distributed over the 41-wavelength grid (measured empirically: a 41-lambda run
+costs the same as a single-lambda run at equal mc_photons). Deeper twilight
+needs more photons for the same relative error, so the budget scales with
+depression. Values chosen from the measured 1/sqrt(N) convergence at 550 nm.
 """
 import json
 from lrt_common import CASES_DIR, case_id
@@ -18,15 +24,18 @@ BASE = {
     "surfaceAlbedo": 0.15,
     "observerElevationM": 0,
     "solver": "mystic",
-    "photonCount": 200000,
     "randomSeed": 1000,
     "vroom": "on",
 }
 
+PHOTONS_BY_DEPRESSION = {0: 2000000, 2: 2000000, 4: 8000000,
+                         6: 20000000, 8: 40000000}
+
 
 def make(dep, alt, raz, aod, group, **kw):
     c = {**BASE, "sunDepressionDeg": dep, "targetAltitudeDeg": alt,
-         "relativeAzimuthDeg": raz, "aod550": aod, "group": group, **kw}
+         "relativeAzimuthDeg": raz, "aod550": aod, "group": group,
+         "photonCount": PHOTONS_BY_DEPRESSION.get(dep, 40000000), **kw}
     c["caseId"] = case_id(c)
     return c
 
@@ -52,14 +61,18 @@ def main():
         cases.append(make(4, alt, 90, 0.15, "sensitivity-altitude"))
     for raz in (45, 135):
         cases.append(make(4, 30, raz, 0.15, "sensitivity-azimuth"))
-    # Monte Carlo repeats: independent seeds, same physical case
+    # Monte Carlo repeats: independent seeds, same physical case.
+    # dep 4 mid-sky and the noisiest core geometry (dep 8, low alt, raz 90).
     for i, seed in enumerate((2001, 2002, 2003, 2004, 2005), start=1):
         cases.append(make(4, 30, 90, 0.15, "mc-repeat",
+                          randomSeed=seed, repeatIndex=i))
+    for i, seed in enumerate((3001, 3002, 3003, 3004, 3005), start=1):
+        cases.append(make(8, 10, 90, 0.15, "mc-repeat-deep",
                           randomSeed=seed, repeatIndex=i))
     # Deep-depression domain probes (expected to fail / go noisy; that is the point)
     for dep in (9, 10, 12):
         cases.append(make(dep, 90, 0, 0.15, "domain-probe",
-                          photonCount=2000000))
+                          photonCount=40000000))
     CASES_DIR.mkdir(exist_ok=True)
     out = CASES_DIR / "feasibility_cases.json"
     out.write_text(json.dumps(cases, indent=1))

@@ -276,6 +276,16 @@ UI defaults and labels. The annual worker re-executes the same script, so a
 boundary-respecting change automatically propagates; no separate worker change
 is needed (and none is planned in the feasibility phase).
 
+## 8a. Documentation inconsistency found during the audit
+
+`SCIENTIFIC_MODEL_REVIEW.md` (repo root) states the post-6° slope as
+"0.95 mag/arcsec^2 per degree" — matching the implemented constant
+`TWILIGHT_POST6_SLOPE_MAG_PER_DEG = 0.95` — but its example table
+(dep 8 → 17.27, dep 10 → 19.27, dep 12 → 21.27 for base SQM 21.8) was computed
+with a slope of exactly 1.0. The code actually yields 17.17 / 19.07 / 20.97.
+The Python port and its regression tests follow the **code**; the table in the
+review notes is the inconsistent artifact.
+
 ## 9. Uncertainties in the current implementation
 
 - Twilight anchors 0–6° are an in-house calibration with unstated uncertainty;
