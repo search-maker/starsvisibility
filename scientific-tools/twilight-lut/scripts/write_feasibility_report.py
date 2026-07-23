@@ -139,13 +139,18 @@ def main():
     all_pass = all(g["passed"] for g in gates)
     stats["feasibilityVerdict"] = "PASS" if all_pass else "PARTIAL/FAIL"
     stats["supportedDomain"] = {
-        "sunDepressionDeg": [0, 8],
+        "sunDepressionDeg": [0, 10],
+        "sunDepressionNote": "0-8 deg resolves to <=6% rel. error at the "
+        "boosted photon budgets; 9-10 deg resolves to ~9-13% at zenith with "
+        "4e7 photons (domain probes); 12 deg is MARGINAL (~37%). Worst "
+        "geometry (low altitude, near-sun) is noisier than zenith at equal "
+        "depth. Practical LUT limit ~10 deg; 10-12 deg needs >1e8 photons.",
         "targetAltitudeDeg": [10, 90],
         "relativeAzimuthDeg": [0, 180],
         "aod550": [0.05, 0.30],
-        "unsupported": "depression > ~9 deg (MC signal below noise even at "
-                       "4e7 photons; see domainProbes), altitude < 10 deg "
-                       "(untested), any cloud, refraction not modelled",
+        "unsupported": "depression > ~12 deg (MC cost impractical), "
+                       "altitude < 10 deg (untested), any cloud, refraction "
+                       "not modelled, single aerosol family / atmosphere only",
     }
     (REPORTS / "FEASIBILITY_REPORT.json").write_text(
         json.dumps({"environment": env, "statistics": stats}, indent=1))

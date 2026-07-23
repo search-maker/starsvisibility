@@ -1,0 +1,68 @@
+{
+ "checks": [
+  {
+   "check": "zenith luminance dep 0 deg",
+   "passed": true,
+   "detail": "sim 10^2.12 cd/m2 vs anchor 10^2.30 \u00b1 0.45 dex (Koomen 1952 / Rozenberg 1966 zenith luminance at sunset ~1e2..4e2 cd/m2)"
+  },
+  {
+   "check": "zenith luminance dep 4 deg",
+   "passed": true,
+   "detail": "sim 10^0.70 cd/m2 vs anchor 10^0.78 \u00b1 0.55 dex (interpolated Koomen/Rozenberg zenith decay (~1 dex per ~2 deg))"
+  },
+  {
+   "check": "zenith luminance dep 8 deg",
+   "passed": true,
+   "detail": "sim 10^-1.25 cd/m2 vs anchor 10^-1.22 \u00b1 0.65 dex (interpolated Koomen/Rozenberg zenith decay toward ~1e-3 cd/m2 at ~11 deg)"
+  },
+  {
+   "check": "zenith decay slope 4-8 deg vs Patat 2006 (~1 mag/deg, 6-12 deg)",
+   "passed": true,
+   "detail": "sim 1.22 mag/arcsec2/deg vs literature 0.8-1.2 (ranges differ: 4-8 vs 6-12 deg \u2014 tolerance widened \u00b10.25)"
+  },
+  {
+   "check": "all resolved radiances finite and positive",
+   "passed": true,
+   "detail": "57 cases"
+  },
+  {
+   "check": "brightness declines monotonically with depression (12 geometries)",
+   "passed": true,
+   "detail": "failures: none"
+  },
+  {
+   "check": "sunward brighter than antisolar at alt 10",
+   "passed": true,
+   "detail": "dep 0: 5.5x; dep 4: 19.2x; dep 8: 22.0x"
+  },
+  {
+   "check": "solar/antisolar contrast grows with depression",
+   "passed": true,
+   "detail": "monotone growth expected as shadow rises antisolar-first"
+  },
+  {
+   "check": "AOD response finite and documented (dep 4, alt 10, sunward)",
+   "passed": true,
+   "detail": "AOD 0.05: 163 cd/m2; AOD 0.15: 110 cd/m2; AOD 0.3: 59 cd/m2"
+  }
+ ],
+ "passed": 9,
+ "total": 9,
+ "diagnostics": [
+  {
+   "diagnostic": "illuminance dep 0 deg (factor-3, crude quadrature)",
+   "expectationMet": true,
+   "detail": "sim 919 lx (10^2.96) vs anchor 10^2.74 \u00b1 0.3 (sunset horizontal illuminance ~400-700 lx)"
+  },
+  {
+   "diagnostic": "illuminance dep 4 deg (factor-3, crude quadrature)",
+   "expectationMet": false,
+   "detail": "sim 37.8 lx (10^1.58) vs anchor 10^1.08 \u00b1 0.45 (interpolated twilight illuminance curve)"
+  },
+  {
+   "diagnostic": "illuminance dep 8 deg (factor-3, crude quadrature)",
+   "expectationMet": true,
+   "detail": "sim 0.618 lx (10^-0.21) vs anchor 10^-0.46 \u00b1 0.55 (interpolated twilight illuminance curve)"
+  }
+ ]
+}

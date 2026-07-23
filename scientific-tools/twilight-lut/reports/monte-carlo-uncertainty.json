@@ -1,0 +1,63 @@
+{
+ "groups": [
+  {
+   "sunDepressionDeg": 4,
+   "targetAltitudeDeg": 30,
+   "relativeAzimuthDeg": 90,
+   "aod550": 0.15,
+   "nSeeds": 6,
+   "photonCount": 8000000,
+   "meanLuminanceCdM2": 8.636106265083738,
+   "empiricalStdCdM2": 0.07166829568079579,
+   "empiricalRelStd": 0.00829868154477843,
+   "meanReportedStdCdM2": 0.08605789369685497,
+   "empiricalToReportedRatio": 0.8327916545721237,
+   "seeds": [
+    2001,
+    2002,
+    2003,
+    2004,
+    2005,
+    1000
+   ],
+   "values": [
+    8.715505183878122,
+    8.628998502144887,
+    8.57612234315947,
+    8.600198701696746,
+    8.563760417855537,
+    8.732052441767669
+   ]
+  },
+  {
+   "sunDepressionDeg": 8,
+   "targetAltitudeDeg": 10,
+   "relativeAzimuthDeg": 90,
+   "aod550": 0.15,
+   "nSeeds": 6,
+   "photonCount": 40000000,
+   "meanLuminanceCdM2": 0.17324492264802657,
+   "empiricalStdCdM2": 0.0037025166298487065,
+   "empiricalRelStd": 0.02137157368456294,
+   "meanReportedStdCdM2": 0.005339289221359096,
+   "empiricalToReportedRatio": 0.6934474751877638,
+   "seeds": [
+    3001,
+    3002,
+    3003,
+    3004,
+    3005,
+    1000
+   ],
+   "values": [
+    0.17888438492865638,
+    0.17559058262570917,
+    0.16918083068560907,
+    0.1701437655488084,
+    0.17437890582798796,
+    0.1712910662713884
+   ]
+  }
+ ],
+ "worstEmpiricalToReportedRatio": 0.8327916545721237
+}

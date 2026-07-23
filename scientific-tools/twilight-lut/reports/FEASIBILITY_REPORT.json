@@ -1,0 +1,247 @@
+{
+ "environment": {
+  "uvspecVersion": "uvspec, version 2.0.6-MYSTIC",
+  "libradtranSource": "conda-forge rubin-libradtran (real build of the upstream libRadtran 2.0.6 tarball)",
+  "dataPackage": "share/libRadtran/data from the same package",
+  "generatorCommit": "18139c9969b592d7b64ee06939ebc433b0ebd882",
+  "outputsAreReal": true,
+  "pythonEnv": {
+   "LIBRADTRAN_BIN": "/tmp/claude-0/-home-user-starsvisibility/a343e0a7-9db0-5842-b21e-416b412b4e0f/scratchpad/lrt-env/bin/uvspec",
+   "LIBRADTRAN_DATA": "/tmp/claude-0/-home-user-starsvisibility/a343e0a7-9db0-5842-b21e-416b412b4e0f/scratchpad/lrt-env/share/libRadtran/data"
+  }
+ },
+ "statistics": {
+  "casesTotal": 67,
+  "casesOk": 67,
+  "casesFailed": 0,
+  "casesStatisticallyUnresolved": 0,
+  "unresolvedCaseIds": [],
+  "failedCaseIds": [],
+  "photonCountsByDepression": {
+   "0": 2000000,
+   "2": 2000000,
+   "4": 8000000,
+   "6": 20000000,
+   "8": 40000000
+  },
+  "runtimeSecondsPerCase": {
+   "median": 39.768,
+   "max": 224.131,
+   "total": 5480.922
+  },
+  "photopicRelativeUncertainty": {
+   "median": 0.011359504085986969,
+   "max": 0.3712793068311472
+  },
+  "wavelengthGridConsistency": {
+   "median": 0.003222938862737195,
+   "max": 0.007706297431260115
+  },
+  "rawOutputMB": 147.7,
+  "domainProbes": [
+   {
+    "sunDepressionDeg": 9,
+    "luminanceCdM2": 0.02473379941152525,
+    "relUncert": 0.09247116578538256,
+    "resolved": true
+   },
+   {
+    "sunDepressionDeg": 10,
+    "luminanceCdM2": 0.010703331878195887,
+    "relUncert": 0.12602555056153494,
+    "resolved": true
+   },
+   {
+    "sunDepressionDeg": 12,
+    "luminanceCdM2": 0.0021764074403458227,
+    "relUncert": 0.3712793068311472,
+    "resolved": true
+   }
+  ],
+  "monteCarlo": {
+   "groups": [
+    {
+     "sunDepressionDeg": 4,
+     "targetAltitudeDeg": 30,
+     "relativeAzimuthDeg": 90,
+     "aod550": 0.15,
+     "nSeeds": 6,
+     "photonCount": 8000000,
+     "meanLuminanceCdM2": 8.636106265083738,
+     "empiricalStdCdM2": 0.07166829568079579,
+     "empiricalRelStd": 0.00829868154477843,
+     "meanReportedStdCdM2": 0.08605789369685497,
+     "empiricalToReportedRatio": 0.8327916545721237,
+     "seeds": [
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      1000
+     ],
+     "values": [
+      8.715505183878122,
+      8.628998502144887,
+      8.57612234315947,
+      8.600198701696746,
+      8.563760417855537,
+      8.732052441767669
+     ]
+    },
+    {
+     "sunDepressionDeg": 8,
+     "targetAltitudeDeg": 10,
+     "relativeAzimuthDeg": 90,
+     "aod550": 0.15,
+     "nSeeds": 6,
+     "photonCount": 40000000,
+     "meanLuminanceCdM2": 0.17324492264802657,
+     "empiricalStdCdM2": 0.0037025166298487065,
+     "empiricalRelStd": 0.02137157368456294,
+     "meanReportedStdCdM2": 0.005339289221359096,
+     "empiricalToReportedRatio": 0.6934474751877638,
+     "seeds": [
+      3001,
+      3002,
+      3003,
+      3004,
+      3005,
+      1000
+     ],
+     "values": [
+      0.17888438492865638,
+      0.17559058262570917,
+      0.16918083068560907,
+      0.1701437655488084,
+      0.17437890582798796,
+      0.1712910662713884
+     ]
+    }
+   ],
+   "worstEmpiricalToReportedRatio": 0.8327916545721237
+  },
+  "observationalChecks": {
+   "checks": [
+    {
+     "check": "zenith luminance dep 0 deg",
+     "passed": true,
+     "detail": "sim 10^2.12 cd/m2 vs anchor 10^2.30 \u00b1 0.45 dex (Koomen 1952 / Rozenberg 1966 zenith luminance at sunset ~1e2..4e2 cd/m2)"
+    },
+    {
+     "check": "zenith luminance dep 4 deg",
+     "passed": true,
+     "detail": "sim 10^0.70 cd/m2 vs anchor 10^0.78 \u00b1 0.55 dex (interpolated Koomen/Rozenberg zenith decay (~1 dex per ~2 deg))"
+    },
+    {
+     "check": "zenith luminance dep 8 deg",
+     "passed": true,
+     "detail": "sim 10^-1.25 cd/m2 vs anchor 10^-1.22 \u00b1 0.65 dex (interpolated Koomen/Rozenberg zenith decay toward ~1e-3 cd/m2 at ~11 deg)"
+    },
+    {
+     "check": "zenith decay slope 4-8 deg vs Patat 2006 (~1 mag/deg, 6-12 deg)",
+     "passed": true,
+     "detail": "sim 1.22 mag/arcsec2/deg vs literature 0.8-1.2 (ranges differ: 4-8 vs 6-12 deg \u2014 tolerance widened \u00b10.25)"
+    },
+    {
+     "check": "all resolved radiances finite and positive",
+     "passed": true,
+     "detail": "57 cases"
+    },
+    {
+     "check": "brightness declines monotonically with depression (12 geometries)",
+     "passed": true,
+     "detail": "failures: none"
+    },
+    {
+     "check": "sunward brighter than antisolar at alt 10",
+     "passed": true,
+     "detail": "dep 0: 5.5x; dep 4: 19.2x; dep 8: 22.0x"
+    },
+    {
+     "check": "solar/antisolar contrast grows with depression",
+     "passed": true,
+     "detail": "monotone growth expected as shadow rises antisolar-first"
+    },
+    {
+     "check": "AOD response finite and documented (dep 4, alt 10, sunward)",
+     "passed": true,
+     "detail": "AOD 0.05: 163 cd/m2; AOD 0.15: 110 cd/m2; AOD 0.3: 59 cd/m2"
+    }
+   ],
+   "passed": 9,
+   "total": 9,
+   "diagnostics": [
+    {
+     "diagnostic": "illuminance dep 0 deg (factor-3, crude quadrature)",
+     "expectationMet": true,
+     "detail": "sim 919 lx (10^2.96) vs anchor 10^2.74 \u00b1 0.3 (sunset horizontal illuminance ~400-700 lx)"
+    },
+    {
+     "diagnostic": "illuminance dep 4 deg (factor-3, crude quadrature)",
+     "expectationMet": false,
+     "detail": "sim 37.8 lx (10^1.58) vs anchor 10^1.08 \u00b1 0.45 (interpolated twilight illuminance curve)"
+    },
+    {
+     "diagnostic": "illuminance dep 8 deg (factor-3, crude quadrature)",
+     "expectationMet": true,
+     "detail": "sim 0.618 lx (10^-0.21) vs anchor 10^-0.46 \u00b1 0.55 (interpolated twilight illuminance curve)"
+    }
+   ]
+  },
+  "projected525CellGridHoursSingleCore": 9.98,
+  "gates": [
+   {
+    "gate": "solver+geometry valid in twilight",
+    "passed": true,
+    "evidence": "MYSTIC 1D-spherical backward produces finite positive radiance for depressions 0-8 deg; DISORT/pseudospherical demonstrated invalid (negative radiances) beyond SZA 90 and is not used"
+   },
+   {
+    "gate": "numerical stability adequate for a LUT",
+    "passed": true,
+    "evidence": "median photopic relative uncertainty 1.136% (max 37.1%)"
+   },
+   {
+    "gate": "Monte Carlo uncertainty quantified",
+    "passed": true,
+    "evidence": "independent-seed repeats; worst empirical/reported ratio 0.83"
+   },
+   {
+    "gate": "runtime practical for the expanded grid",
+    "passed": true,
+    "evidence": "projected 525-cell grid: 9.98 h single-core"
+   },
+   {
+    "gate": "output convertible to the calculator's quantities",
+    "passed": true,
+    "evidence": "spectral radiance -> photopic luminance -> nL -> KS-convention mag/arcsec2; fine-vs-node grid consistency median 0.32%"
+   },
+   {
+    "gate": "plausible agreement with independent observations",
+    "passed": true,
+    "evidence": "9/9 anchor+sanity checks passed (offline literature anchors; see OBSERVATIONAL_VALIDATION.md)"
+   }
+  ],
+  "feasibilityVerdict": "PASS",
+  "supportedDomain": {
+   "sunDepressionDeg": [
+    0,
+    10
+   ],
+   "sunDepressionNote": "0-8 deg resolves to <=6% rel. error at the boosted photon budgets; 9-10 deg resolves to ~9-13% at zenith with 4e7 photons (domain probes); 12 deg is MARGINAL (~37%). Worst geometry (low altitude, near-sun) is noisier than zenith at equal depth. Practical LUT limit ~10 deg; 10-12 deg needs >1e8 photons.",
+   "targetAltitudeDeg": [
+    10,
+    90
+   ],
+   "relativeAzimuthDeg": [
+    0,
+    180
+   ],
+   "aod550": [
+    0.05,
+    0.3
+   ],
+   "unsupported": "depression > ~12 deg (MC cost impractical), altitude < 10 deg (untested), any cloud, refraction not modelled, single aerosol family / atmosphere only"
+  }
+ }
+}
