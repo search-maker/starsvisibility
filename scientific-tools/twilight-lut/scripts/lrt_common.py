@@ -117,12 +117,86 @@ def configuration_hash(case, uvspec_ver, data_provenance):
     return hashlib.sha256(blob.encode()).hexdigest()
 
 
+def _sha256_file(path):
+    p = Path(path)
+    if not p.exists():
+        return None
+    h = hashlib.sha256()
+    h.update(p.read_bytes())
+    return h.hexdigest()
+
+
 def data_provenance(data_dir):
-    """A stable fingerprint of the libRadtran data package used."""
+    """A stable fingerprint of the libRadtran data package: sha256 of the ACTUAL
+    atmosphere, aerosol, and solar-spectrum files used (PG-6), not just a
+    directory path and one file size."""
     d = Path(data_dir)
-    marker = d / "solar_flux" / "atlas_plus_modtran"
-    size = marker.stat().st_size if marker.exists() else None
-    return {"dataDir": str(d), "solarSpectrumBytes": size}
+    files = {
+        "atmosphere_afglus": d / "atmmod" / "afglus.dat",
+        "solar_atlas_plus_modtran": d / "solar_flux" / "atlas_plus_modtran",
+    }
+    # aerosol_default uses the Shettle tau550 scaling tables.
+    shettle = d / "aerosol" / "shettle"
+    if shettle.is_dir():
+        for f in sorted(shettle.glob("tau550.*"))[:2]:
+            files["aerosol_shettle_" + f.name] = f
+    checks = {k: _sha256_file(v) for k, v in files.items()}
+    return {"dataDir": str(d), "fileSha256": checks}
+
+
+SENTINEL_MAX = 1e30   # MYSTIC missing-pixel placeholders (~8.99e306) and inf
+
+
+def validate_run_outputs(adir):
+    """Rigorous output validation (PG-6). Returns (status, detail).
+    status 'ok' only if: every required wavelength present in BOTH the radiance
+    and std spectra; all radiances finite, non-sentinel; all std finite and
+    non-negative. 'noise-dominated' if EVERY required wavelength is unresolved
+    (std >= value). Otherwise a specific failure status."""
+    adir = Path(adir)
+    rad_f, std_f = adir / "mc.rad.spc", adir / "mc.rad.std.spc"
+    if not rad_f.exists():
+        return "no-radiance-output", {}
+    try:
+        rad = parse_spc(rad_f)
+    except (OSError, ValueError) as e:
+        return f"rad-parse-error:{e}", {}
+    if not rad:
+        return "empty-radiance", {}
+
+    def cover(d):
+        return [w for w in WAVELENGTH_NM if not any(abs(w - x) < 1.0 for x in d)]
+
+    miss = cover(rad)
+    if miss:
+        return f"incomplete-spectrum-missing-{len(miss)}", {"missing": miss}
+    bad = [w for w, v in rad.items()
+           if not math.isfinite(v) or abs(v) > SENTINEL_MAX]
+    if bad:
+        return "nonfinite-or-sentinel-radiance", {"badWavelengths": bad[:10]}
+    if not std_f.exists():
+        return "no-std-output", {}
+    try:
+        std = parse_spc(std_f)
+    except (OSError, ValueError) as e:
+        return f"std-parse-error:{e}", {}
+    if cover(std):
+        return "incomplete-std-spectrum", {"missing": cover(std)}
+    badstd = [w for w, s in std.items()
+              if not math.isfinite(s) or s < 0 or abs(s) > SENTINEL_MAX]
+    if badstd:
+        return "invalid-std", {"badWavelengths": badstd[:10]}
+    # noise-dominated: unresolved at EVERY required wavelength
+    def nearest_val(d, w):
+        return d[min(d, key=lambda x: abs(x - w))]
+    unresolved = sum(1 for w in WAVELENGTH_NM
+                     if nearest_val(std, w) >= max(nearest_val(rad, w), 0))
+    if unresolved == len(WAVELENGTH_NM):
+        return "noise-dominated", {"unresolvedWavelengths": unresolved}
+    detail = {"radianceSha256": _sha256_file(rad_f),
+              "stdSha256": _sha256_file(std_f),
+              "unresolvedWavelengths": unresolved}
+    return "ok", detail
 
 
 def umu_for_altitude(target_altitude_deg):
@@ -214,17 +288,14 @@ def _valid_completed_attempt(attempt_dir, expected_hash, expected_ver):
         return False, "version-mismatch"
     if meta.get("status") != "ok":
         return False, "status-" + str(meta.get("status"))
-    rad = attempt_dir / "mc.rad.spc"
-    if not rad.exists():
-        return False, "no-rad-file"
-    try:
-        parsed = parse_spc(rad)
-    except (OSError, ValueError):
-        return False, "rad-unparseable"
-    covered = sum(1 for w in WAVELENGTH_NM
-                  if any(abs(w - x) < 1.0 for x in parsed))
-    if covered < len(WAVELENGTH_NM):
-        return False, f"incomplete-spectrum-{covered}/{len(WAVELENGTH_NM)}"
+    # PG-6: re-run the full output validation on reuse, and verify the recorded
+    # radiance checksum still matches the file on disk (tamper/corruption guard).
+    status, detail = validate_run_outputs(attempt_dir)
+    if status != "ok":
+        return False, "revalidation-" + status
+    recorded = meta.get("outputValidation", {}).get("radianceSha256")
+    if recorded and recorded != detail.get("radianceSha256"):
+        return False, "radiance-checksum-changed"
     return True, "ok"
 
 
@@ -283,15 +354,12 @@ def run_case(case, uvspec, data_dir, overwrite=False, timeout=3600):
     except subprocess.TimeoutExpired:
         rc, err = -1, "timeout"
     runtime = time.time() - t0
-    rad_file = adir / "mc.rad.spc"
     if err:
-        status = err
+        status, out_detail = err, {}
     elif rc != 0:
-        status = f"uvspec-exit-{rc}"
-    elif not rad_file.exists() or not parse_spc(rad_file):
-        status = "no-radiance-output"
+        status, out_detail = f"uvspec-exit-{rc}", {}
     else:
-        status = "ok"
+        status, out_detail = validate_run_outputs(adir)   # PG-6 rigorous check
     meta = {
         "caseId": cid, "attempt": f"attempt-{idx:03d}",
         "configurationHash": cfg_hash,
@@ -303,6 +371,7 @@ def run_case(case, uvspec, data_dir, overwrite=False, timeout=3600):
         "umu": umu_for_altitude(case["targetAltitudeDeg"]),
         "phi": case["relativeAzimuthDeg"], "phi0": 0.0,
         "status": status, "runtimeSeconds": round(runtime, 3),
+        "outputValidation": out_detail,
         "inputSha256": sha256_text(inp_text),
         "uvspecVersion": uvspec_ver,
         "generatorCommit": git_commit_hash(),
