@@ -8,8 +8,8 @@ Comparison is UNMATCHED (sea-level AOD 0.15). Patat coefficient status: TRANSCRI
 
 | dep | Patat V | sim synthetic V | sim V+floor | residual (sim−Patat) | matched |
 |---|---|---|---|---|---|
-| 8 | 15.881 | 15.268 | 15.268 | -0.613 | False |
-| 10 | 18.005 | 16.952 | 16.952 | -1.053 | False |
+| 8 | 15.881 | 15.7 | 15.7 | -0.181 | False |
+| 10 | 18.005 | 17.496 | 17.496 | -0.509 | False |
 
 ## Spitschan 2016 (irradiance; spectral/S-P only)
 

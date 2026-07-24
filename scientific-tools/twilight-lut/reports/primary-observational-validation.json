@@ -6,9 +6,9 @@
    {
     "sunDepressionDeg": 8,
     "patatZenithV": 15.881,
-    "simSyntheticV": 15.268,
-    "simVWithFloor": 15.268,
-    "residualMag": -0.613,
+    "simSyntheticV": 15.7,
+    "simVWithFloor": 15.7,
+    "residualMag": -0.181,
     "matched": false,
     "simSiteElevationM": 0,
     "simAod550": 0.15
@@ -16,9 +16,9 @@
    {
     "sunDepressionDeg": 10,
     "patatZenithV": 18.005,
-    "simSyntheticV": 16.952,
-    "simVWithFloor": 16.952,
-    "residualMag": -1.053,
+    "simSyntheticV": 17.496,
+    "simVWithFloor": 17.496,
+    "residualMag": -0.509,
     "matched": false,
     "simSiteElevationM": 0,
     "simAod550": 0.15

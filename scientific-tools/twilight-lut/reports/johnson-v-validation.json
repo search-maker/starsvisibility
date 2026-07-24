@@ -1,0 +1,44 @@
+{
+ "passbandFile": "validation-data/passbands/bessell-V.ecsv",
+ "passbandSha256": "20e8d89346b5bc71f848ff3eee054a92e1ba53872fb048ac670151b52dac99a1",
+ "passbandSource": "Bessell 1990 (DOI 10.1086/132749) via speclite",
+ "responseKind": "normalised system response; photon-counting synthetic photometry (weight response*lambda) per Bessell & Murphy 2012",
+ "zeroPoint_mW_m2_nm": 3.63e-08,
+ "photonEffectiveWavelengthNm": 553.6148092775339,
+ "independentReference": "speclite",
+ "checks": [
+  {
+   "check": "passband checksum matches vendored authoritative file",
+   "passed": true,
+   "detail": "20e8d89346b5bc71f848ff3eee054a92e1ba53872fb048ac670151b52dac99a1"
+  },
+  {
+   "check": "passband peak at 530 nm",
+   "passed": true,
+   "detail": "peak 530.0 nm"
+  },
+  {
+   "check": "photon effective wavelength matches independent reference (speclite)",
+   "passed": true,
+   "detail": "mine 553.61 nm vs speclite 553.61 nm"
+  },
+  {
+   "check": "flat-f_lambda source has unit passband mean",
+   "passed": true,
+   "detail": "mean 1.000000"
+  },
+  {
+   "check": "zero-point round trip gives V=0",
+   "passed": true,
+   "detail": "V=-2.41e-16"
+  },
+  {
+   "check": "100x brighter is exactly 5 mag brighter",
+   "passed": true,
+   "detail": "delta 5.000000"
+  }
+ ],
+ "passed": 6,
+ "total": 6,
+ "pass": true
+}

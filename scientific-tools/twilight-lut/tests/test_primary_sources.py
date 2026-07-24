@@ -66,3 +66,16 @@ def test_johnson_v_zeropoint_scale():
 def test_johnson_v_none_for_zero():
     wl = list(range(400, 701, 10))
     assert johnson_v.johnson_v_surface_brightness(wl, [0.0] * len(wl)) is None
+
+
+def test_johnson_v_passband_peak_and_effwl():
+    # PG-1: authoritative Bessell V peaks at 530 nm; photon eff wl ~554 nm
+    assert abs(johnson_v.PASSBAND_PEAK_NM - 530) < 1e-6
+    assert 545 <= johnson_v.effective_wavelength_nm() <= 556
+
+
+def test_johnson_v_passband_checksum_enforced():
+    # loading verifies the checksum; corrupting it must raise
+    import hashlib
+    raw = johnson_v.PASSBAND_FILE.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == johnson_v.PASSBAND_SHA256
