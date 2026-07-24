@@ -225,22 +225,32 @@ def build_input(case, data_dir, wl_file, basename):
         f"phi {phi:.2f}",
     ]
     solver = case.get("solver", "mystic")
-    # Observer elevation. FINDING (verified on uvspec 2.0.6): the `altitude`
-    # option is REJECTED by the montecarlo solver ("option altitude does not
-    # work with solver montecarlo! Use mc_elevation_file!"). So the directive's
-    # `altitude <km>` mechanism applies only to DISORT-family solvers. For the
-    # production MYSTIC 1D-spherical solver, a raised ground observer requires
-    # `mc_elevation_file` (a surface-elevation map), which is a separate
-    # implementation validated in the elevation sensitivity study. Until then we
-    # refuse to emit broken input for elevated MYSTIC cases rather than silently
-    # producing a wrong (sea-level) result.
-    if elev_m > 0:
+    # Observer elevation: FAIL-CLOSED. Physical MYSTIC elevation support is still
+    # TODO (verified on uvspec 2.0.6: the `altitude` option is REJECTED by the
+    # montecarlo solver -- "use mc_elevation_file"). We only prevent the silent
+    # sea-level fallback here; we do NOT claim elevation is supported.
+    #
+    # Reject EVERY unsupported nonzero elevation, INCLUDING NEGATIVE elevation,
+    # until a physically validated implementation exists (mc_elevation_file for a
+    # uniform elevated 1-D site, verified for molecular/Rayleigh column, surface
+    # pressure, above-observer aerosol column, and radiance at 0/2.64/5 km).
+    #
+    # aod550-above-site contract: the LUT `aod550` axis is defined as the AEROSOL
+    # OPTICAL DEPTH ABOVE THE OBSERVING SITE. A sea-level full-column AOD must NOT
+    # be set and then have the lower atmosphere removed without recomputing the
+    # resulting above-site AOD. (Enforced when elevation support is implemented.)
+    if elev_m != 0:
         if solver == "mystic":
             raise NotImplementedError(
-                "observerElevationM>0 with MYSTIC needs mc_elevation_file "
-                "(altitude is rejected by the montecarlo solver); elevation "
-                "axis is deferred to the elevation sensitivity study")
-        lines.append(f"altitude {elev_m / 1000.0:.4f}")   # DISORT-family only
+                f"observerElevationM={elev_m} unsupported: physical MYSTIC "
+                "elevation support is TODO (altitude is rejected by the "
+                "montecarlo solver; needs a validated mc_elevation_file path). "
+                "Fail-closed to avoid a silent sea-level result.")
+        if elev_m < 0:
+            raise NotImplementedError(
+                f"observerElevationM={elev_m} (negative) is unsupported and not "
+                "validated; fail-closed.")
+        lines.append(f"altitude {elev_m / 1000.0:.4f}")   # DISORT-family only, >0
     lines += [
         "zout 0",
         f"albedo {case.get('surfaceAlbedo', 0.15)}",

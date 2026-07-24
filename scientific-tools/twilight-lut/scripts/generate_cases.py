@@ -25,7 +25,11 @@ BASE = {
     "observerElevationM": 0,
     "solver": "mystic",
     "randomSeed": 1000,
-    "vroom": "on",
+    # Grid/pilot production default is VROOM OFF (directive #3). The legacy
+    # feasibility raw-output committed earlier was generated with VROOM ON and is
+    # labelled legacy; a fresh VROOM-off pilot must supply the runtime/uncertainty
+    # /event-time evidence for the future grid.
+    "vroom": "off",
 }
 
 PHOTONS_BY_DEPRESSION = {0: 2000000, 2: 2000000, 4: 8000000,

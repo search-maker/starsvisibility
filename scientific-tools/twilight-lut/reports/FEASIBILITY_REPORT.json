@@ -1,9 +1,10 @@
 {
  "environment": {
+  "legacyRunNote": "LEGACY feasibility run: MYSTIC 1D-spherical, VROOM ON, single Shettle rural aerosol, AFGL US-Standard, albedo 0.15, sea level, 1 AU. It is useful feasibility evidence but is NOT numerical-stability, runtime, or event-time evidence for the future VROOM-OFF grid. A fresh VROOM-off pilot must regenerate those. The old 540-node grid_def is superseded.",
   "uvspecVersion": "uvspec, version 2.0.6-MYSTIC",
   "libradtranSource": "conda-forge rubin-libradtran (real build of the upstream libRadtran 2.0.6 tarball)",
   "dataPackage": "share/libRadtran/data from the same package",
-  "generatorCommit": "170838d95a8cdab258ccbf8cd6c78f5c68869af8",
+  "generatorCommit": "fb51d8ac0341672af22a9301a300a63786cfa435",
   "outputsAreReal": true,
   "pythonEnv": {
    "LIBRADTRAN_BIN": "/tmp/claude-0/-home-user-starsvisibility/a343e0a7-9db0-5842-b21e-416b412b4e0f/scratchpad/lrt-env/bin/uvspec",

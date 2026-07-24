@@ -20,7 +20,8 @@ def full_evidence(reports):
     write(reports, "solver-validation.json",
           {"pass": True, "mysticValidCount": 12, "expectedMysticProbes": 12})
     write(reports, "vroom-validation.json",
-          {"vroomAuthorizedForGrid": True, "complete": True,
+          {"vroomStatus": "experimental-not-authorized", "complete": True,
+           "photopicEquivalenceDemonstrated": False,
            "okCellCount": 42, "cellCount": 42})
     write(reports, "PREGRID_HARDENING_REPORT.json",
           {"quickMode": False, "authorization": {"coreGridAuthorized": True}})
@@ -43,26 +44,27 @@ def test_authorized_when_all_evidence_present(tmp_path, monkeypatch):
     assert any("VROOM" in k and v for k, v in ev.items())
 
 
-def test_blocked_when_vroom_incomplete(tmp_path, monkeypatch):
+def test_vroom_is_not_a_grid_prerequisite(tmp_path, monkeypatch):
+    # grid uses mc_vroom off; the VROOM study status (even unauthorized) must NOT
+    # block the grid. The gate instead confirms the grid config is VROOM off.
     monkeypatch.setattr(GA, "REPORTS", tmp_path)
     full_evidence(tmp_path)
     write(tmp_path, "vroom-validation.json",
-          {"vroomAuthorizedForGrid": True, "complete": True,
-           "okCellCount": 40, "cellCount": 42})   # incomplete
-    r = GA.evaluate(run_tests=False)
-    vroom_gate = next(g for g in r["gates"] if "VROOM" in g["gate"])
-    assert vroom_gate["passed"] is False
-
-
-def test_blocked_when_vroom_unauthorized(tmp_path, monkeypatch):
-    monkeypatch.setattr(GA, "REPORTS", tmp_path)
-    full_evidence(tmp_path)
-    write(tmp_path, "vroom-validation.json",
-          {"vroomAuthorizedForGrid": False, "complete": True,
+          {"vroomStatus": "experimental-not-authorized", "complete": True,
+           "photopicEquivalenceDemonstrated": False,
            "okCellCount": 42, "cellCount": 42})
     vroom_gate = next(g for g in GA.evaluate(run_tests=False)["gates"]
-                      if "VROOM" in g["gate"])
-    assert vroom_gate["passed"] is False
+                      if "VROOM off" in g["gate"])
+    assert vroom_gate["passed"] is True   # VROOM-off config, not a blocker
+
+
+def test_grid_vroom_gate_passes_even_without_vroom_report(tmp_path, monkeypatch):
+    monkeypatch.setattr(GA, "REPORTS", tmp_path)
+    full_evidence(tmp_path)
+    (tmp_path / "vroom-validation.json").unlink()   # no VROOM study at all
+    vroom_gate = next(g for g in GA.evaluate(run_tests=False)["gates"]
+                      if "VROOM off" in g["gate"])
+    assert vroom_gate["passed"] is True
 
 
 def test_blocked_when_pregrid_quick(tmp_path, monkeypatch):

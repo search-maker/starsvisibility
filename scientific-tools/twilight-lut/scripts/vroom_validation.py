@@ -35,42 +35,45 @@ SEEDS = (101, 202, 303)
 T975 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571}
 
 
-# Scientific negligibility threshold for a VROOM on/off photopic difference.
-# 3% in luminance == 0.03 mag/arcsec^2, far below every other uncertainty in
-# the visibility model (extinction, NELM, observer terms are all >=0.1-0.2 mag),
-# so a difference below this is scientifically negligible even if statistically
-# resolved. Chosen on physical grounds (the model error budget), documented in
-# the report, NOT tuned to obtain a pass.
-NEGLIGIBLE_REL = 0.03
+# Equivalence tolerance for a VROOM on/off photopic difference. 3% in luminance
+# == 0.03 mag/arcsec^2, below every other uncertainty in the visibility model.
+# This is the EQUIVALENCE BOUND: to authorize VROOM, the paired difference's
+# 95% CI must lie ENTIRELY within +/- this bound (a TOST-style equivalence
+# test). "Not statistically significant" is NOT sufficient (a large noisy
+# difference with a wide CI fails), per the corrected criterion.
+EQUIVALENCE_TOL_REL = 0.03
 
 
-def _biased(stat):
-    """A paired-difference stat indicates a real, non-negligible bias only if it
-    is BOTH statistically significant AND >= the negligibility threshold. Large
-    but non-significant point estimates (noise-limited deep cells) do NOT count
-    — the vroom-deep-diagnostic shows those sign-flip with photon count."""
+def _equivalent(stat, tol=EQUIVALENCE_TOL_REL):
+    """Equivalence to zero iff the 95% CI lies entirely within +/- tol, i.e.
+    |mean| + ci95HalfWidth <= tol. Returns None if the statistic is missing.
+    Failure to reject a difference does NOT count as equivalence."""
     if stat is None:
-        return None            # mandatory statistic unavailable -> handled separately
-    return bool(stat["significant"] and abs(stat["mean"]) >= NEGLIGIBLE_REL)
+        return None
+    return bool(abs(stat["mean"]) + stat["ci95HalfWidth"] <= tol)
 
 
 def decide_authorization(complete, mandatory_ok, overall, dir_bias,
                          ratio_overall):
-    """Authorize VROOM iff the matrix is complete, all mandatory statistics are
-    present, and NO bias (overall, any direction, or the directional ratio) is
-    both statistically significant and non-negligible."""
+    """VROOM is authorized ONLY by a passing EQUIVALENCE test: complete matrix,
+    all mandatory statistics present, and every bias (overall, each direction,
+    directional ratio) equivalent to zero (95% CI entirely within the
+    tolerance). This never authorizes from mere failure-to-reject. Even a pass
+    here is photopic-only; full production authorization additionally requires
+    EVENT-TIME equivalence via the first-visible harness."""
     if not (complete and mandatory_ok):
         return False, "incomplete matrix or missing mandatory statistics"
-    checks = {"overall": _biased(overall),
-              "ratioOverall": _biased(ratio_overall)}
+    checks = {"overall": _equivalent(overall),
+              "ratioOverall": _equivalent(ratio_overall)}
     for d, st in dir_bias.items():
-        checks[f"direction_{d}"] = _biased(st)
-    offenders = [k for k, v in checks.items() if v]
-    if offenders:
-        return False, f"significant non-negligible bias in: {offenders}"
-    return True, ("no significant non-negligible bias "
-                  f"(negligibility {NEGLIGIBLE_REL:.0%}); deep-cell scatter is "
-                  "noise-limited per vroom-deep-diagnostic.json")
+        checks[f"direction_{d}"] = _equivalent(st)
+    non_equiv = [k for k, v in checks.items() if not v]
+    if non_equiv:
+        return False, ("equivalence NOT demonstrated (95% CI not within "
+                       f"+/-{EQUIVALENCE_TOL_REL:.0%}) for: {non_equiv}")
+    return True, (f"equivalence demonstrated: every bias 95% CI within "
+                  f"+/-{EQUIVALENCE_TOL_REL:.0%} (photopic only; event-time "
+                  "equivalence via the harness still required for production)")
 
 
 def paired_stats(diffs):
@@ -153,16 +156,20 @@ def reaggregate():
     r["directionBiasSpread"] = agg["dirSpread"]
     r["directionalRatioOverallBias"] = agg["ratioOverall"]
     r["mandatoryStatisticsAvailable"] = agg["mandatoryOk"]
-    r["negligibilityRelThreshold"] = NEGLIGIBLE_REL
+    r["equivalenceTolRel"] = EQUIVALENCE_TOL_REL
     r["authorizationReason"] = agg["reason"]
-    r["vroomAuthorizedForGrid"] = agg["authorized"]
-    r["criteria"] = ("authorized iff okCellCount==cellCount AND all mandatory "
-                     "stats present AND NO bias is BOTH significant AND >= "
-                     f"{NEGLIGIBLE_REL:.0%} (deep-cell scatter is noise per "
-                     "vroom-deep-diagnostic.json)")
-    r.setdefault("deepCellNoiseCaveat",
-                 "dep-8 faint cells are noise-limited even at 8-40M photons; "
-                 "higher per-node uncertainty, NOT a VROOM bias.")
+    r["photopicEquivalenceDemonstrated"] = agg["authorized"]
+    # Grid production uses mc_vroom OFF; VROOM is never a grid prerequisite. This
+    # flag reflects only the photopic equivalence test and is NOT a production
+    # authorization (event-time equivalence via the harness is also required).
+    r["vroomAuthorizedForGrid"] = False
+    r["vroomStatus"] = "experimental-not-authorized"
+    r["gridProductionVroom"] = "off"
+    r["criteria"] = ("EQUIVALENCE test: authorize only if complete AND every "
+                     "bias 95% CI lies entirely within +/-"
+                     f"{EQUIVALENCE_TOL_REL:.0%}. Failure-to-reject is NOT "
+                     "equivalence. Event-time equivalence via the first-visible "
+                     "harness is additionally required for production.")
     (REPORTS / "vroom-validation.json").write_text(json.dumps(r, indent=1))
     _write_md(r)
     print(json.dumps({"reaggregated": True, "authorized": agg["authorized"],
@@ -257,14 +264,17 @@ def main():
         "directionBiasPhotopic": dir_bias, "directionBiasSpread": dir_spread,
         "directionalRatioOverallBias": ratio_overall,
         "mandatoryStatisticsAvailable": mandatory_ok,
-        "negligibilityRelThreshold": NEGLIGIBLE_REL,
-        "criteria": "authorized iff okCellCount==cellCount AND all mandatory "
-        "stats present AND NO bias (overall, any direction, or directional "
-        f"ratio) is BOTH statistically significant AND >= {NEGLIGIBLE_REL:.0%} "
-        "(large non-significant deep-cell scatter is noise per "
-        "vroom-deep-diagnostic.json, not a systematic VROOM effect)",
+        "equivalenceTolRel": EQUIVALENCE_TOL_REL,
+        "criteria": "EQUIVALENCE test: authorize only if complete AND every bias "
+        f"95% CI lies entirely within +/-{EQUIVALENCE_TOL_REL:.0%}. "
+        "Failure-to-reject is NOT equivalence. Event-time equivalence via the "
+        "first-visible harness is additionally required for production.",
         "authorizationReason": reason,
-        "vroomAuthorizedForGrid": authorized,
+        "photopicEquivalenceDemonstrated": authorized,
+        # grid uses mc_vroom OFF; VROOM is never a grid prerequisite.
+        "vroomAuthorizedForGrid": False,
+        "vroomStatus": "experimental-not-authorized",
+        "gridProductionVroom": "off",
         "deepCellNoiseCaveat": "dep-8 faint cells (low altitude, antisolar) are "
         "noise-limited (~5-15% per-run photopic uncertainty even at 8-40M "
         "photons); those LUT nodes require large photon budgets and carry higher "
@@ -280,7 +290,9 @@ def main():
                       "overallSignificant": overall["significant"] if overall else None,
                       "directionSpread": dir_spread,
                       "ratioOverallMean": ratio_overall["mean"] if ratio_overall else None,
-                      "vroomAuthorizedForGrid": authorized}, indent=1))
+                      "photopicEquivalenceDemonstrated": authorized,
+                      "vroomStatus": "experimental-not-authorized",
+                      "gridProductionVroom": "off"}, indent=1))
 
 
 def _write_md(r):
@@ -299,7 +311,10 @@ def _write_md(r):
     if ro:
         L.append(f"- directional-ratio overall: mean {ro['mean']:+.4f}, "
                  f"t {ro['t']:+.2f}, significant={ro['significant']}")
-    L += ["", f"## VROOM authorized for grid: **{r['vroomAuthorizedForGrid']}**",
+    L += ["", f"## VROOM status: **{r.get('vroomStatus', 'experimental-not-authorized')}**",
+          f"Grid production VROOM: **{r.get('gridProductionVroom', 'off')}** "
+          "(VROOM is NOT a grid prerequisite).",
+          f"Photopic equivalence demonstrated: {r.get('photopicEquivalenceDemonstrated')}",
           f"Criteria: {r['criteria']}", "",
           "| dep | alt | raz | dir | AOD | Lon | Loff | paired relDiff | t | rt on/off |",
           "|---|---|---|---|---|---|---|---|---|---|"]

@@ -9,8 +9,10 @@ Cells 42/42 ok; complete=True.
 - direction-bias spread: 0.02406478911586918
 - directional-ratio overall: mean -0.0027, t -0.20, significant=False
 
-## VROOM authorized for grid: **True**
-Criteria: authorized iff okCellCount==cellCount AND all mandatory stats present AND NO bias is BOTH significant AND >= 3% (deep-cell scatter is noise per vroom-deep-diagnostic.json)
+## VROOM status: **experimental-not-authorized**
+Grid production VROOM: **off** (VROOM is NOT a grid prerequisite).
+Photopic equivalence demonstrated: False
+Criteria: EQUIVALENCE test: authorize only if complete AND every bias 95% CI lies entirely within +/-3%. Failure-to-reject is NOT equivalence. Event-time equivalence via the first-visible harness is additionally required for production.
 
 | dep | alt | raz | dir | AOD | Lon | Loff | paired relDiff | t | rt on/off |
 |---|---|---|---|---|---|---|---|---|---|

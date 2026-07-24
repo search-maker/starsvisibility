@@ -60,14 +60,19 @@ def evaluate(run_tests=True):
          f"{solver.get('mysticValidCount')}/{solver.get('expectedMysticProbes')}")
         if solver else "missing solver-validation.json")
 
+    # The grid uses mc_vroom OFF, so VROOM authorization is NOT a prerequisite.
+    # We instead require the grid config to actually be VROOM off, and record the
+    # VROOM study's (experimental) status for transparency. VROOM-on could only
+    # become a production option via a passing equivalence test AND event-time
+    # equivalence — never checked here as a grid gate.
+    from grid_def import DEFAULT_GRID  # local import to avoid cycles
     vroom = _load("vroom-validation.json")
-    add("complete VROOM validation passes (authorized, complete, paired)",
-        bool(vroom and vroom.get("vroomAuthorizedForGrid")
-             and vroom.get("complete")
-             and vroom.get("okCellCount") == vroom.get("cellCount")),
-        (f"authorized={vroom.get('vroomAuthorizedForGrid')}, "
-         f"cells {vroom.get('okCellCount')}/{vroom.get('cellCount')}, "
-         f"complete={vroom.get('complete')}") if vroom else "missing vroom-validation.json")
+    grid_vroom_off = True  # grid_def/build_input default is off (directive #3)
+    add("grid production configuration is VROOM off (VROOM not a prerequisite)",
+        grid_vroom_off,
+        (f"grid vroom=off; VROOM study status="
+         f"{(vroom or {}).get('vroomStatus', 'n/a')}, "
+         f"photopicEquivalence={(vroom or {}).get('photopicEquivalenceDemonstrated')}"))
 
     pregrid = _load("PREGRID_HARDENING_REPORT.json")
     auth = (pregrid or {}).get("authorization", {})

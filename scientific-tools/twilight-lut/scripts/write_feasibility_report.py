@@ -52,7 +52,14 @@ def main():
          "resolved": r.get("statisticallyResolved")}
         for r in sorted(probes, key=lambda x: x["sunDepressionDeg"])]
 
+    legacy_note = (
+        "LEGACY feasibility run: MYSTIC 1D-spherical, VROOM ON, single Shettle "
+        "rural aerosol, AFGL US-Standard, albedo 0.15, sea level, 1 AU. It is "
+        "useful feasibility evidence but is NOT numerical-stability, runtime, or "
+        "event-time evidence for the future VROOM-OFF grid. A fresh VROOM-off "
+        "pilot must regenerate those. The old 540-node grid_def is superseded.")
     env = {
+        "legacyRunNote": legacy_note,
         "uvspecVersion": uvspec_version(find_uvspec()),
         "libradtranSource": "conda-forge rubin-libradtran (real build of the "
                             "upstream libRadtran 2.0.6 tarball)",
@@ -268,6 +275,8 @@ def write_markdown(report):
          "`scripts/write_feasibility_report.py` (RH-6). Do not hand-edit; "
          "regenerate the JSON, which regenerates this file.** Every number below "
          "comes from the real simulation outputs and the evidence files.", "",
+         f"> **{env['legacyRunNote']}**", "",]
+    L += [
          f"- uvspec: `{env['uvspecVersion']}` — {env['libradtranSource']}",
          f"- generator commit: `{env['generatorCommit']}`",
          f"- outputs are real: {env['outputsAreReal']}", "",

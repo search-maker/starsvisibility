@@ -2,8 +2,10 @@
 
 **AUTO-GENERATED from `FEASIBILITY_REPORT.json` by `scripts/write_feasibility_report.py` (RH-6). Do not hand-edit; regenerate the JSON, which regenerates this file.** Every number below comes from the real simulation outputs and the evidence files.
 
+> **LEGACY feasibility run: MYSTIC 1D-spherical, VROOM ON, single Shettle rural aerosol, AFGL US-Standard, albedo 0.15, sea level, 1 AU. It is useful feasibility evidence but is NOT numerical-stability, runtime, or event-time evidence for the future VROOM-OFF grid. A fresh VROOM-off pilot must regenerate those. The old 540-node grid_def is superseded.**
+
 - uvspec: `uvspec, version 2.0.6-MYSTIC` — conda-forge rubin-libradtran (real build of the upstream libRadtran 2.0.6 tarball)
-- generator commit: `170838d95a8cdab258ccbf8cd6c78f5c68869af8`
+- generator commit: `fb51d8ac0341672af22a9301a300a63786cfa435`
 - outputs are real: True
 
 ## Status model (six separate statuses)

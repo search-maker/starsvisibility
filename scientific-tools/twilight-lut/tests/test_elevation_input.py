@@ -45,6 +45,18 @@ def test_elevation_emits_altitude_for_disort(tmp_path):
     assert "zout 0" in txt               # zout is separate from altitude
 
 
+def test_negative_elevation_fails_closed_all_solvers(tmp_path):
+    # fail-closed for EVERY unsupported nonzero elevation, incl negative
+    import pytest
+    wl = tmp_path / "wl.dat"
+    L.write_wavelength_grid(wl)
+    for solver in ("mystic", "disort"):
+        c = case(-50)
+        c["solver"] = solver
+        with pytest.raises(NotImplementedError):
+            L.build_input(c, "/data", wl, tmp_path / "mc")
+
+
 def test_config_hash_tracks_elevation_even_if_run_deferred():
     # elevation is part of the restart identity regardless of solver support
     assert (L.configuration_hash(case(0), "v", {"d": 1})

@@ -68,8 +68,8 @@
   "significant": false
  },
  "mandatoryStatisticsAvailable": true,
- "criteria": "authorized iff okCellCount==cellCount AND all mandatory stats present AND NO bias is BOTH significant AND >= 3% (deep-cell scatter is noise per vroom-deep-diagnostic.json)",
- "vroomAuthorizedForGrid": true,
+ "criteria": "EQUIVALENCE test: authorize only if complete AND every bias 95% CI lies entirely within +/-3%. Failure-to-reject is NOT equivalence. Event-time equivalence via the first-visible harness is additionally required for production.",
+ "vroomAuthorizedForGrid": false,
  "cells": [
   {
    "dep": 0,
@@ -1533,6 +1533,10 @@
   }
  ],
  "negligibilityRelThreshold": 0.03,
- "authorizationReason": "no significant non-negligible bias (negligibility 3%); deep-cell scatter is noise-limited per vroom-deep-diagnostic.json",
- "deepCellNoiseCaveat": "dep-8 faint cells are noise-limited even at 8-40M photons; higher per-node uncertainty, NOT a VROOM bias."
+ "authorizationReason": "equivalence NOT demonstrated (95% CI not within +/-3%) for: ['overall', 'direction_sunward', 'direction_anti']",
+ "deepCellNoiseCaveat": "dep-8 faint cells are noise-limited even at 8-40M photons; higher per-node uncertainty, NOT a VROOM bias.",
+ "equivalenceTolRel": 0.03,
+ "photopicEquivalenceDemonstrated": false,
+ "vroomStatus": "experimental-not-authorized",
+ "gridProductionVroom": "off"
 }
