@@ -98,6 +98,41 @@ def air_mass(h_app_deg):
     return 1 / denom
 
 
+# Saemundsson refraction (index.html refractionDeg), with the production global
+# defaults currentPressureHPa=1010, currentTemperatureC=10. Ported so the LUT
+# geometry contract can convert between GEOMETRIC (true) and APPARENT target
+# altitude explicitly instead of conflating them.
+CURRENT_PRESSURE_HPA = 1010.0
+CURRENT_TEMPERATURE_C = 10.0
+
+
+def refraction_deg(h_true, pressure_hpa=CURRENT_PRESSURE_HPA,
+                   temperature_c=CURRENT_TEMPERATURE_C):
+    if h_true < -1:
+        return 0.0
+    r = 1.02 / math.tan(math.radians(h_true + 10.3 / (h_true + 5.11)))  # arcmin
+    weather = (pressure_hpa / 1010.0) * (283.0 / (273.0 + temperature_c))
+    return max(0.0, r) * weather / 60.0
+
+
+def apparent_altitude(h_true, **kw):
+    """APPARENT (refracted) altitude from GEOMETRIC/true altitude."""
+    return h_true + refraction_deg(h_true, **kw)
+
+
+def geometric_from_apparent(h_app, **kw):
+    """Invert refraction: recover GEOMETRIC altitude from an APPARENT one.
+    The LUT is indexed by GEOMETRIC altitude; a browser holding only apparent
+    altitude must call this before indexing. Newton-free fixed-point iteration."""
+    h = h_app
+    for _ in range(40):
+        h_new = h_app - refraction_deg(h, **kw)
+        if abs(h_new - h) < 1e-9:
+            break
+        h = h_new
+    return h
+
+
 def limiting_magnitude_from_sky_brightness(sb, pupil_mm=7, observer_age=30,
                                            acuity=1.0, dark_adaptation=1.0):
     m = 7.93 - 5 * math.log10(10 ** (4.316 - sb / 5) + 1)
