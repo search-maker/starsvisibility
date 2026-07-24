@@ -53,20 +53,26 @@ def test_nl_conversion_constant():
 
 
 def _rec(rad, std):
-    return {"binnedWavelengthNm": list(range(380, 781)),
+    return {"caseId": "synthetic",
+            "binnedWavelengthNm": list(range(380, 781)),
             "binnedRadiance_mW_m2_nm_sr": [rad] * 401,
             "nodeRadiance_mW_m2_nm_sr": [rad] * 41,
             "nodeRadianceStd_mW_m2_nm_sr": [std] * 41}
 
 
+def _raw(rad):
+    wl = [380 + i * 0.05 for i in range(8001)]
+    return wl, [rad] * len(wl)
+
+
 def test_no_log_of_unresolved():
-    out = ivr.integrate_record(_rec(1e-9, 1e-6))
+    out = ivr.integrate_record(_rec(1e-9, 1e-6), raw=_raw(1e-9))
     assert out["statisticallyResolved"] is False
 
 
 def test_fine_vs_node_grid_consistency_flat():
-    out = ivr.integrate_record(_rec(1.0, 0.0))
-    # flat spectrum: trapezoid on 1 nm grid vs rectangle on 10 nm nodes agree
+    out = ivr.integrate_record(_rec(1.0, 0.0), raw=_raw(1.0))
+    # flat spectrum: raw trapezoid vs rectangle on 10 nm nodes agree
     assert out["wavelengthGridConsistency"] < 0.02
 
 

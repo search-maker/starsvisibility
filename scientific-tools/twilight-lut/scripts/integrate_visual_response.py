@@ -23,7 +23,11 @@ Definitions (documented; see SCIENTIFIC_ASSUMPTIONS.md §Visual response):
 """
 import json
 import math
-from lrt_common import PROCESSED_DIR
+from lrt_common import (PROCESSED_DIR, RAW_DIR, selected_attempt_dir, parse_spc)
+# johnson_v is REQUIRED (directive #4: do not silently hide passband/checksum/
+# unit/programming errors). Import at module load so a broken passband fails the
+# whole processing step loudly rather than producing a null magnitude.
+import johnson_v as JV
 
 KM_PHOTOPIC = 683.002
 KM_SCOTOPIC = 1700.06
@@ -80,9 +84,11 @@ def weighted_sum(rad_mw, std_mw, weights, km):
     return val, math.sqrt(var)
 
 
-def fine_weighted_sum(wl, rad_mw, table, km):
-    """km * trapezoid of interpolated table * radiance over the binned fine
-    grid (1 nm bins). Primary luminance value: keeps solar-spectrum structure."""
+def trapezoid_weighted(wl, rad_mw, table, km):
+    """km * DIRECT trapezoidal integral of table(lambda)*radiance over the given
+    (wl, radiance) samples. When wl is the RAW ~0.05 nm grid this is the primary
+    luminance (direct integration on the original samples, directive #4); it is
+    also reused for the energy-preserving 1 nm grid in the convergence check."""
     total = 0.0
     for i in range(len(wl) - 1):
         dl = wl[i + 1] - wl[i]
@@ -92,34 +98,57 @@ def fine_weighted_sum(wl, rad_mw, table, km):
     return km * total * 1e-3
 
 
-def integrate_record(rec):
-    wl_fine = rec["binnedWavelengthNm"]
-    rad_fine = rec["binnedRadiance_mW_m2_nm_sr"]
+def read_raw_spectrum(case_id):
+    """Return (wl_nm, radiance_mw) on the RAW ~0.05 nm grid from the selected
+    attempt's mc.rad.spc. Raises if unavailable — the raw grid is required for
+    the primary integral and the convergence check."""
+    cdir = RAW_DIR / case_id
+    adir = selected_attempt_dir(cdir)
+    if adir is None:
+        raise FileNotFoundError(f"no selected attempt for {case_id}")
+    d = parse_spc(adir / "mc.rad.spc")
+    if not d:
+        raise ValueError(f"empty raw spectrum for {case_id}")
+    wl = sorted(d)
+    return wl, [d[w] for w in wl]
+
+
+def integrate_record(rec, raw=None):
+    # PRIMARY integration is a DIRECT trapezoid on the RAW ~0.05 nm grid
+    # (directive #4). The 1 nm binned grid and the RT-node 10 nm grid are also
+    # integrated, only to report the convergence among the three methods.
+    # `raw` may be injected as (wl, radiance); otherwise it is read from the
+    # selected attempt's mc.rad.spc.
+    wl_raw, rad_raw = raw if raw is not None else read_raw_spectrum(rec["caseId"])
+    wl_bin = rec["binnedWavelengthNm"]
+    rad_bin = rec["binnedRadiance_mW_m2_nm_sr"]
     rad = rec["nodeRadiance_mW_m2_nm_sr"]
     std = rec["nodeRadianceStd_mW_m2_nm_sr"]
-    L = fine_weighted_sum(wl_fine, rad_fine, V_PHOT, KM_PHOTOPIC)
-    Ls = fine_weighted_sum(wl_fine, rad_fine, V_SCOT, KM_SCOTOPIC)
-    L_node, sL = weighted_sum(rad, std, V_PHOT, KM_PHOTOPIC)
+
+    L = trapezoid_weighted(wl_raw, rad_raw, V_PHOT, KM_PHOTOPIC)         # primary
+    Ls = trapezoid_weighted(wl_raw, rad_raw, V_SCOT, KM_SCOTOPIC)
+    L_bin = trapezoid_weighted(wl_bin, rad_bin, V_PHOT, KM_PHOTOPIC)     # 1 nm
+    L_node, sL = weighted_sum(rad, std, V_PHOT, KM_PHOTOPIC)            # RT node
     _, sLs = weighted_sum(rad, std, V_SCOT, KM_SCOTOPIC)
-    # Directive #10: keep photopic luminance and synthetic Johnson V as SEPARATE,
-    # correctly-named products. photopicLuminanceCdM2 is NOT Johnson V; the KS
-    # "SQM-equivalent" below is NOT a Vega V magnitude.
-    try:
-        import johnson_v as JV
-        v_mag = JV.johnson_v_surface_brightness(wl_fine, rad_fine)
-    except Exception:
-        v_mag = None
+    # synthetic Johnson V from the raw grid; JV import failure already raised.
+    v_mag = JV.johnson_v_surface_brightness(wl_raw, rad_raw)
     out = {
-        "photopicLuminanceCdM2": L,
+        "photopicLuminanceCdM2": L,                       # primary (raw trapezoid)
         "photopicLuminanceStdCdM2": sL,
+        "photopicLuminance1nmGridCdM2": L_bin,
         "photopicLuminanceNodeGridCdM2": L_node,
+        # convergence among the three integration methods (directive #4)
+        "spectralIntegrationConvergence": {
+            "raw_vs_1nm_rel": (abs(L - L_bin) / L) if L > 0 else None,
+            "raw_vs_node_rel": (abs(L - L_node) / L) if L > 0 else None,
+        },
         "wavelengthGridConsistency": (abs(L - L_node) / L) if L > 0 else None,
         "scotopicLuminanceScotCdM2": Ls,
         "scotopicLuminanceStdScotCdM2": sLs,
         "sToPRatio": (Ls / L) if L > 0 else None,
         "syntheticJohnsonVMagArcsec2": v_mag,
-        "negativeSpectralValues": sum(1 for r in rad_fine if r < 0),
-        "zeroSpectralValues": sum(1 for r in rad_fine if r == 0),
+        "negativeSpectralValues": sum(1 for r in rad_raw if r < 0),
+        "zeroSpectralValues": sum(1 for r in rad_raw if r == 0),
     }
     out["photopicRelativeUncertainty"] = (sL / L) if (sL and L > 0) else None
     if L > 0:

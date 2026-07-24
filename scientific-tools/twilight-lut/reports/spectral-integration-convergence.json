@@ -1,0 +1,17 @@
+{
+ "nCases": 67,
+ "primaryMethod": "raw-grid direct trapezoid (~0.05 nm)",
+ "rawVs1nm": {
+  "max": 0.00025434996206602343,
+  "median": 0.0001849778776470029,
+  "threshold": 0.001,
+  "pass": true
+ },
+ "rawVsNode": {
+  "max": 0.007868351333733288,
+  "median": 0.003406390608360838,
+  "threshold": 0.02,
+  "pass": true
+ },
+ "pass": true
+}
