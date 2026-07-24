@@ -95,13 +95,13 @@ def canonical_config(case):
         "solver": case.get("solver", "mystic"),
         "photonCount": int(case.get("photonCount", 200000)),
         "randomSeed": int(case.get("randomSeed", 1000)),
-        "vroom": case.get("vroom", "on"),
+        "vroom": case.get("vroom", "off"),   # grid default OFF (directive #3)
         "pseudospherical": bool(case.get("pseudospherical", False)),
         "wavelengthGrid": list(WAVELENGTH_NM),
         "molAbsParam": "crs",
         "solarSpectrum": "atlas_plus_modtran",
         "radianceUnits": "mW m-2 nm-1 sr-1",
-        "pipelineVersion": 3,   # bump when the run recipe changes meaning
+        "pipelineVersion": 4,   # bump: elevation now emitted; vroom default off
     }
 
 
@@ -211,6 +211,7 @@ def build_input(case, data_dir, wl_file, basename):
     sza = 90.0 + dep
     umu = umu_for_altitude(case["targetAltitudeDeg"])
     phi = float(case["relativeAzimuthDeg"])  # phi0=0; phi=raz => raz from sun
+    elev_m = float(case.get("observerElevationM", 0))
     lines = [
         f"data_files_path {data_dir}",
         f"atmosphere_file {data_dir}/atmmod/{case.get('atmosphere', 'afglus')}.dat",
@@ -222,6 +223,25 @@ def build_input(case, data_dir, wl_file, basename):
         "phi0 0",
         f"umu {umu:.8f}",
         f"phi {phi:.2f}",
+    ]
+    solver = case.get("solver", "mystic")
+    # Observer elevation. FINDING (verified on uvspec 2.0.6): the `altitude`
+    # option is REJECTED by the montecarlo solver ("option altitude does not
+    # work with solver montecarlo! Use mc_elevation_file!"). So the directive's
+    # `altitude <km>` mechanism applies only to DISORT-family solvers. For the
+    # production MYSTIC 1D-spherical solver, a raised ground observer requires
+    # `mc_elevation_file` (a surface-elevation map), which is a separate
+    # implementation validated in the elevation sensitivity study. Until then we
+    # refuse to emit broken input for elevated MYSTIC cases rather than silently
+    # producing a wrong (sea-level) result.
+    if elev_m > 0:
+        if solver == "mystic":
+            raise NotImplementedError(
+                "observerElevationM>0 with MYSTIC needs mc_elevation_file "
+                "(altitude is rejected by the montecarlo solver); elevation "
+                "axis is deferred to the elevation sensitivity study")
+        lines.append(f"altitude {elev_m / 1000.0:.4f}")   # DISORT-family only
+    lines += [
         "zout 0",
         f"albedo {case.get('surfaceAlbedo', 0.15)}",
         "aerosol_default",
@@ -231,7 +251,10 @@ def build_input(case, data_dir, wl_file, basename):
     if case.get("solver", "mystic") == "mystic":
         lines += [
             "mc_spherical 1D",
-            f"mc_vroom {case.get('vroom', 'on')}",
+            # Grid production DEFAULT is VROOM OFF (Milestone directive #3):
+            # VROOM is not authorized for production until a paired, spectral,
+            # multi-seed study also validates the event-time impact.
+            f"mc_vroom {case.get('vroom', 'off')}",
             f"mc_photons {case.get('photonCount', 200000)}",
             "mc_std",
             f"mc_randomseed {case.get('randomSeed', 1000)}",

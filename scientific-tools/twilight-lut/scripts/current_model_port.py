@@ -133,11 +133,14 @@ def geometric_from_apparent(h_app, **kw):
     return h
 
 
-def limiting_magnitude_from_sky_brightness(sb, pupil_mm=7, observer_age=30,
-                                           acuity=1.0, dark_adaptation=1.0):
+def limiting_magnitude_from_sky_brightness(sb, pupil_mm=7, acuity=1.0,
+                                           dark_adaptation=1.0):
+    # Synced to the current index.html (commit 6e7728f, "final scientific model
+    # corrections"): the observer-AGE term was REMOVED from this formula upstream
+    # and must NOT be restored (Milestone directive: do not restore deleted
+    # logic). Age effects, if any, live elsewhere in the production model now.
     m = 7.93 - 5 * math.log10(10 ** (4.316 - sb / 5) + 1)
     m += 2.5 * math.log10(max(0.3, pupil_mm / 7))
-    m -= 0.02 * max(0, observer_age - 25)
     m += 2.5 * math.log10(max(0.5, acuity))
     m -= (1 - max(0.0, min(1.0, dark_adaptation)))
     return m

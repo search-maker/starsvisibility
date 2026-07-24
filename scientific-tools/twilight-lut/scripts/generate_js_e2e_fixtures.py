@@ -18,13 +18,15 @@ from generate_js_parity_fixtures import extract_function, extract_const, INDEX
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / "fixtures"
 
-FUNCS = ["toRad", "toDeg", "norm360", "refractionDeg", "apparentAltitude",
+FUNCS = ["toRad", "toDeg", "norm360", "finiteProvidedValue", "refractionInfo",
+         "refractionDeg", "apparentAltitude",
          "airMass", "nLFromMag", "magFromNL", "smoothstep01", "lerp",
          "legacyTwilightExcessNL", "defaultTwilightAddedNLAfter6",
          "twilightExcessNL", "interpolateSkyBrightnessBySunDep",
          "twilightExcessNLCalibrated", "directionalTwilightFactor",
          "moonBrightnessNL", "localSkyBrightnessComponents",
          "limitingMagnitudeFromSkyBrightness", "angularSeparation"]
+ATMO_STATE = {"pressureHPa": 1010, "temperatureC": 10}
 CONSTS = ["TWILIGHT_ANCHORS", "TWILIGHT_POST6_SLOPE_MAG_PER_DEG",
           "TWILIGHT_FAST_SEGMENT_END_DEG", "TWILIGHT_NIGHT_BLEND_END_DEG",
           "OLD_TWILIGHT_LOG_NL_AT_6", "OLD_TWILIGHT_NL_AT_6", "TWILIGHT_SQM_AT_6"]
@@ -53,7 +55,7 @@ const out = CASES.map(c => {
   // production: target true altitude c.alt, azimuth c.raz (relative to sun az 0)
   const sTrueAlt = c.alt, sAz = c.raz;
   const sun = sunAltAz(c.dep);
-  const starAppAlt = apparentAltitude(sTrueAlt);        // APPARENT
+  const starAppAlt = apparentAltitude(sTrueAlt, {pressureHPa:1010,temperatureC:10}) ?? sTrueAlt;
   const sunSep = angularSeparation(sTrueAlt, sAz, sun.alt, sun.az); // GEOMETRIC
   const comp = localSkyBrightnessComponents({
     sqmZenith: c.baselineSqm, baselineSqm: c.baselineSqm,

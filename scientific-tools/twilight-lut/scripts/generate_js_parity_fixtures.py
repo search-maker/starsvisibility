@@ -20,11 +20,16 @@ INDEX = REPO / "index.html"
 FIXTURES = ROOT / "fixtures"
 
 # Named JS declarations to extract verbatim (functions and const arrays/scalars).
-FUNCS = ["toRad", "toDeg", "refractionDeg", "apparentAltitude", "airMass",
+FUNCS = ["toRad", "toDeg", "finiteProvidedValue", "refractionInfo",
+         "refractionDeg", "apparentAltitude", "airMass",
          "nLFromMag", "magFromNL", "smoothstep01", "lerp",
          "legacyTwilightExcessNL", "defaultTwilightAddedNLAfter6",
          "twilightExcessNL", "directionalTwilightFactor",
          "limitingMagnitudeFromSkyBrightness", "angularSeparation"]
+# Nominal atmosphere state for refraction parity (the new refractionInfo needs
+# explicit pressure/temperature; no more globals). 1010 hPa / 10 C reproduces
+# the historical default used for the ported formula.
+ATMO_STATE = {"pressureHPa": 1010, "temperatureC": 10}
 CONSTS = ["TWILIGHT_ANCHORS", "TWILIGHT_POST6_SLOPE_MAG_PER_DEG",
           "TWILIGHT_FAST_SEGMENT_END_DEG", "TWILIGHT_NIGHT_BLEND_END_DEG",
           "OLD_TWILIGHT_LOG_NL_AT_6", "OLD_TWILIGHT_NL_AT_6", "TWILIGHT_SQM_AT_6"]
@@ -89,11 +94,12 @@ def build_driver(src):
     for f in FUNCS:
         parts.append(extract_function(src, f))
     parts.append("const INPUTS = " + json.dumps(INPUTS) + ";")
+    parts.append("const ATMO = " + json.dumps(ATMO_STATE) + ";")
     parts.append(r"""
 const out = {};
 out.refraction_apparent = INPUTS.refraction_apparent.map(x => ({
-  hTrue: x.hTrue, refractionDeg: refractionDeg(x.hTrue),
-  apparentAltitude: apparentAltitude(x.hTrue)}));
+  hTrue: x.hTrue, refractionDeg: refractionDeg(x.hTrue, ATMO),
+  apparentAltitude: apparentAltitude(x.hTrue, ATMO)}));
 out.airmass = INPUTS.airmass.map(x => ({hApp: x.hApp, airMass: airMass(x.hApp)}));
 out.twilightExcessNL = INPUTS.twilightExcessNL.map(x => ({
   dep: x.dep, base: x.base, nl: twilightExcessNL(x.dep, x.base)}));

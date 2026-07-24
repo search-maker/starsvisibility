@@ -54,7 +54,7 @@ def test_config_hash_depends_on_photons_and_seed():
     h1 = L.configuration_hash(base_case(photonCount=200000), ver, prov)
     h2 = L.configuration_hash(base_case(photonCount=800000), ver, prov)
     h3 = L.configuration_hash(base_case(randomSeed=42), ver, prov)
-    h4 = L.configuration_hash(base_case(vroom="off"), ver, prov)
+    h4 = L.configuration_hash(base_case(vroom="on"), ver, prov)  # default is off
     h5 = L.configuration_hash(base_case(observerElevationM=2640), ver, prov)
     assert len({h1, h2, h3, h4, h5}) == 5   # all distinct
 

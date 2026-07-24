@@ -101,6 +101,14 @@ def integrate_record(rec):
     Ls = fine_weighted_sum(wl_fine, rad_fine, V_SCOT, KM_SCOTOPIC)
     L_node, sL = weighted_sum(rad, std, V_PHOT, KM_PHOTOPIC)
     _, sLs = weighted_sum(rad, std, V_SCOT, KM_SCOTOPIC)
+    # Directive #10: keep photopic luminance and synthetic Johnson V as SEPARATE,
+    # correctly-named products. photopicLuminanceCdM2 is NOT Johnson V; the KS
+    # "SQM-equivalent" below is NOT a Vega V magnitude.
+    try:
+        import johnson_v as JV
+        v_mag = JV.johnson_v_surface_brightness(wl_fine, rad_fine)
+    except Exception:
+        v_mag = None
     out = {
         "photopicLuminanceCdM2": L,
         "photopicLuminanceStdCdM2": sL,
@@ -109,6 +117,7 @@ def integrate_record(rec):
         "scotopicLuminanceScotCdM2": Ls,
         "scotopicLuminanceStdScotCdM2": sLs,
         "sToPRatio": (Ls / L) if L > 0 else None,
+        "syntheticJohnsonVMagArcsec2": v_mag,
         "negativeSpectralValues": sum(1 for r in rad_fine if r < 0),
         "zeroSpectralValues": sum(1 for r in rad_fine if r == 0),
     }
