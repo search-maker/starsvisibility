@@ -21,10 +21,16 @@ against the historical formats so that transcription is the only missing step.
 - **Status:** coefficients **transcribed from the Milestone-3 task brief** and
   flagged `NEEDS-PRIMARY-VERIFICATION` — the PDF was not reachable to confirm
   them. `primaryObservationalValidationStatus = PENDING-VERIFICATION`.
-- **Matched-comparison requirements met in this milestone:** synthetic Johnson V
-  (`scripts/johnson_v.py`, Bessell 1990 passband, Bessell & Murphy 2012 zero
-  point), elevation-matched Paranal simulations (2.64 km, Stage 3 hardening),
-  Paranal zenith night-sky floor added in flux before comparison.
+- **Matched-comparison machinery IMPLEMENTED but the matched comparison is NOT
+  YET RUN (RH-9).** The pieces exist — synthetic Johnson V (`scripts/johnson_v.py`,
+  Bessell 1990 passband, Bessell & Murphy 2012 zero point), an elevation input to
+  the runner, and the Paranal night-floor combination (`patat_reference.add_floor_mag`).
+  However, the **elevation-matched Paranal simulations (2.64 km) have not been
+  generated** (they are a Stage-3 hardening deliverable, paused). Therefore the
+  live comparison in `reports/primary-observational-validation.md` is currently
+  **UNMATCHED (sea-level, AOD 0.15, `matched=False`)** and is labelled as such.
+  The status is `PENDING-VERIFICATION`, consistent with that report — there is
+  no claim that the matched comparison has been completed.
 - **Holdout:** all Patat points are evaluation-only (never used to fit AOD or
   any constant).
 

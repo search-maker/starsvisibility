@@ -170,10 +170,12 @@ replacement background.
 Useful physical equivalences (needed by the LUT pipeline):
 
 - 1 nL = 10⁻⁹ lambert = (10⁻⁵/π) cd/m² ≈ **3.1831×10⁻⁶ cd/m²**.
-- `magFromNL`/`nLFromMag` imply mag/arcsec² 21.8 ≈ 0.000171 cd/m² —
-  consistent with the standard `L[cd/m²] ≈ 10.8×10⁴ · 10^(−0.4·SQM)` within the
-  K&S approximation (few-% level; the pair is exactly self-inverse, which is what
-  matters for internal consistency).
+- Under the code's own formula, `nLFromMag(21.8)` = 34.08·exp(20.7233 −
+  0.92104·21.8) = **64.93 nL = 0.0002067 cd/m²** (RH-8 correction; an earlier
+  draft wrongly stated ≈0.000171). This is a few-% brighter than the common
+  `L[cd/m²] ≈ 10.8×10⁴·10^(−0.4·SQM)` shorthand (which gives ≈1.87×10⁻⁴), i.e.
+  the K&S pair used by the code is not identical to that shorthand; the pair is
+  exactly self-inverse, which is what matters for internal consistency.
 - The clamp `max(b, 1e-3)` in `magFromNL` caps representable darkness at
   ≈ mag 26.9/arcsec² — irrelevant in practice.
 

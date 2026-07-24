@@ -8,10 +8,14 @@ Definitions (documented; see SCIENTIFIC_ASSUMPTIONS.md §Visual response):
   V'(l): CIE 1951 scotopic function. This is a SCOTOPIC luminance, not
   ordinary cd/m2; it is stored under an explicit name.
 - S/P ratio = L'/L.
-- Radiance input: mW m-2 nm-1 sr-1 (energy-based), trapezoid-free rectangle
-  sum on the uniform 10 nm grid (exact for the tabulated-function convention).
-- MC uncertainty: per-wavelength standard errors are treated as independent;
-  sigma_L = Km*sqrt(sum (V*sigma*dl)^2). Conservative for correlated noise.
+- Radiance input: mW m-2 nm-1 sr-1 (energy-based). PRIMARY luminance value is a
+  FINE-GRID TRAPEZOID (fine_weighted_sum) over the ~1 nm binned spectrum, which
+  preserves Fraunhofer/solar structure. The 10 nm RECTANGLE sum (weighted_sum)
+  over the 41 RT nodes is the NODE-GRID / UNCERTAINTY path, not the primary
+  luminance; the two agree to <1% (wavelengthGridConsistency).
+- MC uncertainty: per-wavelength standard errors are treated as independent on
+  the node grid; sigma_L = Km*sqrt(sum (V*sigma*dl)^2). Conservative for
+  correlated noise.
 - nanolamberts: 1 nL = 1e-9 lambert = (1e-5/pi) cd/m2 = 3.183099e-6 cd/m2.
 - mag/arcsec2 via the calculator's own Krisciunas & Schaefer pair:
   mag = (20.7233 - ln(nL/34.08)) / 0.92104  (V-like SQM scale; valid only as

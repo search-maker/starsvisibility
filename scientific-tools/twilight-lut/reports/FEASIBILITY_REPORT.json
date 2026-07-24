@@ -3,7 +3,7 @@
   "uvspecVersion": "uvspec, version 2.0.6-MYSTIC",
   "libradtranSource": "conda-forge rubin-libradtran (real build of the upstream libRadtran 2.0.6 tarball)",
   "dataPackage": "share/libRadtran/data from the same package",
-  "generatorCommit": "d7876dfc101b50f20359a75158cbbc62a5dc8956",
+  "generatorCommit": "8a828df8e44ff20720d88be79d30fbc707b808bd",
   "outputsAreReal": true,
   "pythonEnv": {
    "LIBRADTRAN_BIN": "/tmp/claude-0/-home-user-starsvisibility/a343e0a7-9db0-5842-b21e-416b412b4e0f/scratchpad/lrt-env/bin/uvspec",
@@ -327,36 +327,30 @@
    "productionReadinessStatus": "NOT RECOMMENDED \u2014 feasibility only"
   },
   "supportedDomain": {
-   "demonstratedCore": {
-    "sunDepressionDeg": [
-     0,
-     8
-    ],
-    "targetAltitudeDeg": [
-     10,
-     90
-    ],
-    "relativeAzimuthDeg": [
-     0,
-     180
-    ],
-    "aod550Baseline": 0.15,
-    "note": "0-8 deg feasibility demonstrated across the core altitude/azimuth geometry at baseline AOD; AOD extremes sampled only in limited geometries (not validated across the full domain)"
-   },
-   "provisionalExtension": {
-    "sunDepressionDeg": [
-     9,
-     10
-    ],
-    "evidence": "ZENITH-ONLY probes resolved to ~9-13% at 4e7 photons; NOT established at all altitudes/azimuths/AOD"
-   },
+   "fullCoreGeometryDepressionsDeg": [
+    0,
+    4,
+    8
+   ],
+   "fullCoreGeometryNote": "full core geometry (target altitudes {10,30,60,90} x relative azimuths {0,90,180}) tested and resolved at these depressions, at baseline AOD 0.15",
+   "spotCheckDepressionsDeg": [
+    2,
+    6
+   ],
+   "spotCheckNote": "partial spot checks only (single altitude/azimuth slices), NOT full core geometry",
+   "provisionalZenithOnlyDepressionsDeg": [
+    9,
+    10
+   ],
+   "provisionalNote": "ZENITH-ONLY probes resolved to ~9-13% at 4e7 photons; NOT established at other altitudes/azimuths/AOD",
+   "aodExtremes": "AOD 0.05 and 0.30 sampled only in limited geometries, not validated across the domain",
    "notSupported": {
     "sunDepressionDeg": ">=12 (marginal ~37%, impractical cost)",
     "targetAltitudeDeg": "<10 (untested)",
     "atmosphere": "clouds, refraction (not modelled), aerosol families other than the one Shettle rural profile"
    },
    "fullHypercubeSupported": false,
-   "reconciliationNote": "This evidence-based domain supersedes any earlier '0-10 deg fully supported' wording in README/SCIENTIFIC_ASSUMPTIONS/FEASIBILITY_REPORT; the full 0-10 deg x 10-90 deg x AOD hypercube is NOT declared supported until Milestone 3 pre-grid worst-geometry cases pass."
+   "reconciliationNote": "Supersedes any earlier '0-10 deg fully supported' wording. Full core geometry exists only at depressions 0/4/8; 2/6 are spot checks; 9/10 are zenith-only provisional probes."
   }
  }
 }

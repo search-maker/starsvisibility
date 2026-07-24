@@ -210,23 +210,22 @@ def main():
         "productionReadinessStatus": "NOT RECOMMENDED — feasibility only",
     }
 
-    # Evidence-based supported domain (§2.2): distinguish demonstrated core from
-    # provisional zenith-only extension. Do NOT declare the full hypercube.
+    # Evidence-based supported domain (§2.2 / RH-7): be precise about which
+    # depressions had FULL core geometry vs only spot checks vs zenith-only.
+    depths_full = sorted({r["sunDepressionDeg"] for r in core_resolved})
     stats["supportedDomain"] = {
-        "demonstratedCore": {
-            "sunDepressionDeg": [0, 8],
-            "targetAltitudeDeg": [10, 90],
-            "relativeAzimuthDeg": [0, 180],
-            "aod550Baseline": 0.15,
-            "note": "0-8 deg feasibility demonstrated across the core "
-            "altitude/azimuth geometry at baseline AOD; AOD extremes sampled "
-            "only in limited geometries (not validated across the full domain)",
-        },
-        "provisionalExtension": {
-            "sunDepressionDeg": [9, 10],
-            "evidence": "ZENITH-ONLY probes resolved to ~9-13% at 4e7 photons; "
-            "NOT established at all altitudes/azimuths/AOD",
-        },
+        "fullCoreGeometryDepressionsDeg": depths_full,   # 0, 4, 8
+        "fullCoreGeometryNote": "full core geometry (target altitudes "
+        "{10,30,60,90} x relative azimuths {0,90,180}) tested and resolved at "
+        "these depressions, at baseline AOD 0.15",
+        "spotCheckDepressionsDeg": [2, 6],
+        "spotCheckNote": "partial spot checks only (single altitude/azimuth "
+        "slices), NOT full core geometry",
+        "provisionalZenithOnlyDepressionsDeg": [9, 10],
+        "provisionalNote": "ZENITH-ONLY probes resolved to ~9-13% at 4e7 "
+        "photons; NOT established at other altitudes/azimuths/AOD",
+        "aodExtremes": "AOD 0.05 and 0.30 sampled only in limited geometries, "
+        "not validated across the domain",
         "notSupported": {
             "sunDepressionDeg": ">=12 (marginal ~37%, impractical cost)",
             "targetAltitudeDeg": "<10 (untested)",
@@ -234,20 +233,95 @@ def main():
             "other than the one Shettle rural profile",
         },
         "fullHypercubeSupported": False,
-        "reconciliationNote": "This evidence-based domain supersedes any earlier "
-        "'0-10 deg fully supported' wording in README/SCIENTIFIC_ASSUMPTIONS/"
-        "FEASIBILITY_REPORT; the full 0-10 deg x 10-90 deg x AOD hypercube is "
-        "NOT declared supported until Milestone 3 pre-grid worst-geometry cases "
-        "pass.",
+        "reconciliationNote": "Supersedes any earlier '0-10 deg fully supported' "
+        "wording. Full core geometry exists only at depressions 0/4/8; 2/6 are "
+        "spot checks; 9/10 are zenith-only provisional probes.",
     }
-    (REPORTS / "FEASIBILITY_REPORT.json").write_text(
-        json.dumps({"environment": env, "statistics": stats}, indent=1))
+    report = {"environment": env, "statistics": stats}
+    (REPORTS / "FEASIBILITY_REPORT.json").write_text(json.dumps(report, indent=1))
+    write_markdown(report)
     print(json.dumps({"verdict": stats["feasibilityVerdict"],
                       "gates": [(g["gate"], g["passed"]) for g in gates]},
                      indent=1))
-    print(f"wrote {REPORTS/'FEASIBILITY_REPORT.json'}")
-    print("NOTE: FEASIBILITY_REPORT.md is written by hand from this JSON so "
-          "that prose claims never exceed the data; regenerate the JSON first.")
+    print(f"wrote {REPORTS/'FEASIBILITY_REPORT.json'} and .md (auto-generated)")
+
+
+def write_markdown(report):
+    """RH-6: FEASIBILITY_REPORT.md body is AUTO-GENERATED from the JSON, so it
+    can never contain superseded claims (full 0-10 support, 'observation-
+    consistent', 'physically faithful', 'independent observations')."""
+    s = report["statistics"]
+    env = report["environment"]
+    dom = s["supportedDomain"]
+    sm = s["statusModel"]
+    L = ["# libRadtran Directional Twilight-Radiance LUT — Feasibility Report",
+         "",
+         "**AUTO-GENERATED from `FEASIBILITY_REPORT.json` by "
+         "`scripts/write_feasibility_report.py` (RH-6). Do not hand-edit; "
+         "regenerate the JSON, which regenerates this file.** Every number below "
+         "comes from the real simulation outputs and the evidence files.", "",
+         f"- uvspec: `{env['uvspecVersion']}` — {env['libradtranSource']}",
+         f"- generator commit: `{env['generatorCommit']}`",
+         f"- outputs are real: {env['outputsAreReal']}", "",
+         "## Status model (six separate statuses)", ""]
+    for k, v in sm.items():
+        L.append(f"- **{k}**: {v}")
+    L += ["", "## Feasibility gates", "",
+          f"Verdict: **{s['feasibilityVerdict']}**", ""]
+    for g in s["gates"]:
+        L.append(f"- {'PASS' if g['passed'] else 'FAIL'} — {g['gate']}: "
+                 f"{g['evidence']}")
+    gi = s["gateInputs"]
+    L += ["", "### Gate inputs (measured)", "",
+          f"- core cells resolved: {gi['coreCellsResolved']}/"
+          f"{gi['coreCellsPresent']} (expected >= {gi['coreCellsExpected']})",
+          f"- resolved coverage: {gi['resolvedCoverage']:.1%}; "
+          f"rel-uncertainty p95 {gi['relP95']:.2%}, max {gi['relMax']:.1%}",
+          f"- Monte Carlo repeat groups: {gi['mcGroupCount']} across depressions "
+          f"{gi['mcDepthSpread']}; sigma ratios {[round(r,2) for r in gi['mcSigmaRatios']]}",
+          f"- solver-validation pass: {gi['solverValidationPass']}",
+          f"- grid-consistency p95: {gi['gridConsistencyP95']:.3%}"
+          if gi['gridConsistencyP95'] is not None else "- grid-consistency: n/a",
+          "", "## Supported domain (evidence-based, NOT the full hypercube)", "",
+          f"- **full core geometry** at depressions "
+          f"{dom['fullCoreGeometryDepressionsDeg']} deg — {dom['fullCoreGeometryNote']}",
+          f"- **spot checks only** at {dom['spotCheckDepressionsDeg']} deg — "
+          f"{dom['spotCheckNote']}",
+          f"- **provisional zenith-only** at "
+          f"{dom['provisionalZenithOnlyDepressionsDeg']} deg — {dom['provisionalNote']}",
+          f"- AOD extremes: {dom['aodExtremes']}",
+          f"- not supported: {dom['notSupported']}",
+          f"- full hypercube supported: **{dom['fullHypercubeSupported']}**",
+          f"- {dom['reconciliationNote']}", "",
+          "## Cases and stability", "",
+          f"- cases: {s['casesTotal']} total, {s['casesOk']} ok, "
+          f"{s['casesFailed']} failed, {s['casesStatisticallyUnresolved']} unresolved",
+          f"- runtime/case: median {s['runtimeSecondsPerCase']['median']:.1f}s, "
+          f"max {s['runtimeSecondsPerCase']['max']:.0f}s",
+          f"- canonical grid (grid_def.py): "
+          f"{s['canonicalGrid']['counts']['uniqueNodeCount']} unique nodes, "
+          f"{s['canonicalGrid']['counts']['totalSimulationRuns']} runs, "
+          f"{s['projectedGridCpuHoursSingleCore']} CPU-h", "",
+          "## Scope of validation (what this report does and does NOT claim)", "",
+          "- This is a **feasibility and internal-consistency** result plus "
+          "**broad literature-plausibility** checks under UNMATCHED atmospheric "
+          "assumptions.",
+          "- It is **not** primary matched-geometry observational validation and "
+          "**not** first-visibility validation; those statuses are PENDING and "
+          "BLOCKED respectively (see status model).",
+          "- Production integration is **not recommended** from this report.", "",
+          "## Reproduction", "",
+          "```", "python scripts/check_environment.py",
+          "python scripts/solver_validation.py",
+          "python scripts/run_libradtran.py --jobs 4",
+          "python scripts/parse_outputs.py",
+          "python scripts/integrate_visual_response.py",
+          "python scripts/analyze_monte_carlo_uncertainty.py",
+          "python scripts/validate_against_observations.py",
+          "python scripts/validate_primary_observations.py",
+          "python scripts/write_feasibility_report.py",
+          "python -m pytest tests/ -q", "```", ""]
+    (REPORTS / "FEASIBILITY_REPORT.md").write_text("\n".join(L))
 
 
 if __name__ == "__main__":
