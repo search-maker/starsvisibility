@@ -92,6 +92,14 @@ description of the model until validation completes is:
 - **FC-5** Earth-Sun distance contract: 1 AU reference in metadata; runtime
   `(1AU/r)^2` scaling for the absolute model (hybrid cancels), validated against
   libRadtran `day_of_year` to 0.08 % (`earth-sun-scaling-validation.json`).
+- **FC-6 (foundation)** first-visible harness drives the REAL production
+  `index.html` in headless Chromium (Playwright). The solar-twilight provider
+  boundary (replaces only Btwi) is proven EXACTLY transparent with the legacy
+  provider across 354 cases — max Δtwilight = Δtotal-sky-mag = ΔNELM = 0
+  (`reports/provider-parity.json`, `harness/`). Driving the full `calculate()`
+  event search across the scenario matrix is the next step. Harness needs a
+  repo-root `npm install playwright` (browsers pre-installed; launch with
+  `executablePath` to `chromium-1194`).
 
 Nothing above modifies production behavior or enables the experimental model by
 default; all of it lives under `scientific-tools/twilight-lut/` and

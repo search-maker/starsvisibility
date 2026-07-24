@@ -20,3 +20,6 @@ mc[0-9]*.rad
 mc[0-9]*.rad.std
 randomseed
 !fixtures/**
+
+# harness node deps (symlink to repo root)
+harness/node_modules
