@@ -94,28 +94,69 @@ def main():
     stats["canonicalGrid"] = grid
     stats["projectedGridCpuHoursSingleCore"] = grid["counts"]["projectedCpuHours"]
 
-    # Gate evaluation
+    # ---- Evidence-based gates (RH-4) ---------------------------------------
     def gate(name, passed, evidence):
         return {"gate": name, "passed": bool(passed), "evidence": evidence}
 
-    contrast_growth = next((c for c in (obs or {}).get("checks", [])
-                            if "contrast grows" in c["check"]), None)
+    def pct(vals, p):
+        s = sorted(vals)
+        if not s:
+            return None
+        k = min(len(s) - 1, int(round((p / 100) * (len(s) - 1))))
+        return s[k]
+
+    solver_val = load("solver-validation.json")
     obs_pass = obs and obs["passed"] == obs["total"]
-    mc_worst = (mc or {}).get("worstEmpiricalToReportedRatio")
+
+    # Core-cell coverage: all 36 M2 core cells present AND resolved.
+    core_all = [r for r in cases if r.get("group") == "core"]
+    core_resolved = [r for r in core_all if r.get("statisticallyResolved")]
+    EXPECTED_CORE = 3 * 4 * 3   # dep{0,4,8} x alt{10,30,60,90} x raz{0,90,180}
+    core_ok = (len(core_all) >= EXPECTED_CORE
+               and len(core_resolved) == len(core_all))
+
+    # Numerical stability from coverage + p95/max, NOT median alone.
+    p95 = pct(rel, 95) if rel else None
+    rel_max = max(rel) if rel else None
+    coverage = len(resolved) / len(ok) if ok else 0
+    stability_ok = bool(rel and coverage >= 0.95 and p95 is not None
+                        and p95 < 0.10 and rel_max is not None and rel_max < 0.40)
+
+    # Monte Carlo: require >=2 repeat groups with spread AND acceptable
+    # empirical/reported sigma ratio band.
+    mc_groups = (mc or {}).get("groups", [])
+    mc_depths = {g["sunDepressionDeg"] for g in mc_groups}
+    mc_ratios = [g["empiricalToReportedRatio"] for g in mc_groups
+                 if g.get("empiricalToReportedRatio") is not None
+                 and g["empiricalToReportedRatio"] == g["empiricalToReportedRatio"]]
+    mc_ok = (len(mc_groups) >= 2 and len(mc_depths) >= 2 and mc_ratios
+             and all(0.3 <= r <= 3.0 for r in mc_ratios))
+
+    solver_ok = bool(solver_val and solver_val.get("pass")) and core_ok
+    conv_ok = bool(grid_cons and pct(grid_cons, 95) is not None
+                   and pct(grid_cons, 95) < 0.05)
+
     gates = [
-        gate("solver+geometry valid in twilight",
-             True,
-             "MYSTIC 1D-spherical backward produces finite positive radiance "
-             "for depressions 0-8 deg; DISORT/pseudospherical demonstrated "
-             "invalid (negative radiances) beyond SZA 90 and is not used"),
-        gate("numerical stability adequate for a LUT",
-             rel and statistics.median(rel) < 0.03,
-             f"median photopic relative uncertainty "
-             f"{statistics.median(rel):.3%} (max {max(rel):.1%})" if rel else "no data"),
-        gate("Monte Carlo uncertainty quantified",
-             mc is not None and mc_worst is not None,
-             f"independent-seed repeats; worst empirical/reported ratio "
-             f"{mc_worst:.2f}" if mc_worst else "missing"),
+        gate("solver+geometry valid in twilight (from solver-validation.json + "
+             "full core-cell coverage)",
+             solver_ok,
+             (f"solver-validation pass={solver_val.get('pass')}, MYSTIC "
+              f"{solver_val.get('mysticValidCount')}/{solver_val.get('mysticProbeCount')} "
+              f"valid, DISORT-invalid-below-horizon="
+              f"{solver_val.get('disortInvalidBelowHorizon')}; core cells "
+              f"{len(core_resolved)}/{len(core_all)} resolved (expected "
+              f">={EXPECTED_CORE})") if solver_val else
+             "solver-validation.json missing — run scripts/solver_validation.py"),
+        gate("numerical stability adequate for a LUT (coverage + p95 + max)",
+             stability_ok,
+             (f"resolved coverage {coverage:.1%}, p95 rel uncertainty "
+              f"{p95:.2%}, max {rel_max:.1%}") if rel else "no data"),
+        gate("Monte Carlo uncertainty quantified (repeat groups + spread + "
+             "sigma-ratio band)",
+             mc_ok,
+             (f"{len(mc_groups)} repeat groups across {len(mc_depths)} "
+              f"depressions; empirical/reported ratios {[round(r,2) for r in mc_ratios]} "
+              f"in [0.3,3.0]") if mc_groups else "no repeat groups"),
         gate("runtime practical for the expanded grid",
              stats["projectedGridCpuHoursSingleCore"] < 48,
              f"projected canonical grid ({grid['counts']['uniqueNodeCount']} "
@@ -123,20 +164,29 @@ def main():
              f"{stats['projectedGridCpuHoursSingleCore']} CPU-h single-core "
              f"({grid['counts']['projectedWallHoursAtJobs']} h at "
              f"{grid['counts']['jobs']} jobs)"),
-        gate("output convertible to the calculator's quantities",
-             grid_cons and statistics.median(grid_cons) < 0.05,
+        gate("output convertible to the calculator's quantities (p95 grid "
+             "consistency)",
+             conv_ok,
              "spectral radiance -> photopic luminance -> nL -> KS-convention "
-             f"mag/arcsec2; fine-vs-node grid consistency median "
-             f"{statistics.median(grid_cons):.2%}" if grid_cons else "no data"),
+             f"mag/arcsec2; fine-vs-node grid consistency p95 "
+             f"{pct(grid_cons,95):.2%}" if grid_cons else "no data"),
         gate("consistent with broad literature plausibility ranges "
              "(NOT primary matched-geometry validation)",
              obs_pass,
              f"{obs['passed']}/{obs['total']} broad-anchor+sanity checks passed "
              "under UNMATCHED atmospheric assumptions (offline literature "
-             "anchors; see OBSERVATIONAL_VALIDATION.md). Primary matched-geometry "
-             "validation is a separate Milestone 3 deliverable."
-             if obs else "missing"),
+             "anchors). Primary matched-geometry validation is a separate "
+             "Milestone 3 deliverable." if obs else "missing"),
     ]
+    stats["gateInputs"] = {
+        "coreCellsExpected": EXPECTED_CORE, "coreCellsPresent": len(core_all),
+        "coreCellsResolved": len(core_resolved),
+        "resolvedCoverage": coverage, "relP95": p95, "relMax": rel_max,
+        "mcGroupCount": len(mc_groups), "mcDepthSpread": sorted(mc_depths),
+        "mcSigmaRatios": mc_ratios,
+        "solverValidationPass": bool(solver_val and solver_val.get("pass")),
+        "gridConsistencyP95": pct(grid_cons, 95) if grid_cons else None,
+    }
     stats["gates"] = gates
     all_pass = all(g["passed"] for g in gates)
     stats["feasibilityVerdict"] = "PASS" if all_pass else "PARTIAL/FAIL"

@@ -3,7 +3,7 @@
   "uvspecVersion": "uvspec, version 2.0.6-MYSTIC",
   "libradtranSource": "conda-forge rubin-libradtran (real build of the upstream libRadtran 2.0.6 tarball)",
   "dataPackage": "share/libRadtran/data from the same package",
-  "generatorCommit": "51c1b1d81bb2596bcebacc02da90c3ab774e2198",
+  "generatorCommit": "d7876dfc101b50f20359a75158cbbc62a5dc8956",
   "outputsAreReal": true,
   "pythonEnv": {
    "LIBRADTRAN_BIN": "/tmp/claude-0/-home-user-starsvisibility/a343e0a7-9db0-5842-b21e-416b412b4e0f/scratchpad/lrt-env/bin/uvspec",
@@ -37,7 +37,7 @@
    "median": 0.003222938862737195,
    "max": 0.007706297431260115
   },
-  "rawOutputMB": 147.7,
+  "rawOutputMB": 147.8,
   "domainProbes": [
    {
     "sunDepressionDeg": 9,
@@ -266,21 +266,40 @@
    }
   },
   "projectedGridCpuHoursSingleCore": 18.5,
+  "gateInputs": {
+   "coreCellsExpected": 36,
+   "coreCellsPresent": 36,
+   "coreCellsResolved": 36,
+   "resolvedCoverage": 1.0,
+   "relP95": 0.054975807490188607,
+   "relMax": 0.3712793068311472,
+   "mcGroupCount": 2,
+   "mcDepthSpread": [
+    4,
+    8
+   ],
+   "mcSigmaRatios": [
+    0.8327916545721237,
+    0.6934474751877638
+   ],
+   "solverValidationPass": true,
+   "gridConsistencyP95": 0.004569601502707858
+  },
   "gates": [
    {
-    "gate": "solver+geometry valid in twilight",
+    "gate": "solver+geometry valid in twilight (from solver-validation.json + full core-cell coverage)",
     "passed": true,
-    "evidence": "MYSTIC 1D-spherical backward produces finite positive radiance for depressions 0-8 deg; DISORT/pseudospherical demonstrated invalid (negative radiances) beyond SZA 90 and is not used"
+    "evidence": "solver-validation pass=True, MYSTIC 7/7 valid, DISORT-invalid-below-horizon=True; core cells 36/36 resolved (expected >=36)"
    },
    {
-    "gate": "numerical stability adequate for a LUT",
+    "gate": "numerical stability adequate for a LUT (coverage + p95 + max)",
     "passed": true,
-    "evidence": "median photopic relative uncertainty 1.136% (max 37.1%)"
+    "evidence": "resolved coverage 100.0%, p95 rel uncertainty 5.50%, max 37.1%"
    },
    {
-    "gate": "Monte Carlo uncertainty quantified",
+    "gate": "Monte Carlo uncertainty quantified (repeat groups + spread + sigma-ratio band)",
     "passed": true,
-    "evidence": "independent-seed repeats; worst empirical/reported ratio 0.83"
+    "evidence": "2 repeat groups across 2 depressions; empirical/reported ratios [0.83, 0.69] in [0.3,3.0]"
    },
    {
     "gate": "runtime practical for the expanded grid",
@@ -288,14 +307,14 @@
     "evidence": "projected canonical grid (540 unique nodes, 925 runs): 18.5 CPU-h single-core (4.62 h at 4 jobs)"
    },
    {
-    "gate": "output convertible to the calculator's quantities",
+    "gate": "output convertible to the calculator's quantities (p95 grid consistency)",
     "passed": true,
-    "evidence": "spectral radiance -> photopic luminance -> nL -> KS-convention mag/arcsec2; fine-vs-node grid consistency median 0.32%"
+    "evidence": "spectral radiance -> photopic luminance -> nL -> KS-convention mag/arcsec2; fine-vs-node grid consistency p95 0.46%"
    },
    {
     "gate": "consistent with broad literature plausibility ranges (NOT primary matched-geometry validation)",
     "passed": true,
-    "evidence": "9/9 broad-anchor+sanity checks passed under UNMATCHED atmospheric assumptions (offline literature anchors; see OBSERVATIONAL_VALIDATION.md). Primary matched-geometry validation is a separate Milestone 3 deliverable."
+    "evidence": "9/9 broad-anchor+sanity checks passed under UNMATCHED atmospheric assumptions (offline literature anchors). Primary matched-geometry validation is a separate Milestone 3 deliverable."
    }
   ],
   "feasibilityVerdict": "PASS",

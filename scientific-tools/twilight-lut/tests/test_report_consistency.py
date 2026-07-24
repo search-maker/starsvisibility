@@ -61,3 +61,26 @@ def test_canonical_grid_projection_matches_grid_def():
     j = json.loads((REPORTS / "FEASIBILITY_REPORT.json").read_text())
     grid = j["statistics"]["canonicalGrid"]
     assert grid["counts"]["uniqueNodeCount"] == DEFAULT_GRID.counts()["uniqueNodeCount"]
+
+
+def test_gates_are_evidence_based_not_hardcoded():
+    j = json.loads((REPORTS / "FEASIBILITY_REPORT.json").read_text())
+    gi = j["statistics"]["gateInputs"]
+    # solver gate must be backed by a real solver-validation.json result
+    assert (REPORTS / "solver-validation.json").exists()
+    sv = json.loads((REPORTS / "solver-validation.json").read_text())
+    assert gi["solverValidationPass"] == sv["pass"]
+    # core-cell coverage must be measured, full 36 present and resolved
+    assert gi["coreCellsExpected"] == 36
+    assert gi["coreCellsPresent"] >= 36
+    assert gi["coreCellsResolved"] == gi["coreCellsPresent"]
+    # stability gate uses p95/max, not just median
+    assert gi["relP95"] is not None and gi["relMax"] is not None
+    # MC gate requires spread across >=2 depressions
+    assert len(gi["mcDepthSpread"]) >= 2
+
+
+def test_solver_validation_records_disort_invalid_below_horizon():
+    sv = json.loads((REPORTS / "solver-validation.json").read_text())
+    assert sv["disortInvalidBelowHorizon"] is True
+    assert sv["mysticAllValid"] is True
