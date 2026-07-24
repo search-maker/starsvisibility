@@ -132,7 +132,11 @@ def main():
     mc_ok = (len(mc_groups) >= 2 and len(mc_depths) >= 2 and mc_ratios
              and all(0.3 <= r <= 3.0 for r in mc_ratios))
 
-    solver_ok = bool(solver_val and solver_val.get("pass")) and core_ok
+    # require the EXACT expected MYSTIC probe count, not merely "some" probe
+    mystic_exact = bool(solver_val
+                        and solver_val.get("mysticValidCount")
+                        == solver_val.get("expectedMysticProbes"))
+    solver_ok = bool(solver_val and solver_val.get("pass")) and core_ok and mystic_exact
     conv_ok = bool(grid_cons and pct(grid_cons, 95) is not None
                    and pct(grid_cons, 95) < 0.05)
 
@@ -141,9 +145,11 @@ def main():
              "full core-cell coverage)",
              solver_ok,
              (f"solver-validation pass={solver_val.get('pass')}, MYSTIC "
-              f"{solver_val.get('mysticValidCount')}/{solver_val.get('mysticProbeCount')} "
-              f"valid, DISORT-invalid-below-horizon="
-              f"{solver_val.get('disortInvalidBelowHorizon')}; core cells "
+              f"{solver_val.get('mysticValidCount')}/{solver_val.get('expectedMysticProbes')} "
+              f"valid (exact), plane-parallel-zero="
+              f"{solver_val.get('planeParallelDisort',{}).get('allZeroBelowHorizon')}, "
+              f"pseudo-vs-MYSTIC maxAbsRelDiff="
+              f"{solver_val.get('pseudosphericalVsMystic',{}).get('maxAbsRelDiff')}; core cells "
               f"{len(core_resolved)}/{len(core_all)} resolved (expected "
               f">={EXPECTED_CORE})") if solver_val else
              "solver-validation.json missing — run scripts/solver_validation.py"),
@@ -196,8 +202,10 @@ def main():
     # separate so no broad-anchor result is mislabelled as completed validation.
     stats["statusModel"] = {
         "solverFeasibilityStatus": "PASS — MYSTIC 1D-spherical backward valid "
-        "0-8 deg across core geometry; DISORT/pseudospherical invalid below "
-        "the horizon",
+        "0-8 deg across core geometry. Plane-parallel DISORT returns zero below "
+        "the horizon; pseudospherical DISORT is negative in some directions and "
+        "disagrees materially with MYSTIC (see solver-validation.json); MYSTIC "
+        "is selected exclusively.",
         "numericalStabilityStatus": "PASS — median photopic uncertainty "
         f"{statistics.median(rel):.2%} on resolved cases" if rel else "n/a",
         "literaturePlausibilityStatus": "PASS (broad, unmatched-atmosphere "

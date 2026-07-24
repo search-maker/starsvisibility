@@ -3,7 +3,7 @@
   "uvspecVersion": "uvspec, version 2.0.6-MYSTIC",
   "libradtranSource": "conda-forge rubin-libradtran (real build of the upstream libRadtran 2.0.6 tarball)",
   "dataPackage": "share/libRadtran/data from the same package",
-  "generatorCommit": "8a828df8e44ff20720d88be79d30fbc707b808bd",
+  "generatorCommit": "170838d95a8cdab258ccbf8cd6c78f5c68869af8",
   "outputsAreReal": true,
   "pythonEnv": {
    "LIBRADTRAN_BIN": "/tmp/claude-0/-home-user-starsvisibility/a343e0a7-9db0-5842-b21e-416b412b4e0f/scratchpad/lrt-env/bin/uvspec",
@@ -289,7 +289,7 @@
    {
     "gate": "solver+geometry valid in twilight (from solver-validation.json + full core-cell coverage)",
     "passed": true,
-    "evidence": "solver-validation pass=True, MYSTIC 7/7 valid, DISORT-invalid-below-horizon=True; core cells 36/36 resolved (expected >=36)"
+    "evidence": "solver-validation pass=True, MYSTIC 12/12 valid (exact), plane-parallel-zero=True, pseudo-vs-MYSTIC maxAbsRelDiff=56.036038902687125; core cells 36/36 resolved (expected >=36)"
    },
    {
     "gate": "numerical stability adequate for a LUT (coverage + p95 + max)",
@@ -319,7 +319,7 @@
   ],
   "feasibilityVerdict": "PASS",
   "statusModel": {
-   "solverFeasibilityStatus": "PASS \u2014 MYSTIC 1D-spherical backward valid 0-8 deg across core geometry; DISORT/pseudospherical invalid below the horizon",
+   "solverFeasibilityStatus": "PASS \u2014 MYSTIC 1D-spherical backward valid 0-8 deg across core geometry. Plane-parallel DISORT returns zero below the horizon; pseudospherical DISORT is negative in some directions and disagrees materially with MYSTIC (see solver-validation.json); MYSTIC is selected exclusively.",
    "numericalStabilityStatus": "PASS \u2014 median photopic uncertainty 1.14% on resolved cases",
    "literaturePlausibilityStatus": "PASS (broad, unmatched-atmosphere anchors only) \u2014 consistent with Koomen/Rozenberg/Patat plausibility ranges; NOT primary matched-geometry validation",
    "primaryObservationalValidationStatus": "PENDING (Milestone 3) \u2014 matched-geometry Patat/Koomen comparison via synthetic Johnson V",

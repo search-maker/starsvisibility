@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
-"""Produce reports/solver-validation.json from REAL libRadtran probes.
+"""Produce reports/solver-validation.json from REAL libRadtran probes (PG-5).
 
-Establishes, from evidence rather than assertion:
-- DISORT (plane-parallel) and DISORT+pseudospherical produce INVALID
-  (negative or non-finite) radiances below the horizon (SZA > 90);
-- MYSTIC 1D-spherical backward produces finite positive radiance across the
-  twilight range and the core geometry sample.
+Reports the three solvers SEPARATELY and quantifies their disagreement, rather
+than lumping them together:
+- plane-parallel DISORT below the horizon,
+- pseudospherical DISORT below the horizon,
+- MYSTIC 1D-spherical backward,
+- pseudospherical-DISORT vs MYSTIC relative difference at identical geometry.
 
-The feasibility gate (write_feasibility_report.py) consumes this file; it must
-not hardcode solver validity.
+Finding (evidence, not assertion): below the horizon plane-parallel DISORT
+returns ZERO (no direct beam, no valid diffuse radiance); pseudospherical DISORT
+returns finite values that are NEGATIVE in some viewing directions (e.g.
+sunward) and, where positive, differ from spherical MYSTIC by large factors;
+MYSTIC returns finite positive radiance consistently. The production decision
+selects MYSTIC because pseudospherical is physically unreliable here (negative
+lobes) and disagrees materially with MYSTIC — NOT because every pseudospherical
+value is negative.
+
+DISORT radiance line format: `umu  u0u_mean  I(phi_0) I(phi_1) ...`; the
+per-phi radiances are the LAST len(phi) columns.
 """
 import json
 import subprocess
@@ -18,10 +28,14 @@ from lrt_common import find_uvspec, find_data_dir, uvspec_version
 
 REPORTS = Path(__file__).resolve().parent.parent / "reports"
 
+# below-horizon geometries: (sza, umu, phi)
+GEOMS = [(sza, umu, phi)
+         for sza in (92, 94, 96)
+         for (umu, phi) in ((-1.0, 0), (-0.5, 0), (-0.5, 90), (-0.5, 180))]
+EXPECTED_MYSTIC_PROBES = len(GEOMS)   # exact count required
 
-def run(uvspec, data, sza, umu, phi, solver, pseudospherical=False,
-        photons=200000, aod=0.15, timeout=600):
-    td = Path(tempfile.mkdtemp(prefix="solval_"))
+
+def _inp(data, sza, umu, phi, solver, pseudospherical, td, photons=200000):
     lines = [
         f"data_files_path {data}",
         f"atmosphere_file {data}/atmmod/afglus.dat",
@@ -29,15 +43,19 @@ def run(uvspec, data, sza, umu, phi, solver, pseudospherical=False,
         "mol_abs_param crs", "wavelength 550 550",
         f"sza {sza}", "phi0 0", f"umu {umu}", f"phi {phi}",
         "zout 0", "albedo 0.15", "aerosol_default",
-        f"aerosol_modify tau550 set {aod}", f"rte_solver {solver}",
-    ]
+        "aerosol_modify tau550 set 0.15", f"rte_solver {solver}"]
     if solver == "mystic":
         lines += ["mc_spherical 1D", "mc_vroom on", f"mc_photons {photons}",
                   "mc_std", "mc_randomseed 1", f"mc_basename {td}/mc"]
     if pseudospherical:
         lines.append("pseudospherical")
     lines.append("quiet")
-    (td / "c.inp").write_text("\n".join(lines) + "\n")
+    return "\n".join(lines) + "\n"
+
+
+def run(uvspec, data, sza, umu, phi, solver, pseudospherical=False, timeout=600):
+    td = Path(tempfile.mkdtemp(prefix="solval_"))
+    (td / "c.inp").write_text(_inp(data, sza, umu, phi, solver, pseudospherical, td))
     try:
         p = subprocess.run([str(uvspec)], stdin=(td / "c.inp").open(),
                            capture_output=True, text=True, cwd=td, timeout=timeout)
@@ -51,64 +69,97 @@ def run(uvspec, data, sza, umu, phi, solver, pseudospherical=False,
             if len(parts) >= 5:
                 val = float(parts[4])
     else:
-        # DISORT radiance is on stdout: last column of the umu line
+        # radiance line begins with the umu value; last column = I at our phi
         for ln in p.stdout.splitlines():
             c = ln.split()
-            if len(c) >= 2 and c[0].startswith("-1") or (c and c[0].startswith("-0")):
+            if len(c) >= 2:
                 try:
-                    val = float(c[-1])
+                    if abs(float(c[0]) - umu) < 1e-3 and len(c) >= 3:
+                        val = float(c[-1])
+                        break
                 except ValueError:
-                    pass
-    return {"solver": solver, "pseudospherical": pseudospherical, "sza": sza,
-            "umu": umu, "phi": phi, "returncode": p.returncode, "radiance": val,
+                    continue
+    return {"sza": sza, "umu": umu, "phi": phi, "radiance": val,
+            "returncode": p.returncode,
             "finitePositive": (val is not None and val == val and val > 0)}
 
 
 def main():
     uvspec = find_uvspec()
     data = find_data_dir(uvspec)
-    probes = []
-    # DISORT / pseudospherical below horizon -> expect invalid
-    for sza in (92, 94, 96):
-        for solver, ps in (("disort", False), ("disort", True)):
-            r = run(uvspec, data, sza, "-0.17365", 180, solver, pseudospherical=ps)
-            if r:
-                probes.append({**r, "domain": "below-horizon",
-                               "expectation": "invalid"})
-    # MYSTIC across twilight + core geometry sample -> expect valid
-    mystic_geom = [(90, "-1.0", 0), (94, "-1.0", 0), (98, "-1.0", 0),
-                   (94, "-0.17365", 0), (94, "-0.17365", 90), (94, "-0.17365", 180),
-                   (94, "-0.5", 90)]
-    for sza, umu, phi in mystic_geom:
-        r = run(uvspec, data, sza, umu, phi, "mystic")
-        if r:
-            probes.append({**r, "domain": "twilight", "expectation": "valid"})
+    pp, ps, my = [], [], []
+    ps_vs_my = []
+    for sza, umu, phi in GEOMS:
+        rpp = run(uvspec, data, sza, umu, phi, "disort", pseudospherical=False)
+        rps = run(uvspec, data, sza, umu, phi, "disort", pseudospherical=True)
+        rmy = run(uvspec, data, sza, umu, phi, "mystic")
+        if rpp:
+            pp.append(rpp)
+        if rps:
+            ps.append(rps)
+        if rmy:
+            my.append(rmy)
+        if rps and rmy and rps["radiance"] is not None and rmy["radiance"] and rmy["radiance"] > 0:
+            ps_vs_my.append({
+                "sza": sza, "umu": umu, "phi": phi,
+                "pseudospherical": rps["radiance"], "mystic": rmy["radiance"],
+                "relDiff": (rps["radiance"] - rmy["radiance"]) / rmy["radiance"]})
 
-    disort_below = [p for p in probes if p["solver"] == "disort"
-                    and p["domain"] == "below-horizon"]
-    disort_any_invalid = any(not p["finitePositive"] for p in disort_below)
-    mystic = [p for p in probes if p["solver"] == "mystic"]
-    mystic_all_valid = bool(mystic) and all(p["finitePositive"] for p in mystic)
+    pp_all_zero = bool(pp) and all(abs(r["radiance"] or 0) < 1e-9 for r in pp)
+    ps_any_negative = any((r["radiance"] is not None and r["radiance"] < 0) for r in ps)
+    ps_neg_dirs = [{"sza": r["sza"], "umu": r["umu"], "phi": r["phi"],
+                    "radiance": r["radiance"]}
+                   for r in ps if r["radiance"] is not None and r["radiance"] < 0]
+    mystic_valid = sum(1 for r in my if r["finitePositive"])
+    mystic_all_valid = (mystic_valid == EXPECTED_MYSTIC_PROBES)
+    ps_my_absreldiffs = [abs(x["relDiff"]) for x in ps_vs_my]
+    ps_disagrees = bool(ps_my_absreldiffs) and (max(ps_my_absreldiffs) > 0.5)
+
+    passed = mystic_all_valid and (pp_all_zero or ps_any_negative or ps_disagrees)
 
     result = {
         "uvspecVersion": uvspec_version(uvspec),
-        "probes": probes,
-        "disortInvalidBelowHorizon": disort_any_invalid,
+        "expectedMysticProbes": EXPECTED_MYSTIC_PROBES,
+        "mysticValidCount": mystic_valid,
         "mysticAllValid": mystic_all_valid,
-        "mysticValidCount": sum(1 for p in mystic if p["finitePositive"]),
-        "mysticProbeCount": len(mystic),
+        "planeParallelDisort": {
+            "allZeroBelowHorizon": pp_all_zero,
+            "probes": pp,
+            "interpretation": "plane-parallel DISORT has no direct beam below "
+            "the horizon and returns zero diffuse radiance — unusable for "
+            "twilight sky radiance"},
+        "pseudosphericalDisort": {
+            "anyNegative": ps_any_negative,
+            "negativeDirections": ps_neg_dirs,
+            "probes": ps,
+            "interpretation": "pseudospherical DISORT returns finite values but "
+            "is NEGATIVE in some viewing directions (e.g. sunward) and, where "
+            "positive, differs from spherical MYSTIC by large factors — not "
+            "physically reliable for directional twilight radiance"},
+        "mystic": {"probes": my},
+        "pseudosphericalVsMystic": {
+            "pairs": ps_vs_my,
+            "maxAbsRelDiff": max(ps_my_absreldiffs) if ps_my_absreldiffs else None,
+            "disagreesMaterially": ps_disagrees},
+        "decision": "select MYSTIC 1D-spherical backward exclusively. "
+        "Pseudospherical DISORT is NOT selected because it produces negative "
+        "radiance in some directions and disagrees materially with MYSTIC where "
+        "positive; plane-parallel DISORT is unusable (zero) below the horizon. "
+        "This is NOT a claim that every pseudospherical value is negative.",
         "requiredSolver": "mystic 1D-spherical backward",
-        "verdict": ("MYSTIC valid across twilight+core geometry; "
-                    "DISORT/pseudospherical invalid below horizon"
-                    if (mystic_all_valid and disort_any_invalid)
-                    else "solver validation INCOMPLETE — inspect probes"),
-        "pass": bool(mystic_all_valid and disort_any_invalid),
+        "pass": bool(passed),
     }
+    # keep legacy keys some consumers read
+    result["disortInvalidBelowHorizon"] = bool(pp_all_zero or ps_any_negative)
+    result["mysticProbeCount"] = len(my)
     REPORTS.mkdir(exist_ok=True)
     (REPORTS / "solver-validation.json").write_text(json.dumps(result, indent=1))
-    print(json.dumps({k: result[k] for k in
-                      ("disortInvalidBelowHorizon", "mysticAllValid",
-                       "mysticValidCount", "mysticProbeCount", "pass")}, indent=1))
+    print(json.dumps({
+        "mysticValidCount": mystic_valid, "expected": EXPECTED_MYSTIC_PROBES,
+        "planeParallelAllZero": pp_all_zero,
+        "pseudosphericalAnyNegative": ps_any_negative,
+        "pseudoVsMysticMaxAbsRelDiff": result["pseudosphericalVsMystic"]["maxAbsRelDiff"],
+        "pass": result["pass"]}, indent=1))
 
 
 if __name__ == "__main__":

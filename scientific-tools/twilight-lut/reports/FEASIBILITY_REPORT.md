@@ -3,12 +3,12 @@
 **AUTO-GENERATED from `FEASIBILITY_REPORT.json` by `scripts/write_feasibility_report.py` (RH-6). Do not hand-edit; regenerate the JSON, which regenerates this file.** Every number below comes from the real simulation outputs and the evidence files.
 
 - uvspec: `uvspec, version 2.0.6-MYSTIC` — conda-forge rubin-libradtran (real build of the upstream libRadtran 2.0.6 tarball)
-- generator commit: `8a828df8e44ff20720d88be79d30fbc707b808bd`
+- generator commit: `170838d95a8cdab258ccbf8cd6c78f5c68869af8`
 - outputs are real: True
 
 ## Status model (six separate statuses)
 
-- **solverFeasibilityStatus**: PASS — MYSTIC 1D-spherical backward valid 0-8 deg across core geometry; DISORT/pseudospherical invalid below the horizon
+- **solverFeasibilityStatus**: PASS — MYSTIC 1D-spherical backward valid 0-8 deg across core geometry. Plane-parallel DISORT returns zero below the horizon; pseudospherical DISORT is negative in some directions and disagrees materially with MYSTIC (see solver-validation.json); MYSTIC is selected exclusively.
 - **numericalStabilityStatus**: PASS — median photopic uncertainty 1.14% on resolved cases
 - **literaturePlausibilityStatus**: PASS (broad, unmatched-atmosphere anchors only) — consistent with Koomen/Rozenberg/Patat plausibility ranges; NOT primary matched-geometry validation
 - **primaryObservationalValidationStatus**: PENDING (Milestone 3) — matched-geometry Patat/Koomen comparison via synthetic Johnson V
@@ -19,7 +19,7 @@
 
 Verdict: **PASS**
 
-- PASS — solver+geometry valid in twilight (from solver-validation.json + full core-cell coverage): solver-validation pass=True, MYSTIC 7/7 valid, DISORT-invalid-below-horizon=True; core cells 36/36 resolved (expected >=36)
+- PASS — solver+geometry valid in twilight (from solver-validation.json + full core-cell coverage): solver-validation pass=True, MYSTIC 12/12 valid (exact), plane-parallel-zero=True, pseudo-vs-MYSTIC maxAbsRelDiff=56.036038902687125; core cells 36/36 resolved (expected >=36)
 - PASS — numerical stability adequate for a LUT (coverage + p95 + max): resolved coverage 100.0%, p95 rel uncertainty 5.50%, max 37.1%
 - PASS — Monte Carlo uncertainty quantified (repeat groups + spread + sigma-ratio band): 2 repeat groups across 2 depressions; empirical/reported ratios [0.83, 0.69] in [0.3,3.0]
 - PASS — runtime practical for the expanded grid: projected canonical grid (540 unique nodes, 925 runs): 18.5 CPU-h single-core (4.62 h at 4 jobs)

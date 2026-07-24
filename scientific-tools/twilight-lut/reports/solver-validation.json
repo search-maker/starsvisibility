@@ -1,168 +1,437 @@
 {
  "uvspecVersion": "uvspec, version 2.0.6-MYSTIC",
- "probes": [
-  {
-   "solver": "disort",
-   "pseudospherical": false,
-   "sza": 92,
-   "umu": "-0.17365",
-   "phi": 180,
-   "returncode": 0,
-   "radiance": 0.0,
-   "finitePositive": false,
-   "domain": "below-horizon",
-   "expectation": "invalid"
-  },
-  {
-   "solver": "disort",
-   "pseudospherical": true,
-   "sza": 92,
-   "umu": "-0.17365",
-   "phi": 180,
-   "returncode": 0,
-   "radiance": 6.913404465,
-   "finitePositive": true,
-   "domain": "below-horizon",
-   "expectation": "invalid"
-  },
-  {
-   "solver": "disort",
-   "pseudospherical": false,
-   "sza": 94,
-   "umu": "-0.17365",
-   "phi": 180,
-   "returncode": 0,
-   "radiance": 0.0,
-   "finitePositive": false,
-   "domain": "below-horizon",
-   "expectation": "invalid"
-  },
-  {
-   "solver": "disort",
-   "pseudospherical": true,
-   "sza": 94,
-   "umu": "-0.17365",
-   "phi": 180,
-   "returncode": 0,
-   "radiance": 2.460885286,
-   "finitePositive": true,
-   "domain": "below-horizon",
-   "expectation": "invalid"
-  },
-  {
-   "solver": "disort",
-   "pseudospherical": false,
-   "sza": 96,
-   "umu": "-0.17365",
-   "phi": 180,
-   "returncode": 0,
-   "radiance": 0.0,
-   "finitePositive": false,
-   "domain": "below-horizon",
-   "expectation": "invalid"
-  },
-  {
-   "solver": "disort",
-   "pseudospherical": true,
-   "sza": 96,
-   "umu": "-0.17365",
-   "phi": 180,
-   "returncode": 0,
-   "radiance": 1.440131426,
-   "finitePositive": true,
-   "domain": "below-horizon",
-   "expectation": "invalid"
-  },
-  {
-   "solver": "mystic",
-   "pseudospherical": false,
-   "sza": 90,
-   "umu": "-1.0",
-   "phi": 0,
-   "returncode": 0,
-   "radiance": 1.86494,
-   "finitePositive": true,
-   "domain": "twilight",
-   "expectation": "valid"
-  },
-  {
-   "solver": "mystic",
-   "pseudospherical": false,
-   "sza": 94,
-   "umu": "-1.0",
-   "phi": 0,
-   "returncode": 0,
-   "radiance": 0.0733612,
-   "finitePositive": true,
-   "domain": "twilight",
-   "expectation": "valid"
-  },
-  {
-   "solver": "mystic",
-   "pseudospherical": false,
-   "sza": 98,
-   "umu": "-1.0",
-   "phi": 0,
-   "returncode": 0,
-   "radiance": 0.00101895,
-   "finitePositive": true,
-   "domain": "twilight",
-   "expectation": "valid"
-  },
-  {
-   "solver": "mystic",
-   "pseudospherical": false,
-   "sza": 94,
-   "umu": "-0.17365",
-   "phi": 0,
-   "returncode": 0,
-   "radiance": 1.59581,
-   "finitePositive": true,
-   "domain": "twilight",
-   "expectation": "valid"
-  },
-  {
-   "solver": "mystic",
-   "pseudospherical": false,
-   "sza": 94,
-   "umu": "-0.17365",
-   "phi": 90,
-   "returncode": 0,
-   "radiance": 0.172026,
-   "finitePositive": true,
-   "domain": "twilight",
-   "expectation": "valid"
-  },
-  {
-   "solver": "mystic",
-   "pseudospherical": false,
-   "sza": 94,
-   "umu": "-0.17365",
-   "phi": 180,
-   "returncode": 0,
-   "radiance": 0.0808296,
-   "finitePositive": true,
-   "domain": "twilight",
-   "expectation": "valid"
-  },
-  {
-   "solver": "mystic",
-   "pseudospherical": false,
-   "sza": 94,
-   "umu": "-0.5",
-   "phi": 90,
-   "returncode": 0,
-   "radiance": 0.12158,
-   "finitePositive": true,
-   "domain": "twilight",
-   "expectation": "valid"
-  }
- ],
- "disortInvalidBelowHorizon": true,
+ "expectedMysticProbes": 12,
+ "mysticValidCount": 12,
  "mysticAllValid": true,
- "mysticValidCount": 7,
- "mysticProbeCount": 7,
+ "planeParallelDisort": {
+  "allZeroBelowHorizon": true,
+  "probes": [
+   {
+    "sza": 92,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 94,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 96,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.0,
+    "returncode": 0,
+    "finitePositive": false
+   }
+  ],
+  "interpretation": "plane-parallel DISORT has no direct beam below the horizon and returns zero diffuse radiance \u2014 unusable for twilight sky radiance"
+ },
+ "pseudosphericalDisort": {
+  "anyNegative": true,
+  "negativeDirections": [
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": -22.84020233
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": -4.594492912
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": -2.220385313
+   }
+  ],
+  "probes": [
+   {
+    "sza": 92,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 16.13938332,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": -22.84020233,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 31.05367661,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 13.02624607,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 94,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.3265257776,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": -4.594492912,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 1.099517584,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.8141383529,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 96,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.007829318754,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": -2.220385313,
+    "returncode": 0,
+    "finitePositive": false
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 0.2246220708,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.2741939127,
+    "returncode": 0,
+    "finitePositive": true
+   }
+  ],
+  "interpretation": "pseudospherical DISORT returns finite values but is NEGATIVE in some viewing directions (e.g. sunward) and, where positive, differs from spherical MYSTIC by large factors \u2014 not physically reliable for directional twilight radiance"
+ },
+ "mystic": {
+  "probes": [
+   {
+    "sza": 92,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.499802,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": 2.36526,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 0.87199,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.931997,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 94,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.0733612,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": 0.384005,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 0.12158,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.0905589,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 96,
+    "umu": -1.0,
+    "phi": 0,
+    "radiance": 0.00733955,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 0,
+    "radiance": 0.0411037,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 90,
+    "radiance": 0.0108453,
+    "returncode": 0,
+    "finitePositive": true
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 180,
+    "radiance": 0.00480738,
+    "returncode": 0,
+    "finitePositive": true
+   }
+  ]
+ },
+ "pseudosphericalVsMystic": {
+  "pairs": [
+   {
+    "sza": 92,
+    "umu": -1.0,
+    "phi": 0,
+    "pseudospherical": 16.13938332,
+    "mystic": 0.499802,
+    "relDiff": 31.291554095421784
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 0,
+    "pseudospherical": -22.84020233,
+    "mystic": 2.36526,
+    "relDiff": -10.656529231458697
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 90,
+    "pseudospherical": 31.05367661,
+    "mystic": 0.87199,
+    "relDiff": 34.6124228603539
+   },
+   {
+    "sza": 92,
+    "umu": -0.5,
+    "phi": 180,
+    "pseudospherical": 13.02624607,
+    "mystic": 0.931997,
+    "relDiff": 12.976703862780674
+   },
+   {
+    "sza": 94,
+    "umu": -1.0,
+    "phi": 0,
+    "pseudospherical": 0.3265257776,
+    "mystic": 0.0733612,
+    "relDiff": 3.4509328855035086
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 0,
+    "pseudospherical": -4.594492912,
+    "mystic": 0.384005,
+    "relDiff": -12.964669501699197
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 90,
+    "pseudospherical": 1.099517584,
+    "mystic": 0.12158,
+    "relDiff": 8.04357282447771
+   },
+   {
+    "sza": 94,
+    "umu": -0.5,
+    "phi": 180,
+    "pseudospherical": 0.8141383529,
+    "mystic": 0.0905589,
+    "relDiff": 7.990152849692301
+   },
+   {
+    "sza": 96,
+    "umu": -1.0,
+    "phi": 0,
+    "pseudospherical": 0.007829318754,
+    "mystic": 0.00733955,
+    "relDiff": 0.06673007936453862
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 0,
+    "pseudospherical": -2.220385313,
+    "mystic": 0.0411037,
+    "relDiff": -55.01911051803122
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 90,
+    "pseudospherical": 0.2246220708,
+    "mystic": 0.0108453,
+    "relDiff": 19.71146679206661
+   },
+   {
+    "sza": 96,
+    "umu": -0.5,
+    "phi": 180,
+    "pseudospherical": 0.2741939127,
+    "mystic": 0.00480738,
+    "relDiff": 56.036038902687125
+   }
+  ],
+  "maxAbsRelDiff": 56.036038902687125,
+  "disagreesMaterially": true
+ },
+ "decision": "select MYSTIC 1D-spherical backward exclusively. Pseudospherical DISORT is NOT selected because it produces negative radiance in some directions and disagrees materially with MYSTIC where positive; plane-parallel DISORT is unusable (zero) below the horizon. This is NOT a claim that every pseudospherical value is negative.",
  "requiredSolver": "mystic 1D-spherical backward",
- "verdict": "MYSTIC valid across twilight+core geometry; DISORT/pseudospherical invalid below horizon",
- "pass": true
+ "pass": true,
+ "disortInvalidBelowHorizon": true,
+ "mysticProbeCount": 12
 }

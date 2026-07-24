@@ -80,10 +80,21 @@ def test_gates_are_evidence_based_not_hardcoded():
     assert len(gi["mcDepthSpread"]) >= 2
 
 
-def test_solver_validation_records_disort_invalid_below_horizon():
+def test_solver_validation_reports_three_solvers_separately():
+    # PG-5: plane-parallel, pseudospherical, MYSTIC reported separately, and the
+    # pseudospherical-vs-MYSTIC disagreement is quantified (not a false claim
+    # that every pseudospherical value is negative).
     sv = json.loads((REPORTS / "solver-validation.json").read_text())
-    assert sv["disortInvalidBelowHorizon"] is True
-    assert sv["mysticAllValid"] is True
+    assert "planeParallelDisort" in sv
+    assert "pseudosphericalDisort" in sv
+    assert "pseudosphericalVsMystic" in sv
+    # MYSTIC must pass the EXACT expected probe count
+    assert sv["mysticValidCount"] == sv["expectedMysticProbes"]
+    # plane-parallel is zero below horizon; pseudospherical differs materially
+    assert sv["planeParallelDisort"]["allZeroBelowHorizon"] is True
+    assert sv["pseudosphericalVsMystic"]["maxAbsRelDiff"] > 0.5
+    assert "not a claim" in sv["decision"].lower() or \
+        "NOT a claim" in sv["decision"]
 
 
 # RH-6: withdrawn claims must not appear in the auto-generated body except in an
