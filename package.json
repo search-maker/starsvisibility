@@ -1,0 +1,8 @@
+{
+  "name": "starsvisibility-twilight-lut-harness-tooling",
+  "private": true,
+  "description": "Dev-only tooling (Playwright) for the EXPERIMENTAL twilight-LUT first-visible harness under scientific-tools/twilight-lut/harness. Not part of the production StarsVisibility app (index.html has no build step and no runtime dependencies).",
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}

@@ -1,0 +1,4 @@
+# Node tooling for the experimental twilight-LUT harness
+# (scientific-tools/twilight-lut/harness). NOT part of the production app.
+node_modules/
+package-lock.json
