@@ -151,18 +151,63 @@ def sun_target_separation_deg(sun_depression_deg, target_alt_deg, rel_az_deg):
     return math.degrees(math.acos(max(-1.0, min(1.0, c))))
 
 
-def current_model_twilight_nl(sun_depression_deg, target_alt_deg, rel_az_deg,
-                              baseline_sqm=21.8):
-    """The exact quantity Btwi the calculator adds at the target direction."""
-    sep = sun_target_separation_deg(sun_depression_deg, target_alt_deg, rel_az_deg)
-    return twilight_excess_nl(sun_depression_deg, baseline_sqm) * \
-        directional_twilight_factor(sep, target_alt_deg)
+def local_sky_components(sun_depression_deg, target_geometric_altitude_deg,
+                         target_apparent_altitude_deg, relative_azimuth_deg,
+                         baseline_sqm=21.8):
+    """Faithful port of localSkyBrightnessComponents for the moonless,
+    zenith-referenced, no-calibration case (PG-2 end-to-end contract).
 
-
-def total_sky_mag_arcsec2(twilight_nl, target_alt_deg, baseline_sqm=21.8):
-    """Reproduce localSkyBrightnessComponents for a moonless, zenith-referenced
-    baseline: dark floor with horizon brightening + twilight excess."""
+    Reproduces production exactly, including that the twilight excess is
+    computed against the HORIZON-BRIGHTENED baseSkySqm (not raw baseline), and
+    that horizon brightening + directional factor use the APPARENT altitude
+    while the Sun-target separation uses the GEOMETRIC altitude."""
     b_dark = nl_from_mag(baseline_sqm)
-    x = air_mass(max(target_alt_deg, 0.1))
+    xs = air_mass(max(target_apparent_altitude_deg, 0.1))
+    b_dark *= 1 + 0.4 * max(0.0, xs - 1)          # horizon brightening (apparent)
+    base_sky_sqm = mag_from_nl(b_dark)
+    sep = sun_target_separation_deg(sun_depression_deg,
+                                    target_geometric_altitude_deg,
+                                    relative_azimuth_deg)
+    twilight_base_nl = twilight_excess_nl(sun_depression_deg, base_sky_sqm)
+    b_twi = twilight_base_nl * directional_twilight_factor(
+        sep, target_apparent_altitude_deg)
+    total_mag = mag_from_nl(b_dark + b_twi)
+    return {"twilightAddedNL": b_twi, "baseSkyNL": b_dark,
+            "baseSkySqm": base_sky_sqm, "skyBrightnessMagArcsec2": total_mag,
+            "sunStarSeparationDeg": sep}
+
+
+def current_model_twilight_nl(sun_depression_deg, target_geometric_altitude_deg,
+                              target_apparent_altitude_deg, relative_azimuth_deg,
+                              baseline_sqm=21.8):
+    """Btwi the calculator adds at the target direction (PG-2 explicit
+    contract). Delegates to local_sky_components so it matches production
+    including the horizon-brightened base used for the excess."""
+    return local_sky_components(
+        sun_depression_deg, target_geometric_altitude_deg,
+        target_apparent_altitude_deg, relative_azimuth_deg,
+        baseline_sqm)["twilightAddedNL"]
+
+
+def current_model_twilight_nl_from_geometric(sun_depression_deg,
+                                             target_geometric_altitude_deg,
+                                             relative_azimuth_deg,
+                                             baseline_sqm=21.8):
+    """Convenience: derive apparent altitude from geometric via the production
+    Saemundsson refraction, then evaluate."""
+    app = apparent_altitude(target_geometric_altitude_deg)
+    return current_model_twilight_nl(sun_depression_deg,
+                                     target_geometric_altitude_deg, app,
+                                     relative_azimuth_deg, baseline_sqm)
+
+
+def total_sky_mag_arcsec2(twilight_nl, target_apparent_altitude_deg,
+                          baseline_sqm=21.8):
+    """Total sky brightness given an already-computed twilight excess. NOTE:
+    this recomputes b_dark; it is exact only when `twilight_nl` was produced
+    with the same apparent altitude and baseline. For a faithful end-to-end
+    value prefer local_sky_components(...)['skyBrightnessMagArcsec2']."""
+    b_dark = nl_from_mag(baseline_sqm)
+    x = air_mass(max(target_apparent_altitude_deg, 0.1))
     b_dark *= 1 + 0.4 * max(0.0, x - 1)
     return mag_from_nl(b_dark + twilight_nl)

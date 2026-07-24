@@ -42,16 +42,21 @@ def zenith_lookup(cases):
 
 
 def evaluate(r, zenith):
+    # The libRadtran case altitude IS the GEOMETRIC LUT axis. The current model
+    # uses geometric for the Sun-target separation and APPARENT for the
+    # directional factor / horizon brightening, so derive apparent here.
     dep, alt, raz = r["sunDepressionDeg"], r["targetAltitudeDeg"], r["relativeAzimuthDeg"]
+    app = cur.apparent_altitude(alt)
     aod = r["aod550"]
     sep = cur.sun_target_separation_deg(dep, alt, raz)
     row = {
         "caseId": r["caseId"], "group": r["group"],
-        "sunDepressionDeg": dep, "targetAltitudeDeg": alt,
+        "sunDepressionDeg": dep, "targetGeometricAltitudeDeg": alt,
+        "targetApparentAltitudeDeg": round(app, 4),
         "relativeAzimuthDeg": raz, "angularSeparationDeg": round(sep, 2),
         "aod550": aod,
     }
-    cur_nl = cur.current_model_twilight_nl(dep, alt, raz, BASELINE_SQM)
+    cur_nl = cur.current_model_twilight_nl(dep, alt, app, raz, BASELINE_SQM)
     abs_nl = r["twilightNl"]
     row["currentTwilightNl"] = cur_nl
     row["absoluteTwilightNl"] = abs_nl
@@ -59,7 +64,8 @@ def evaluate(r, zenith):
     zref = zenith.get((dep, aod))
     if zref and zref["twilightNl"] > 0:
         ratio = abs_nl / zref["twilightNl"]
-        cur_zenith_nl = cur.current_model_twilight_nl(dep, 90, 0, BASELINE_SQM)
+        cur_zenith_nl = cur.current_model_twilight_nl(
+            dep, 90, cur.apparent_altitude(90), 0, BASELINE_SQM)
         hyb_nl = cur_zenith_nl * ratio
         row["lutDirectionalRatio"] = ratio
         row["hybridTwilightNl"] = hyb_nl
@@ -71,7 +77,7 @@ def evaluate(r, zenith):
         if nl is None or nl <= 0:
             continue
         row[f"{name}Log10Nl"] = math.log10(nl)
-        sb = cur.total_sky_mag_arcsec2(nl, alt, BASELINE_SQM)
+        sb = cur.total_sky_mag_arcsec2(nl, app, BASELINE_SQM)
         row[f"{name}TotalSkyMag"] = sb
         row[f"{name}NELM"] = cur.limiting_magnitude_from_sky_brightness(sb)
     if row.get("currentLog10Nl") is not None and row.get("absoluteLog10Nl") is not None:
@@ -97,7 +103,7 @@ def main():
     zenith = zenith_lookup(cases)
     rows = [evaluate(r, zenith) for r in cases if r.get("repeatIndex", 0) == 0]
 
-    cols = ["caseId", "group", "sunDepressionDeg", "targetAltitudeDeg",
+    cols = ["caseId", "group", "sunDepressionDeg", "targetGeometricAltitudeDeg",
             "relativeAzimuthDeg", "angularSeparationDeg", "aod550",
             "currentTwilightNl", "hybridTwilightNl", "absoluteTwilightNl",
             "absoluteRelUncert", "lutDirectionalRatio",
@@ -132,7 +138,7 @@ def main():
           "|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
         md.append("| " + " | ".join([
-            r["caseId"], fmt(r["sunDepressionDeg"]), fmt(r["targetAltitudeDeg"]),
+            r["caseId"], fmt(r["sunDepressionDeg"]), fmt(r["targetGeometricAltitudeDeg"]),
             fmt(r["relativeAzimuthDeg"]), fmt(r["angularSeparationDeg"]),
             fmt(r["currentTwilightNl"]), fmt(r.get("hybridTwilightNl")),
             fmt(r["absoluteTwilightNl"]), fmt(r.get("absMinusCurrentDex")),
@@ -162,7 +168,7 @@ def main():
             cells.append(f"{c:+.2f}/{(f'{h:+.2f}' if h is not None else '--')}/{a:+.2f}")
         rows2.append(rec)
         md2.append(f"| {r['caseId']} | {r['sunDepressionDeg']} | "
-                   f"{r['targetAltitudeDeg']} | {r['relativeAzimuthDeg']} | "
+                   f"{r['targetGeometricAltitudeDeg']} | {r['relativeAzimuthDeg']} | "
                    + " | ".join(cells) + " |")
     (REPORTS / "model-variant-comparison.md").write_text("\n".join(md2) + "\n")
     with open(REPORTS / "model-variant-comparison.csv", "w", newline="") as f:
