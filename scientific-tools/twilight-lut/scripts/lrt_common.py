@@ -101,6 +101,10 @@ def canonical_config(case):
         "molAbsParam": "crs",
         "solarSpectrum": "atlas_plus_modtran",
         "radianceUnits": "mW m-2 nm-1 sr-1",
+        # FC-5: generated at the 1 AU reference distance (no day_of_year). The
+        # absolute model scales by (1AU/r)^2 at runtime; the hybrid ratio cancels
+        # it. Day-of-year is NOT a LUT axis.
+        "sunEarthDistanceReferenceAU": 1.0,
         "pipelineVersion": 4,   # bump: elevation now emitted; vroom default off
     }
 

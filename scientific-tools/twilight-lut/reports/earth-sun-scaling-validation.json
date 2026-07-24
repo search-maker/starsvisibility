@@ -1,0 +1,37 @@
+{
+ "referenceAU": 1.0,
+ "tolerance": 0.003,
+ "worstRelError": 0.0008433889456259219,
+ "pass": true,
+ "rows": [
+  {
+   "dayOfYear": 3,
+   "rAU": 0.98329,
+   "predictedFactor": 1.0342753456433254,
+   "observedFactor": 1.035077391752751,
+   "relError": 0.000775466719577177
+  },
+  {
+   "dayOfYear": 95,
+   "rAU": 1.00033,
+   "predictedFactor": 0.999338591567394,
+   "observedFactor": 0.9990461474559955,
+   "relError": 0.00029263766441744814
+  },
+  {
+   "dayOfYear": 185,
+   "rAU": 1.01671,
+   "predictedFactor": 0.9674052790020773,
+   "observedFactor": 0.9665893800838268,
+   "relError": 0.0008433889456259219
+  },
+  {
+   "dayOfYear": 266,
+   "rAU": 1.00354,
+   "predictedFactor": 0.9929572648183036,
+   "observedFactor": 0.9930456659064153,
+   "relError": 8.90280893688576e-05
+  }
+ ],
+ "note": "uvspec day_of_year applies the (1AU/r)^2 solar-flux scale; the LUT-side sun_distance_radiance_factor reproduces it. Hybrid ratio cancels this factor; absolute model must apply it."
+}

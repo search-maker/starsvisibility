@@ -80,6 +80,19 @@ description of the model until validation completes is:
 7. **Matched observational validation** (directive 13).
 8. **Staged browser module A→D** behind a disabled flag (directives 14, 16).
 
+### Foundation corrections completed after the sync (FC-1…FC-5)
+
+- **FC-1** elevation fail-closed for every unsupported nonzero elevation
+  (including negative); `aod550` = above-site optical depth contract documented.
+- **FC-2** VROOM: TOST-style equivalence test (CI entirely within tolerance),
+  not failure-to-reject; `experimental-not-authorized`; not a grid prerequisite.
+- **FC-3** legacy VROOM-on feasibility labelled; generator default now off.
+- **FC-4** primary luminance = raw ~0.05 nm trapezoid; 3-way convergence
+  (`spectral-integration-convergence.json`); fail-loud Johnson V.
+- **FC-5** Earth-Sun distance contract: 1 AU reference in metadata; runtime
+  `(1AU/r)^2` scaling for the absolute model (hybrid cancels), validated against
+  libRadtran `day_of_year` to 0.08 % (`earth-sun-scaling-validation.json`).
+
 Nothing above modifies production behavior or enables the experimental model by
 default; all of it lives under `scientific-tools/twilight-lut/` and
 `src/experimental/` (when created) behind a disabled flag.
