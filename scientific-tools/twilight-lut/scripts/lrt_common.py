@@ -59,6 +59,9 @@ def uvspec_version(uvspec_path):
 
 
 def case_id(case):
+    """Human-readable GEOMETRY label. NOT the restart identity — that is the
+    configurationHash below, which also covers photons/seed/solver/atmosphere/
+    elevation/albedo/vroom/wavelength grid."""
     dep = case["sunDepressionDeg"]
     alt = case["targetAltitudeDeg"]
     raz = case["relativeAzimuthDeg"]
@@ -67,6 +70,59 @@ def case_id(case):
     if case.get("repeatIndex", 0):
         cid += f"_rep{case['repeatIndex']}"
     return cid
+
+
+# Every parameter that changes the physics or the numerics of a uvspec run.
+# Anything omitted here would make two scientifically different runs collide.
+CONFIG_KEYS = (
+    "sunDepressionDeg", "targetAltitudeDeg", "relativeAzimuthDeg", "aod550",
+    "atmosphere", "surfaceAlbedo", "observerElevationM", "solver",
+    "photonCount", "randomSeed", "vroom", "pseudospherical",
+)
+
+
+def canonical_config(case):
+    """Deterministic dict of every run-affecting parameter, with defaults made
+    explicit so two nominally-equal cases always hash identically."""
+    return {
+        "sunDepressionDeg": float(case["sunDepressionDeg"]),
+        "targetAltitudeDeg": float(case["targetAltitudeDeg"]),
+        "relativeAzimuthDeg": float(case["relativeAzimuthDeg"]),
+        "aod550": float(case["aod550"]),
+        "atmosphere": case.get("atmosphere", "afglus"),
+        "surfaceAlbedo": float(case.get("surfaceAlbedo", 0.15)),
+        "observerElevationM": float(case.get("observerElevationM", 0)),
+        "solver": case.get("solver", "mystic"),
+        "photonCount": int(case.get("photonCount", 200000)),
+        "randomSeed": int(case.get("randomSeed", 1000)),
+        "vroom": case.get("vroom", "on"),
+        "pseudospherical": bool(case.get("pseudospherical", False)),
+        "wavelengthGrid": list(WAVELENGTH_NM),
+        "molAbsParam": "crs",
+        "solarSpectrum": "atlas_plus_modtran",
+        "radianceUnits": "mW m-2 nm-1 sr-1",
+        "pipelineVersion": 3,   # bump when the run recipe changes meaning
+    }
+
+
+def configuration_hash(case, uvspec_ver, data_provenance):
+    """Full restart identity: canonical config + libRadtran version + data
+    provenance. Two runs may be treated as the same only if this matches."""
+    payload = {
+        "config": canonical_config(case),
+        "uvspecVersion": uvspec_ver,
+        "dataProvenance": data_provenance,
+    }
+    blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def data_provenance(data_dir):
+    """A stable fingerprint of the libRadtran data package used."""
+    d = Path(data_dir)
+    marker = d / "solar_flux" / "atlas_plus_modtran"
+    size = marker.stat().st_size if marker.exists() else None
+    return {"dataDir": str(d), "solarSpectrumBytes": size}
 
 
 def umu_for_altitude(target_altitude_deg):
@@ -141,57 +197,150 @@ def git_commit_hash():
         return None
 
 
+def _valid_completed_attempt(attempt_dir, expected_hash, expected_ver):
+    """A completed run may be reused only if EVERY check passes: manifest hash
+    matches, libRadtran version matches, status ok, radiance file exists AND
+    parses AND covers the full wavelength grid."""
+    meta_f = attempt_dir / "meta.json"
+    if not meta_f.exists():
+        return False, "no-meta"
+    try:
+        meta = json.loads(meta_f.read_text())
+    except json.JSONDecodeError:
+        return False, "meta-unreadable"
+    if meta.get("configurationHash") != expected_hash:
+        return False, "hash-mismatch"
+    if meta.get("uvspecVersion") != expected_ver:
+        return False, "version-mismatch"
+    if meta.get("status") != "ok":
+        return False, "status-" + str(meta.get("status"))
+    rad = attempt_dir / "mc.rad.spc"
+    if not rad.exists():
+        return False, "no-rad-file"
+    try:
+        parsed = parse_spc(rad)
+    except (OSError, ValueError):
+        return False, "rad-unparseable"
+    covered = sum(1 for w in WAVELENGTH_NM
+                  if any(abs(w - x) < 1.0 for x in parsed))
+    if covered < len(WAVELENGTH_NM):
+        return False, f"incomplete-spectrum-{covered}/{len(WAVELENGTH_NM)}"
+    return True, "ok"
+
+
+def _next_attempt_index(cdir):
+    existing = [int(p.name.split("-")[1]) for p in cdir.glob("attempt-*")
+                if p.name.split("-")[1].isdigit()]
+    return max(existing) + 1 if existing else 0
+
+
 def run_case(case, uvspec, data_dir, overwrite=False, timeout=3600):
-    """Execute one case into raw-output/<caseId>/. Restartable: a completed,
-    parseable case is skipped unless overwrite. Never silently overwrites."""
+    """Execute one case into raw-output/<caseId>/attempt-NNN/ (IMMUTABLE) and
+    update raw-output/<caseId>/active.json.
+
+    Restart identity is the configurationHash (geometry + photons + seed +
+    solver + atmosphere + elevation + albedo + vroom + wavelength grid +
+    libRadtran version + data provenance). A prior attempt is reused ONLY when
+    its hash, version, status, output files and parseability all validate.
+    A changed configuration or a failure never overwrites earlier output — it
+    creates a new immutable attempt directory. `overwrite=True` forces a fresh
+    attempt even when a valid one exists."""
     cid = case_id(case)
     cdir = RAW_DIR / cid
-    done = cdir / "meta.json"
-    if done.exists() and not overwrite:
-        try:
-            meta = json.loads(done.read_text())
-            if meta.get("status") == "ok":
-                return {"caseId": cid, "status": "skipped-complete"}
-        except json.JSONDecodeError:
-            pass
     cdir.mkdir(parents=True, exist_ok=True)
-    wl_file = cdir / "wavelengths.dat"
+    uvspec_ver = uvspec_version(uvspec)
+    prov = data_provenance(data_dir)
+    cfg_hash = configuration_hash(case, uvspec_ver, prov)
+
+    active_f = cdir / "active.json"
+    if not overwrite and active_f.exists():
+        try:
+            active = json.loads(active_f.read_text())
+            sel = cdir / active.get("selectedAttempt", "")
+            valid, why = _valid_completed_attempt(sel, cfg_hash, uvspec_ver)
+            if valid:
+                return {"caseId": cid, "status": "skipped-complete",
+                        "configurationHash": cfg_hash,
+                        "attempt": active["selectedAttempt"]}
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    idx = _next_attempt_index(cdir)
+    adir = cdir / f"attempt-{idx:03d}"
+    adir.mkdir()
+    wl_file = adir / "wavelengths.dat"
     write_wavelength_grid(wl_file)
-    basename = cdir / "mc"
+    basename = adir / "mc"
     inp_text = build_input(case, data_dir, wl_file, basename)
-    (cdir / "case.inp").write_text(inp_text)
+    (adir / "case.inp").write_text(inp_text)
     t0 = time.time()
     try:
-        proc = subprocess.run([str(uvspec)], stdin=(cdir / "case.inp").open(),
-                              stdout=(cdir / "stdout.txt").open("w"),
-                              stderr=(cdir / "stderr.txt").open("w"),
-                              cwd=cdir, timeout=timeout)
-        rc = proc.returncode
-        err = None
+        proc = subprocess.run([str(uvspec)], stdin=(adir / "case.inp").open(),
+                              stdout=(adir / "stdout.txt").open("w"),
+                              stderr=(adir / "stderr.txt").open("w"),
+                              cwd=adir, timeout=timeout)
+        rc, err = proc.returncode, None
     except subprocess.TimeoutExpired:
         rc, err = -1, "timeout"
     runtime = time.time() - t0
-    rad_file = cdir / "mc.rad.spc"
-    std_file = cdir / "mc.rad.std.spc"
-    status = "ok"
+    rad_file = adir / "mc.rad.spc"
     if err:
         status = err
     elif rc != 0:
         status = f"uvspec-exit-{rc}"
     elif not rad_file.exists() or not parse_spc(rad_file):
         status = "no-radiance-output"
+    else:
+        status = "ok"
     meta = {
-        "caseId": cid, **case,
+        "caseId": cid, "attempt": f"attempt-{idx:03d}",
+        "configurationHash": cfg_hash,
+        "canonicalConfig": canonical_config(case),
+        "dataProvenance": prov,
+        **{k: case.get(k) for k in CONFIG_KEYS if k in case},
+        "group": case.get("group"), "repeatIndex": case.get("repeatIndex", 0),
         "sza": 90.0 + case["sunDepressionDeg"],
         "umu": umu_for_altitude(case["targetAltitudeDeg"]),
         "phi": case["relativeAzimuthDeg"], "phi0": 0.0,
         "status": status, "runtimeSeconds": round(runtime, 3),
         "inputSha256": sha256_text(inp_text),
-        "uvspecVersion": uvspec_version(uvspec),
+        "uvspecVersion": uvspec_ver,
         "generatorCommit": git_commit_hash(),
         "radianceUnits": "mW m-2 nm-1 sr-1",
         "outputIsReal": True,
         "generatedUtc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
-    done.write_text(json.dumps(meta, indent=1))
-    return {"caseId": cid, "status": status, "runtimeSeconds": runtime}
+    (adir / "meta.json").write_text(json.dumps(meta, indent=1))
+
+    # Update manifest: select this attempt if ok, else keep last ok if any.
+    selected = f"attempt-{idx:03d}"
+    if status != "ok" and active_f.exists():
+        try:
+            prev = json.loads(active_f.read_text())
+            psel = cdir / prev.get("selectedAttempt", "")
+            if _valid_completed_attempt(psel, cfg_hash, uvspec_ver)[0]:
+                selected = prev["selectedAttempt"]
+        except (json.JSONDecodeError, OSError):
+            pass
+    active_f.write_text(json.dumps({
+        "caseId": cid, "selectedAttempt": selected,
+        "configurationHash": cfg_hash, "status": status,
+        "latestAttempt": f"attempt-{idx:03d}",
+        "totalAttempts": idx + 1,
+        "updatedUtc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }, indent=1))
+    return {"caseId": cid, "status": status, "runtimeSeconds": runtime,
+            "configurationHash": cfg_hash, "attempt": f"attempt-{idx:03d}"}
+
+
+def selected_attempt_dir(cdir):
+    """Return the active/selected attempt directory for a case, or None."""
+    active_f = Path(cdir) / "active.json"
+    if not active_f.exists():
+        return None
+    try:
+        active = json.loads(active_f.read_text())
+    except (json.JSONDecodeError, OSError):
+        return None
+    sel = Path(cdir) / active.get("selectedAttempt", "")
+    return sel if sel.exists() else None

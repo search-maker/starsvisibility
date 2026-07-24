@@ -15,7 +15,8 @@ Malformed or incomplete outputs are flagged, never silently accepted.
 """
 import json
 from pathlib import Path
-from lrt_common import RAW_DIR, PROCESSED_DIR, WAVELENGTH_NM, parse_spc
+from lrt_common import (RAW_DIR, PROCESSED_DIR, WAVELENGTH_NM, parse_spc,
+                        selected_attempt_dir)
 
 
 def bin_1nm(pairs):
@@ -45,10 +46,24 @@ def nearest(pairs_dict, target):
     return pairs_dict[w]
 
 
-def collect_case(cdir: Path):
+def resolve_run_dir(cdir: Path):
+    """Return the directory holding the run files. New layout: the selected
+    attempt under active.json. Legacy flat layout: the case dir itself."""
+    sel = selected_attempt_dir(cdir)
+    if sel is not None:
+        return sel
+    if (cdir / "meta.json").exists():   # legacy flat M2 layout
+        return cdir
+    return None
+
+
+def collect_case(case_dir: Path):
+    cdir = resolve_run_dir(case_dir)
+    if cdir is None:
+        return {"caseId": case_dir.name, "status": "no-meta"}
     meta_file = cdir / "meta.json"
     if not meta_file.exists():
-        return {"caseId": cdir.name, "status": "no-meta"}
+        return {"caseId": case_dir.name, "status": "no-meta"}
     rec = json.loads(meta_file.read_text())
     if rec.get("status") != "ok":
         return rec
