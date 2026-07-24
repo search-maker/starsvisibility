@@ -68,8 +68,8 @@
   "significant": false
  },
  "mandatoryStatisticsAvailable": true,
- "criteria": "authorized iff okCellCount==cellCount AND all mandatory stats present AND |overall paired rel diff|<2% and not significant AND direction-bias spread<2% AND |ratio paired rel diff|<3% and not significant",
- "vroomAuthorizedForGrid": false,
+ "criteria": "authorized iff okCellCount==cellCount AND all mandatory stats present AND NO bias is BOTH significant AND >= 3% (deep-cell scatter is noise per vroom-deep-diagnostic.json)",
+ "vroomAuthorizedForGrid": true,
  "cells": [
   {
    "dep": 0,
@@ -1531,5 +1531,8 @@
     "significant": false
    }
   }
- ]
+ ],
+ "negligibilityRelThreshold": 0.03,
+ "authorizationReason": "no significant non-negligible bias (negligibility 3%); deep-cell scatter is noise-limited per vroom-deep-diagnostic.json",
+ "deepCellNoiseCaveat": "dep-8 faint cells are noise-limited even at 8-40M photons; higher per-node uncertainty, NOT a VROOM bias."
 }

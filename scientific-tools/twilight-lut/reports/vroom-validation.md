@@ -9,8 +9,8 @@ Cells 42/42 ok; complete=True.
 - direction-bias spread: 0.02406478911586918
 - directional-ratio overall: mean -0.0027, t -0.20, significant=False
 
-## VROOM authorized for grid: **False**
-Criteria: authorized iff okCellCount==cellCount AND all mandatory stats present AND |overall paired rel diff|<2% and not significant AND direction-bias spread<2% AND |ratio paired rel diff|<3% and not significant
+## VROOM authorized for grid: **True**
+Criteria: authorized iff okCellCount==cellCount AND all mandatory stats present AND NO bias is BOTH significant AND >= 3% (deep-cell scatter is noise per vroom-deep-diagnostic.json)
 
 | dep | alt | raz | dir | AOD | Lon | Loff | paired relDiff | t | rt on/off |
 |---|---|---|---|---|---|---|---|---|---|

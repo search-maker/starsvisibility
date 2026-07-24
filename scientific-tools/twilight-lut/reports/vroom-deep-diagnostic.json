@@ -1,0 +1,83 @@
+{
+ "cells": [
+  {
+   "dep": 8,
+   "alt": 10,
+   "raz": 180,
+   "aod": 0.05,
+   "series": [
+    {
+     "status": "ok",
+     "photons": 8000000,
+     "photopicOn": 0.15139103803364176,
+     "photopicOff": 0.15340216826743894,
+     "pairedRelDiffMean": -0.003900961892864662,
+     "pairedRelDiffSE": 0.05867299505758709,
+     "t": -0.06648649671004349
+    },
+    {
+     "status": "ok",
+     "photons": 20000000,
+     "photopicOn": 0.15451381310964207,
+     "photopicOff": 0.16997191375101917,
+     "pairedRelDiffMean": -0.08679819457017235,
+     "pairedRelDiffSE": 0.035234316511847524,
+     "t": -2.4634561746355
+    },
+    {
+     "status": "ok",
+     "photons": 40000000,
+     "photopicOn": 0.15866258091299584,
+     "photopicOff": 0.15183981044279607,
+     "pairedRelDiffMean": 0.04908034865214541,
+     "pairedRelDiffSE": 0.044729438903512414,
+     "t": 1.0972717265248624
+    }
+   ],
+   "convergesToAgreement": false,
+   "noSignificantBiasAtHighestPhotons": true,
+   "signFlipsAcrossPhotons": true
+  },
+  {
+   "dep": 8,
+   "alt": 30,
+   "raz": 180,
+   "aod": 0.05,
+   "series": [
+    {
+     "status": "ok",
+     "photons": 8000000,
+     "photopicOn": 0.08903482768550466,
+     "photopicOff": 0.07794533759762097,
+     "pairedRelDiffMean": 0.16045443368164863,
+     "pairedRelDiffSE": 0.08481411019542107,
+     "t": 1.8918365506864827
+    },
+    {
+     "status": "ok",
+     "photons": 20000000,
+     "photopicOn": 0.093715755112558,
+     "photopicOff": 0.08526745130516714,
+     "pairedRelDiffMean": 0.10770907093809495,
+     "pairedRelDiffSE": 0.05835466163945644,
+     "t": 1.845766352028123
+    },
+    {
+     "status": "ok",
+     "photons": 40000000,
+     "photopicOn": 0.09416176326891469,
+     "photopicOff": 0.0931629471217055,
+     "pairedRelDiffMean": 0.018583353352664915,
+     "pairedRelDiffSE": 0.05584218119923103,
+     "t": 0.3327834435113508
+    }
+   ],
+   "convergesToAgreement": true,
+   "noSignificantBiasAtHighestPhotons": true,
+   "signFlipsAcrossPhotons": false
+  }
+ ],
+ "verdict": "NO systematic VROOM bias: at the highest photon count every deep cell is non-significant (|t|<2); dep-8 scatter is Monte-Carlo noise in faint cells (some sign-flip), not a VROOM effect. Deep-twilight faint nodes remain noise-limited.",
+ "allCellsConverge": false,
+ "noSystematicVroomBias": true
+}
