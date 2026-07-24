@@ -26,56 +26,6 @@ import current_model_port as cur
 REPORTS = ROOT / "reports"
 
 
-def zscore(a, sa, b, sb):
-    denom = math.sqrt((sa or 0) ** 2 + (sb or 0) ** 2)
-    return (a - b) / denom if denom > 0 else float("nan")
-
-
-def study_vroom(photons=2_000_000):
-    """Stratified VROOM on/off. Representative dep x altitude x azimuth x AOD."""
-    cases = []
-    for dep in (0, 4, 8):
-        for alt, tag in ((10, "low"), (30, "mid"), (90, "zenith")):
-            for raz, dtag in ((0, "sunward"), (90, "cross"), (180, "anti")):
-                if alt == 90 and raz != 0:
-                    continue  # zenith azimuth-degenerate
-                for aod in (0.05, 0.30):
-                    cases.append((dep, alt, raz, aod, tag, dtag))
-    rows = []
-    for dep, alt, raz, aod, tag, dtag in cases:
-        on = H.run_radiance(dep, alt, raz, aod, photons=photons, seed=7, vroom="on")
-        off = H.run_radiance(dep, alt, raz, aod, photons=photons, seed=7, vroom="off")
-        if on["status"] != "ok" or off["status"] != "ok":
-            rows.append({"dep": dep, "alt": alt, "raz": raz, "aod": aod,
-                         "status": f"on:{on['status']} off:{off['status']}"})
-            continue
-        z = zscore(on["radiance"], on["std"], off["radiance"], off["std"])
-        rel = (on["radiance"] - off["radiance"]) / off["radiance"] if off["radiance"] else None
-        rows.append({
-            "dep": dep, "alt": alt, "raz": raz, "aod": aod,
-            "altTag": tag, "dirTag": dtag,
-            "radOn": on["radiance"], "radOff": off["radiance"],
-            "stdOn": on["std"], "stdOff": off["std"],
-            "absDiff": on["radiance"] - off["radiance"],
-            "relDiff": rel, "zScore": z,
-            "runtimeRatio": on["runtime"] / off["runtime"] if off["runtime"] else None,
-            "status": "ok"})
-    ok = [r for r in rows if r["status"] == "ok"]
-    zs = [abs(r["zScore"]) for r in ok if r["zScore"] == r["zScore"]]
-    rels = [r["relDiff"] for r in ok if r["relDiff"] is not None]
-    # direction-dependent bias: mean signed relDiff by dirTag
-    bias = {}
-    for dtag in ("sunward", "cross", "anti"):
-        v = [r["relDiff"] for r in ok if r.get("dirTag") == dtag and r["relDiff"] is not None]
-        if v:
-            bias[dtag] = statistics.mean(v)
-    verdict = ("VROOM usable: no |z|>3 systematic and |mean rel diff| small"
-               if (zs and max(zs) < 3.5 and abs(statistics.mean(rels)) < 0.05)
-               else "VROOM shows a bias — investigate before grid")
-    return {"cases": rows, "maxAbsZ": max(zs) if zs else None,
-            "meanRelDiff": statistics.mean(rels) if rels else None,
-            "directionBias": bias, "verdict": verdict, "photons": photons}
-
 
 def study_deep_boundary():
     """Photon scaling at the hardest 9,10 deg geometries."""
@@ -224,18 +174,73 @@ def _saemundsson_refr(h_true):
     return max(0.0, r) / 60.0
 
 
-def gate(result):
-    v = result["vroom"]
+def _load_vroom_authorization():
+    p = REPORTS / "vroom-validation.json"
+    if not p.exists():
+        return None
+    return json.loads(p.read_text()).get("vroomAuthorizedForGrid")
+
+
+def gate(result, quick=False):
+    """PG-4: every gate is DERIVED from measured results/tests. A study that was
+    skipped (including by --quick) can never produce a passing gate. Split into
+    coreGridAuthorized (0-8 deg) and extension9to10Authorized (provisional)."""
+    ref = result["refraction"]
+    elev = result["elevation"]
     deep = result["deepBoundary"]
-    passed = {
-        "vroomNoSystematicBias": v["maxAbsZ"] is not None and v["maxAbsZ"] < 3.5
-        and abs(v["meanRelDiff"]) < 0.05,
-        "deepBoundaryCharacterised": True,
-        "refractionQuantified": result["refraction"]["estimatedRefractionErrorMagAt0p1deg"] is not None,
-        "elevationHandled": len(result["elevation"]["cases"]) > 0,
-        "geoApparentContractFixed": True,
+    geo = result["geoApparent"]
+
+    # VROOM comes from the dedicated hardened validation, not a --quick proxy.
+    vroom_auth = _load_vroom_authorization()
+
+    # refraction: a finite numeric sensitivity estimate must exist.
+    refr_ok = (ref.get("estimatedRefractionErrorMagAt0p1deg") is not None
+               and math.isfinite(ref["estimatedRefractionErrorMagAt0p1deg"])
+               and not quick)
+
+    # elevation: >=2 sites with finite, distinct radiances (higher site darker).
+    ecases = [c for c in elev["cases"] if c.get("radiance") is not None]
+    elev_ok = (len(ecases) >= 2
+               and all(math.isfinite(c["radiance"]) and c["radiance"] > 0 for c in ecases)
+               and not quick)
+
+    # geo/apparent contract: VERIFY the mapping against the ported refraction
+    # (a real test, not a hardcoded True).
+    geo_ok = _verify_geo_apparent(geo)
+
+    # deep boundary (for the 9-10 extension only): every deep cell resolved to
+    # the target uncertainty. Skipped in --quick -> not authorized.
+    deep_cells = [c for c in deep.get("cases", []) if c.get("status") == "ok"]
+    deep_ok = (not quick and len(deep_cells) > 0
+               and all((c.get("reportedRelErr") or 1) < 0.15 for c in deep_cells))
+
+    core_gates = {
+        "vroomAuthorized": bool(vroom_auth),
+        "refractionQuantified": bool(refr_ok),
+        "elevationHandled": bool(elev_ok),
+        "geoApparentContractVerified": bool(geo_ok),
     }
-    return passed
+    core_authorized = all(core_gates.values())
+    ext_gates = {**core_gates, "deepBoundaryResolved": bool(deep_ok)}
+    ext_authorized = all(ext_gates.values())
+    return {
+        "quickMode": quick,
+        "coreGates": core_gates, "coreGridAuthorized": core_authorized,
+        "extensionGates": ext_gates, "extension9to10Authorized": ext_authorized,
+        "vroomAuthorizationSource": "reports/vroom-validation.json",
+        "note": "coreGridAuthorized covers depression 0-8; extension9to10 is "
+        "provisional and may remain unauthorized without blocking the core.",
+    }
+
+
+def _verify_geo_apparent(geo):
+    """Check the reported apparent = geometric + Saemundsson refraction against
+    current_model_port (independent computation), for every mapping row."""
+    for m in geo.get("mapping", []):
+        expected = cur.apparent_altitude(m["geometricAltDeg"])
+        if abs(expected - m["apparentAltDeg"]) > 1e-3:
+            return False
+    return len(geo.get("mapping", [])) > 0
 
 
 def main():
@@ -243,40 +248,41 @@ def main():
     ap.add_argument("--quick", action="store_true",
                     help="smaller photon counts for a fast dry run")
     args = ap.parse_args()
-    ph = 500_000 if args.quick else 2_000_000
-    result = {}
-    print("4.1 VROOM ...", flush=True)
-    result["vroom"] = study_vroom(photons=ph)
+    result = {"quickMode": args.quick,
+              "vroomReference": "reports/vroom-validation.json (dedicated "
+              "hardened paired VROOM study; not re-run here)"}
     print("4.2 deep boundary ...", flush=True)
-    result["deepBoundary"] = study_deep_boundary() if not args.quick else {"cases": [], "verdict": "skipped in quick"}
+    result["deepBoundary"] = (study_deep_boundary() if not args.quick
+                              else {"cases": [], "verdict": "SKIPPED (--quick) "
+                                    "-> extension not authorizable"})
     print("4.3 refraction ...", flush=True)
-    result["refraction"] = study_refraction()
+    result["refraction"] = study_refraction() if not args.quick else {
+        "cases": [], "estimatedRefractionErrorMagAt0p1deg": None,
+        "note": "SKIPPED (--quick) -> gate cannot pass"}
     print("4.4 polarisation ...", flush=True)
     result["polarisation"] = study_polarisation()
     print("4.5 irradiance ...", flush=True)
-    result["irradiance"] = study_irradiance()
+    result["irradiance"] = study_irradiance() if not args.quick else {
+        "cases": [], "note": "SKIPPED (--quick)"}
     print("4.6 elevation ...", flush=True)
-    result["elevation"] = study_elevation()
+    result["elevation"] = study_elevation() if not args.quick else {
+        "cases": [], "note": "SKIPPED (--quick) -> gate cannot pass"}
     print("4.7 geo/apparent ...", flush=True)
     result["geoApparent"] = study_geo_apparent()
-    result["gates"] = gate(result)
-    result["allGatesPass"] = all(result["gates"].values())
+    result["authorization"] = gate(result, quick=args.quick)
 
     REPORTS.mkdir(exist_ok=True)
     (REPORTS / "PREGRID_HARDENING_REPORT.json").write_text(json.dumps(result, indent=1))
     _write_md(result)
-    print("gates:", json.dumps(result["gates"], indent=1))
-    print("allGatesPass:", result["allGatesPass"])
+    print("authorization:", json.dumps(result["authorization"], indent=1))
 
 
 def _write_md(r):
-    L = ["# Pre-grid Hardening Report (Milestone 3 §4)", ""]
-    v = r["vroom"]
-    L += ["## 4.1 VROOM on/off", "",
-          f"- {len(v['cases'])} stratified cases, {v['photons']:,} photons each",
-          f"- max |z| = {v['maxAbsZ']}", f"- mean relative diff = {v['meanRelDiff']}",
-          f"- direction bias: {v['directionBias']}",
-          f"- **{v['verdict']}**", ""]
+    L = ["# Pre-grid Hardening Report (Milestone 3 §4)", "",
+         f"quick mode: {r.get('quickMode')}", "",
+         "## 4.1 VROOM on/off", "",
+         f"- see the dedicated hardened paired VROOM study: {r['vroomReference']}",
+         ""]
     d = r["deepBoundary"]
     L += ["## 4.2 Deep boundary (9-10 deg worst geometry)", "", f"- {d['verdict']}", "",
           "| dep | alt | raz | photons | mean rad | reported relErr | runtime s |",
@@ -315,10 +321,15 @@ def _write_md(r):
     L += ["", "Contract:", ""]
     for k, val in ga["contract"].items():
         L.append(f"- **{k}**: {val}")
-    L += ["", "## Gate", "",
-          f"- all gates pass: **{r['allGatesPass']}**"]
-    for k, val in r["gates"].items():
+    a = r["authorization"]
+    L += ["", "## Authorization (split core vs extension)", "",
+          f"- **coreGridAuthorized (0-8 deg): {a['coreGridAuthorized']}**"]
+    for k, val in a["coreGates"].items():
         L.append(f"  - {k}: {val}")
+    L += ["", f"- **extension9to10Authorized: {a['extension9to10Authorized']}**"]
+    for k, val in a["extensionGates"].items():
+        L.append(f"  - {k}: {val}")
+    L += ["", f"- {a['note']}"]
     (REPORTS / "PREGRID_HARDENING_REPORT.md").write_text("\n".join(L) + "\n")
 
 

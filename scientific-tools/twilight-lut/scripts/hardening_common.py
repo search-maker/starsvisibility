@@ -86,6 +86,72 @@ def run_radiance(sun_depression_deg, target_alt_deg, rel_az_deg, aod=0.15,
                 "elevationKm": elevation_km, "aod": aod}
 
 
+def run_radiance_spectral(sun_depression_deg, target_alt_deg, rel_az_deg,
+                          aod=0.15, photons=2_000_000, seed=1000, vroom="on",
+                          timeout=1800):
+    """Full 41-wavelength (380-780 nm) MYSTIC 1D-spherical backward radiance.
+    Returns per-wavelength radiance+std (nearest fine sample at each node) plus
+    the CIE photopic luminance and its uncertainty via integrate_visual_response.
+    Used by the hardened VROOM validation so on/off are compared on the PHOTOPIC
+    result, not a single 550 nm value."""
+    import integrate_visual_response as IV
+    from lrt_common import WAVELENGTH_NM, write_wavelength_grid
+    _init()
+    sza = 90.0 + sun_depression_deg
+    umu = umu_for_altitude(target_alt_deg)
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        wl_file = td / "wl.dat"
+        write_wavelength_grid(wl_file)
+        lines = [
+            f"data_files_path {DATA}",
+            f"atmosphere_file {DATA}/atmmod/afglus.dat",
+            f"source solar {DATA}/solar_flux/atlas_plus_modtran",
+            "mol_abs_param crs",
+            f"wavelength_grid_file {wl_file}",
+            f"wavelength {WAVELENGTH_NM[0]} {WAVELENGTH_NM[-1]}",
+            f"sza {sza:.5f}", "phi0 0", f"umu {umu:.8f}", f"phi {rel_az_deg:.2f}",
+            "zout 0", "albedo 0.15", "aerosol_default",
+            f"aerosol_modify tau550 set {aod}", "rte_solver mystic",
+            "mc_spherical 1D", f"mc_vroom {vroom}", f"mc_photons {photons}",
+            "mc_std", f"mc_randomseed {seed}", f"mc_basename {td}/mc", "quiet"]
+        (td / "c.inp").write_text("\n".join(lines) + "\n")
+        t0 = time.time()
+        try:
+            p = subprocess.run([str(UVSPEC)], stdin=(td / "c.inp").open(),
+                               capture_output=True, text=True, cwd=td,
+                               timeout=timeout)
+        except subprocess.TimeoutExpired:
+            return {"status": "timeout"}
+        rt = time.time() - t0
+        rad_f, std_f = td / "mc.rad.spc", td / "mc.rad.std.spc"
+        if p.returncode != 0 or not rad_f.exists():
+            return {"status": f"exit-{p.returncode}", "runtime": rt}
+
+        def parse(f):
+            out = {}
+            for ln in f.read_text().splitlines():
+                c = ln.split()
+                if len(c) >= 5:
+                    out[float(c[0])] = float(c[4])
+            return out
+        rad, std = parse(rad_f), (parse(std_f) if std_f.exists() else {})
+
+        def nearest(d, w):
+            if not d:
+                return None
+            k = min(d, key=lambda x: abs(x - w))
+            return d[k] if abs(k - w) < 1.0 else None
+        node_rad = [nearest(rad, w) for w in WAVELENGTH_NM]
+        node_std = [nearest(std, w) for w in WAVELENGTH_NM]
+        if any(v is None for v in node_rad):
+            return {"status": "incomplete-spectrum", "runtime": rt}
+        L, sL = IV.weighted_sum(node_rad, node_std, IV.V_PHOT, IV.KM_PHOTOPIC)
+        return {"status": "ok", "runtime": rt, "photopicLuminanceCdM2": L,
+                "photopicStdCdM2": sL, "nodeRadiance": node_rad,
+                "vroom": vroom, "seed": seed, "photons": photons}
+
+
 def run_irradiance(sun_depression_deg, aod=0.15, photons=1_000_000, seed=1000,
                    elevation_km=0.0, timeout=600):
     """Forward-mode: surface diffuse-down + direct irradiance (mc.flx.spc).
